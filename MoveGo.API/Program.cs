@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MoveGo.API.Data;
 using MoveGo.API.Services;
@@ -8,9 +9,13 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IClock, VietnamClock>();
+builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
-builder.Services.AddControllers();
+
+builder.Services.AddControllers()
+    // Enum trả về dạng chữ ("Car4Seats") thay vì số (1) cho dễ đọc
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
