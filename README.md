@@ -43,7 +43,7 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 
 1. Vào http://localhost:5200, bấm **Thuê xe**, chọn ngày, nhập tên và SĐT, gửi yêu cầu, rồi bấm **Theo dõi đơn của tôi** để mở trang theo dõi đơn.
 2. Terminal của API in ra tin Zalo giả lập, trong đó có dòng `confirm_link`. Mở link đó (đóng vai chủ xe) và bấm **Đồng ý cho thuê**.
-3. Quay lại trang theo dõi đơn: xuất hiện mã QR và đồng hồ đếm ngược 30 phút. Bấm **Giả lập đã thanh toán** (nút này chỉ có khi chạy `Development` với PayOS tắt).
+3. Quay lại trang theo dõi đơn: xuất hiện mã QR và đồng hồ đếm ngược 30 phút. Bấm **Giả lập đã thanh toán** (nút hiện khi PayOS đang tắt, và chỉ hoạt động khi API chạy ở môi trường `Development`).
 4. Đơn chuyển sang **Đã xác nhận**, hiện SĐT chủ xe và địa chỉ nhận xe. Terminal in thêm hai tin Zalo giả lập.
 5. Chủ xe có link quản lý lịch riêng (in ra terminal API lúc khởi động, dạng `/owner/manage/<token>`) để khoá ngày xe bận.
 
