@@ -27,4 +27,13 @@ public static partial class PhoneNumbers
         else if (digits.StartsWith("84") && digits.Length == 11) digits = "0" + digits[2..];
         return VnMobile().IsMatch(digits) ? digits : null;
     }
+
+    /// <summary>"0912345678" → "84912345678" (định dạng Zalo yêu cầu).</summary>
+    public static string ToZaloFormat(string phone)
+    {
+        var p = phone.Trim().Replace(" ", "");
+        if (p.StartsWith("+")) p = p[1..];
+        if (p.StartsWith("0")) p = "84" + p[1..];
+        return p;
+    }
 }

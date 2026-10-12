@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Zalo token tự gia hạn (bí mật)
+App_Data/

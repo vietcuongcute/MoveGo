@@ -12,7 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<BusinessOptions>(builder.Configuration.GetSection("Business"));
 builder.Services.AddScoped<PricingService>();
 builder.Services.AddScoped<BookingService>();
-builder.Services.AddSingleton<IZaloService, MockZaloService>();   // giả lập: chỉ in tin nhắn ra console
+
+// Zalo ZNS: chưa bật → chế độ giả lập (chỉ in tin nhắn ra console). Bật trong appsettings: Zalo:Enabled = true
+builder.Services.Configure<ZaloOptions>(builder.Configuration.GetSection("Zalo"));
+if (builder.Configuration.GetValue<bool>("Zalo:Enabled"))
+{
+    builder.Services.AddSingleton<ZaloTokenProvider>();
+    builder.Services.AddHttpClient<IZaloService, ZaloZnsService>();
+}
+else builder.Services.AddSingleton<IZaloService, MockZaloService>();
 builder.Services.AddHttpClient();
 
 // PayOS: chưa bật → thanh toán giả lập. Bật trong appsettings: PayOs:Enabled = true
