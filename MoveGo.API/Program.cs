@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using MoveGo.API.Data;
 using MoveGo.API.Services;
@@ -10,6 +11,17 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<BusinessOptions>(builder.Configuration.GetSection("Business"));
 builder.Services.AddScoped<PricingService>();
+builder.Services.AddScoped<BookingService>();
+builder.Services.AddSingleton<IZaloService, MockZaloService>();   // giả lập: chỉ in tin nhắn ra console
+
+// Chống spam tạo đơn: tối đa 10 yêu cầu / phút / địa chỉ IP
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("booking", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+});
 
 builder.Services.AddSingleton<IClock, VietnamClock>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
@@ -40,6 +52,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRateLimiter();
 app.MapControllers();
 app.MapGet("/", () => "Move-Go API is running");
 app.Run();

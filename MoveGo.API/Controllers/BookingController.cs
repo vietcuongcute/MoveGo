@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MoveGo.API.Data;
@@ -13,7 +14,7 @@ namespace MoveGo.API.Controllers;
 [Route("api/booking")]
 public class BookingController(
     AppDbContext db, IAvailabilityService availability, PricingService pricing,
-    IOptions<BusinessOptions> business) : ControllerBase
+    BookingService bookings, IOptions<BusinessOptions> business) : ControllerBase
 {
     /// <summary>
     /// Danh sách xe CÒN TRỐNG trong khoảng ngày khách chọn.
@@ -49,4 +50,23 @@ public class BookingController(
 
         return Ok(pricing.Calculate(vehicle.PricePerDay, req.StartDate.Value, req.EndDate.Value));
     }
+
+    /// <summary>
+    /// Khách gửi yêu cầu thuê xe → lưu đơn (PendingOwner), tính cọc 10%, gửi Zalo cho chủ xe.
+    /// Giới hạn 10 yêu cầu/phút/IP để chống spam.
+    /// </summary>
+    [HttpPost("create")]
+    [EnableRateLimiting("booking")]
+    public async Task<IActionResult> Create([FromBody] CreateBookingRequest req, CancellationToken ct)
+    {
+        var result = await bookings.CreateAsync(req, ct);
+        return result.Ok
+            ? Created($"/api/booking/{result.Value!.Code}", result.Value)
+            : result.ToActionResult(this);
+    }
+
+    /// <summary>Khách xem trạng thái đơn bằng mã đơn (MG-XXXXXX).</summary>
+    [HttpGet("{code}")]
+    public async Task<IActionResult> GetByCode(string code, CancellationToken ct) =>
+        (await bookings.GetByCodeAsync(code, ct)).ToActionResult(this);
 }

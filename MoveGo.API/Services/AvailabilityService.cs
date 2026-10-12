@@ -10,6 +10,9 @@ public interface IAvailabilityService
     /// <summary>Các xe còn trống trong khoảng [start, end).</summary>
     Task<List<Vehicle>> GetAvailableVehiclesAsync(DateTime start, DateTime end, VehicleCategory? category, string? location, CancellationToken ct = default);
 
+    /// <summary>1 xe cụ thể có trống trong khoảng [start, end) không? excludeBookingId: bỏ qua chính đơn đang xét.</summary>
+    Task<bool> IsAvailableAsync(int vehicleId, DateTime start, DateTime end, int? excludeBookingId = null, CancellationToken ct = default);
+
     /// <summary>Các khoảng bận của 1 xe (để vẽ lịch).</summary>
     Task<List<BusyRangeDto>> GetBusyRangesAsync(int vehicleId, DateTime from, DateTime to, CancellationToken ct = default);
 }
@@ -48,6 +51,24 @@ public class AvailabilityService(AppDbContext db, IClock clock) : IAvailabilityS
             && !v.Unavailabilities.Any(u => u.StartDate < end && u.EndDate > start));
 
         return await query.OrderBy(v => v.PricePerDay).ToListAsync(ct);
+    }
+
+    public async Task<bool> IsAvailableAsync(
+        int vehicleId, DateTime start, DateTime end, int? excludeBookingId = null, CancellationToken ct = default)
+    {
+        var now = clock.Now;
+        var exclude = excludeBookingId ?? -1;
+
+        var bookingClash = await db.Bookings.AnyAsync(b =>
+            b.VehicleId == vehicleId && b.Id != exclude
+            && (b.Status == BookingStatus.Confirmed ||
+                (b.Status == BookingStatus.AwaitingDeposit && b.HoldExpiresAt > now))
+            && b.StartDate < end && b.EndDate > start, ct);
+        if (bookingClash) return false;
+
+        var blocked = await db.VehicleUnavailabilities.AnyAsync(u =>
+            u.VehicleId == vehicleId && u.StartDate < end && u.EndDate > start, ct);
+        return !blocked;
     }
 
     public async Task<List<BusyRangeDto>> GetBusyRangesAsync(int vehicleId, DateTime from, DateTime to, CancellationToken ct = default)
