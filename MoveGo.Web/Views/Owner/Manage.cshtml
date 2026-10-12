@@ -1,0 +1,206 @@
+@model MoveGo.Web.Services.ApiResult<OwnerDashboardDto>
+@inject IOptions<SiteOptions> SiteOpt
+@{
+    var site = SiteOpt.Value;
+    var d = Model.Value;
+    var token = ViewContext.RouteData.Values["token"]?.ToString() ?? "";
+    var home = Url.Action("Index", "Home");
+    var flash = TempData["Flash"] as string;
+    var flashError = TempData["FlashError"] as string;
+    ViewData["Title"] = "Quản lý lịch xe";
+    ViewData["NoIndex"] = true;
+
+    // Lịch 5 tuần bắt đầu từ thứ Hai của tuần này (giờ Việt Nam)
+    var today = ViewHelpers.VnNow().Date;
+    var offset = ((int)today.DayOfWeek + 6) % 7;
+    var gridStart = today.AddDays(-offset);
+    const int weeks = 5;
+    string[] dow = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+}
+
+<section class="page-banner pb-36 pt-28 sm:pt-32">
+    <div class="container-x relative">
+        <span class="eyebrow eyebrow-light"><i class="fa-solid fa-calendar-days"></i> Cổng chủ xe</span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise">@(d is null ? "Link không dùng được" : $"Xin chào, {d.OwnerName}")</h1>
+        <p class="mt-3 max-w-2xl text-emerald-50/80 anim-rise" style="--d:.1s">
+            @(d is null ? "Link quản lý không hợp lệ." : "Khoá những ngày xe bận để khách không đặt nhầm. Ngày đã khoá sẽ hiện màu đỏ trên lịch của khách.")
+        </p>
+    </div>
+</section>
+
+<section class="container-x relative z-10 -mt-24 pb-24">
+    @if (!string.IsNullOrEmpty(flash))
+    {
+        <div class="mb-5 flex items-start gap-3 rounded-2xl bg-emerald-500 p-4 text-sm font-semibold text-white shadow-lift anim-pop"><i class="fa-solid fa-circle-check mt-0.5"></i><span>@flash</span></div>
+    }
+    @if (!string.IsNullOrEmpty(flashError))
+    {
+        <div class="mb-5 flex items-start gap-3 rounded-2xl bg-red-500 p-4 text-sm font-semibold text-white shadow-lift anim-pop"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>@flashError</span></div>
+    }
+
+    @if (d is null)
+    {
+        <div class="panel mx-auto max-w-xl text-center">
+            <span class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-red-50 text-3xl text-red-500"><i class="fa-solid fa-link-slash"></i></span>
+            <p class="mt-5 text-slate-600">@(Model.Error ?? "Không mở được trang quản lý.")</p>
+            <p class="mt-2 text-sm text-slate-400">Liên hệ <a class="font-bold text-emerald-600" href="https://zalo.me/@site.ZaloPhone">Zalo @site.ZaloPhone</a> để nhận lại link.</p>
+            <a href="@home" class="btn-outline-dark mt-6"><i class="fa-solid fa-arrow-left"></i> Về trang chủ</a>
+        </div>
+    }
+    else if (d.Vehicles.Count == 0)
+    {
+        <div class="panel mx-auto max-w-xl text-center text-slate-500">Bạn chưa có xe nào trên Move-Go.</div>
+    }
+    else
+    {
+        var allBookings = d.Vehicles.SelectMany(v => v.Bookings).ToList();
+        var waiting = allBookings.Count(x => x.Status == BookingStatus.PendingOwner);
+
+        @* ---------- Thống kê nhanh ---------- *@
+        <div class="mb-6 grid gap-4 sm:grid-cols-3">
+            <div class="panel !p-5 anim-rise"><div class="tile-label">Xe của bạn</div><div class="mt-1 text-3xl font-extrabold tabular">@d.Vehicles.Count</div></div>
+            <div class="panel !p-5 anim-rise" style="--d:.06s"><div class="tile-label">Đơn đang chờ bạn trả lời</div><div class="mt-1 text-3xl font-extrabold tabular @(waiting > 0 ? "text-amber-500" : "")">@waiting</div></div>
+            <div class="panel !p-5 anim-rise" style="--d:.12s"><div class="tile-label">Đơn đã chốt</div><div class="mt-1 text-3xl font-extrabold tabular text-emerald-600">@allBookings.Count(x => x.Status is BookingStatus.Confirmed or BookingStatus.Completed)</div></div>
+        </div>
+
+        <div class="space-y-6">
+        @for (var vi = 0; vi < d.Vehicles.Count; vi++)
+        {
+            var v = d.Vehicles[vi];
+            var live = v.Bookings.Where(x => x.Status is BookingStatus.PendingOwner or BookingStatus.AwaitingDeposit or BookingStatus.Confirmed).ToList();
+            <article class="panel anim-rise" style="--d:@((vi * 0.08).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))s" data-vehicle="@v.Id">
+
+                @* Đầu thẻ xe *@
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-extrabold">@v.Name</h2>
+                        <p class="mt-1 text-sm text-slate-500"><i class="fa-solid fa-location-dot text-emerald-500"></i> @v.PickupLocation · <b class="text-ink-900">@ViewHelpers.Vnd(v.PricePerDay)</b>/ngày</p>
+                    </div>
+                    <form method="post" asp-controller="Owner" asp-action="SetActive" asp-route-token="@token" asp-route-vehicleId="@v.Id" class="flex items-center gap-3">
+                        <input type="hidden" name="active" value="@((!v.IsActive).ToString().ToLowerInvariant())" />
+                        <span class="status-pill @(v.IsActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")"><i class="dot-live" style="@(v.IsActive ? "" : "background:#94a3b8")"></i> @(v.IsActive ? "Đang cho thuê" : "Tạm ngưng")</span>
+                        <button class="btn-outline-dark btn-sm" type="submit">@(v.IsActive ? "Tạm ngưng" : "Bật lại")</button>
+                    </form>
+                </div>
+
+                <div class="mt-6 grid gap-8 lg:grid-cols-2">
+                    @* ---------- Lịch 5 tuần ---------- *@
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500">Lịch 5 tuần tới</h3>
+                            <div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold text-slate-500">
+                                <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-emerald-500"></i>Đã chốt</span>
+                                <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-cyan-400"></i>Chờ cọc</span>
+                                <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-amber-300"></i>Chờ bạn</span>
+                                <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-red-400"></i>Đã khoá</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 grid grid-cols-7 gap-1.5 text-center">
+                            @foreach (var n in dow) { <div class="pb-1 text-[11px] font-bold text-slate-400">@n</div> }
+                            @for (var i = 0; i < weeks * 7; i++)
+                            {
+                                var day = gridStart.AddDays(i);
+                                var next = day.AddDays(1);
+                                var past = day < today;
+                                bool Overlaps(DateTime s, DateTime e) => s < next && e > day;
+                                var isBlocked = v.Blocks.Any(x => Overlaps(x.StartDate, x.EndDate));
+                                var confirmed = live.Any(x => x.Status == BookingStatus.Confirmed && Overlaps(x.StartDate, x.EndDate));
+                                var awaiting = live.Any(x => x.Status == BookingStatus.AwaitingDeposit && Overlaps(x.StartDate, x.EndDate));
+                                var pending = live.Any(x => x.Status == BookingStatus.PendingOwner && Overlaps(x.StartDate, x.EndDate));
+                                var (cls, tip) = confirmed ? ("bg-emerald-500 text-white", "Đã chốt")
+                                    : awaiting ? ("bg-cyan-400 text-white", "Chờ khách cọc")
+                                    : isBlocked ? ("bg-red-400 text-white", "Bạn đã khoá")
+                                    : pending ? ("bg-amber-300 text-amber-900", "Có yêu cầu chờ bạn")
+                                    : ("bg-slate-50 text-slate-600 ring-1 ring-inset ring-slate-100", "Còn trống");
+                                <div class="cal-cell grid aspect-square place-items-center rounded-xl text-xs font-bold transition hover:scale-110 @cls @(past ? "opacity-40" : "") @(day == today ? "outline outline-2 outline-offset-1 outline-emerald-500" : "")"
+                                     style="--i:@i" title="@day.ToString("dd/MM") · @tip">
+                                    @(day.Day == 1 ? day.ToString("d/M") : day.Day.ToString())
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @* ---------- Khoá lịch ---------- *@
+                    <div>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500">Khoá ngày xe bận</h3>
+                        <form method="post" asp-controller="Owner" asp-action="AddBlock" asp-route-token="@token" class="owner-block-form mt-3 space-y-3 rounded-3xl bg-emerald-50/60 p-4 ring-1 ring-emerald-100">
+                            <input type="hidden" name="vehicleId" value="@v.Id" />
+                            <input type="hidden" name="from" />
+                            <input type="hidden" name="to" />
+                            <div>
+                                <label class="field-label">Chọn khoảng ngày</label>
+                                <input type="text" class="field block-range bg-white" placeholder="Chạm để chọn ngày bắt đầu – kết thúc" readonly />
+                            </div>
+                            <div>
+                                <label class="field-label">Lý do (chỉ mình bạn thấy)</label>
+                                <input type="text" name="reason" maxlength="120" class="field bg-white" placeholder="Bảo dưỡng, đi chơi, đã cho thuê ngoài…" />
+                            </div>
+                            <button type="submit" class="btn-primary w-full"><i class="fa-solid fa-lock"></i> Khoá lịch</button>
+                        </form>
+
+                        @if (v.Blocks.Count > 0)
+                        {
+                            <ul class="mt-4 space-y-2">
+                                @foreach (var bl in v.Blocks.OrderBy(x => x.StartDate))
+                                {
+                                    <li class="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-sm shadow-sm">
+                                        <div class="min-w-0">
+                                            <div class="font-bold"><i class="fa-solid fa-lock mr-1 text-red-400"></i> @bl.StartDate.ToString("dd/MM") – @bl.EndDate.AddDays(-1).ToString("dd/MM/yyyy")</div>
+                                            @if (!string.IsNullOrWhiteSpace(bl.Reason)) { <div class="truncate text-xs text-slate-400">@bl.Reason</div> }
+                                        </div>
+                                        <form method="post" asp-controller="Owner" asp-action="RemoveBlock" asp-route-token="@token" asp-route-blockId="@bl.Id">
+                                            <button type="submit" class="grid h-9 w-9 place-items-center rounded-full text-slate-400 transition hover:bg-red-50 hover:text-red-500" aria-label="Mở lại lịch" title="Mở lại lịch"><i class="fa-solid fa-trash-can"></i></button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+
+                @* ---------- Đơn của xe này ---------- *@
+                <div class="mt-8">
+                    <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500">Đơn thuê (@v.Bookings.Count)</h3>
+                    @if (v.Bookings.Count == 0)
+                    {
+                        <p class="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-400">Chưa có đơn nào cho xe này.</p>
+                    }
+                    else
+                    {
+                        <div class="mt-3 divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100">
+                            @foreach (var bk in v.Bookings.OrderByDescending(x => x.StartDate))
+                            {
+                                var (bc, bi) = ViewHelpers.StatusBadge(bk.Status);
+                                <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 text-sm">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <b class="tabular">@bk.Code</b>
+                                            <span class="status-pill !py-1 @bc"><i class="fa-solid @bi"></i> @bk.StatusText</span>
+                                        </div>
+                                        <div class="mt-1 text-slate-500">@bk.CustomerName · @bk.StartDate.ToString("dd/MM HH:mm") → @bk.EndDate.ToString("dd/MM HH:mm")</div>
+                                        @if (!string.IsNullOrWhiteSpace(bk.CustomerPhone))
+                                        {
+                                            <a href="tel:@(new string(bk.CustomerPhone.Where(char.IsDigit).ToArray()))" class="mt-1 inline-flex items-center gap-1.5 font-bold text-emerald-700 hover:underline"><i class="fa-solid fa-phone"></i> @bk.CustomerPhone</a>
+                                        }
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="text-right"><div class="tile-label">Bạn nhận</div><div class="font-extrabold tabular">@ViewHelpers.Vnd(bk.OwnerAmount)</div></div>
+                                        @if (!string.IsNullOrWhiteSpace(bk.ConfirmToken))
+                                        {
+                                            <a class="btn-primary btn-sm" href="@Url.Action("Confirm", "Owner", new { token = bk.ConfirmToken })">Trả lời <i class="fa-solid fa-arrow-right"></i></a>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </article>
+        }
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/owner.js" asp-append-version="true"></script>
+}
