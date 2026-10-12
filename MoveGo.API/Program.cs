@@ -2,11 +2,14 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MoveGo.API.Data;
 using MoveGo.API.Services;
+using MoveGo.API.Options;
 
 // Npgsql: cho phép ghi DateTime (Kind=Unspecified) vào cột "timestamp without time zone".
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<BusinessOptions>(builder.Configuration.GetSection("Business"));
+builder.Services.AddScoped<PricingService>();
 
 builder.Services.AddSingleton<IClock, VietnamClock>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();

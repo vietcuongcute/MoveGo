@@ -4,12 +4,15 @@ using MoveGo.API.Data;
 using MoveGo.API.Dtos;
 using MoveGo.API.Models;
 using MoveGo.API.Services;
+using Microsoft.Extensions.Options;
+using MoveGo.API.Options;
 
 namespace MoveGo.API.Controllers;
 
 [ApiController]
 [Route("api/vehicles")]
-public class VehiclesController(AppDbContext db, IAvailabilityService availability, IClock clock) : ControllerBase
+public class VehiclesController(
+    AppDbContext db, IAvailabilityService availability, IClock clock, IOptions<BusinessOptions> business) : ControllerBase
 {
     /// <summary>Danh sách toàn bộ xe đang cho thuê (chưa xét lịch).</summary>
     [HttpGet]
@@ -47,5 +50,25 @@ public class VehiclesController(AppDbContext db, IAvailabilityService availabili
             return Problem(title: "Khoảng ngày không hợp lệ.", statusCode: 400);
 
         return await availability.GetBusyRangesAsync(id, start, end, ct);
+    }
+
+    /// <summary>Dữ liệu chung cho giao diện: địa điểm, loại xe, tỉ lệ cọc, số liệu thống kê thật.</summary>
+    [HttpGet("/api/meta")]   // dấu / đầu = đường dẫn tuyệt đối, bỏ qua tiền tố "api/vehicles" của controller
+    public async Task<ActionResult<MetaDto>> GetMeta(CancellationToken ct)
+    {
+        var b = business.Value;
+        var locations = await db.Vehicles.AsNoTracking().Where(v => v.IsActive)
+            .Select(v => v.PickupLocation).Distinct().OrderBy(x => x).ToListAsync(ct);
+        var vehicleCount = await db.Vehicles.CountAsync(v => v.IsActive, ct);
+        var trips = await db.Bookings.CountAsync(x =>
+            x.Status == BookingStatus.Confirmed || x.Status == BookingStatus.Completed, ct);
+
+        var categories = Enum.GetValues<VehicleCategory>()
+            .Select(c => new CategoryDto(c, VehicleMapper.CategoryLabel(c))).ToList();
+
+        return new MetaDto(
+            locations, categories,
+            b.CommissionRate, b.DepositHoldMinutes, b.MaxRentalDays,
+            new StatsDto(vehicleCount, locations.Count, trips, (int)Math.Round(b.CommissionRate * 100)));
     }
 }

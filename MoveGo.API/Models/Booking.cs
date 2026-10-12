@@ -24,9 +24,6 @@ public class Booking
     /// <summary>Lưu lại giá/ngày tại thời điểm đặt (chủ xe đổi giá sau này không ảnh hưởng đơn cũ).</summary>
     public decimal PricePerDayAtBooking { get; set; }
 
-    /// <summary>Mã các dịch vụ cộng thêm, ngăn cách bằng dấu phẩy. VD: "delivery,insurance"</summary>
-    [MaxLength(200)] public string ExtraCodes { get; set; } = "";
-    public decimal ExtrasAmount { get; set; }
 
     /// <summary>Tổng tiền thuê (đã gồm dịch vụ cộng thêm).</summary>
     public decimal TotalAmount { get; set; }

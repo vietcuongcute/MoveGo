@@ -67,15 +67,6 @@ namespace MoveGo.API.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("ExtraCodes")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<decimal>("ExtrasAmount")
-                        .HasPrecision(18)
-                        .HasColumnType("numeric(18,0)");
-
                     b.Property<DateTime?>("HoldExpiresAt")
                         .HasColumnType("timestamp without time zone");
 
