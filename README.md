@@ -56,7 +56,7 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 | `/tinh-gia` | Tính giá: nhập ngày để xem tổng tiền, tiền cọc 10% và phần trả chủ xe |
 | `/quy-trinh` | Quy trình thuê xe từng bước |
 | `/hoi-dap` | Hỏi đáp |
-| `/booking/track/<mã>` | Khách theo dõi đơn |
+| `/booking/<mã>` | Khách theo dõi đơn |
 | `/owner/...` | Trang chủ xe xác nhận đơn và quản lý lịch |
 
 ## Các API chính
