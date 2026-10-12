@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MoveGo.API/MoveGo.API.csproj" />
+  <Project Path="MoveGo.Web/MoveGo.Web.csproj" />
+</Solution>

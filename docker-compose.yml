@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: movego-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: movego
+      POSTGRES_PASSWORD: movego_dev
+      POSTGRES_DB: movego
+    ports:
+      - "5432:5432"
+    volumes:
+      - movego_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U movego -d movego"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  movego_pgdata:
