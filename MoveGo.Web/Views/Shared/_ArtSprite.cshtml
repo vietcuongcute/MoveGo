@@ -1,0 +1,72 @@
+@* Bộ hình minh hoạ xe dạng SVG sprite (vẽ riêng cho Move-Go). Thân xe lấy màu từ thuộc tính CSS `color`.
+   Dùng:  <svg class="art" style="color:#10b981"><use href="#art-car"/></svg>
+   Khi có ảnh thật của xe (Vehicle.ImageUrl) thì giao diện tự dùng ảnh thật thay cho hình này. *@
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="mg-shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".42" />
+      <stop offset=".5" stop-color="#fff" stop-opacity="0" />
+      <stop offset="1" stop-color="#000" stop-opacity=".30" />
+    </linearGradient>
+    <linearGradient id="mg-glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0f7fa" />
+      <stop offset="1" stop-color="#5eb8c9" />
+    </linearGradient>
+
+    <!-- Ô tô 4 chỗ -->
+    <symbol id="art-car" viewBox="0 0 360 170">
+      <path d="M44 126 L42 98 C42 90 48 86 58 84 L82 80 C90 56 108 40 136 38 L232 38 C254 40 268 52 280 74 L308 82 C324 86 334 98 334 112 L334 126 Z" fill="currentColor" />
+      <path d="M44 126 L42 98 C42 90 48 86 58 84 L82 80 C90 56 108 40 136 38 L232 38 C254 40 268 52 280 74 L308 82 C324 86 334 98 334 112 L334 126 Z" fill="url(#mg-shade)" />
+      <path d="M92 78 C100 62 114 48 138 46 L178 46 L178 78 Z M186 46 L230 46 C246 48 256 60 266 78 L186 78 Z" fill="url(#mg-glass)" />
+      <path d="M182 46 L182 118" stroke="#000" stroke-opacity=".18" stroke-width="2" />
+      <rect x="150" y="90" width="16" height="4" rx="2" fill="#fff" fill-opacity=".7" />
+      <rect x="204" y="90" width="16" height="4" rx="2" fill="#fff" fill-opacity=".7" />
+      <rect x="44" y="117" width="290" height="9" fill="#000" fill-opacity=".2" />
+      <path d="M318 96 L333 100 L331 107 L316 104 Z" fill="#fef9c3" />
+      <rect x="42" y="94" width="5" height="12" rx="2" fill="#fb7185" />
+      <circle cx="92" cy="128" r="29" fill="#06241f" />
+      <circle cx="268" cy="128" r="29" fill="#06241f" />
+      <g transform="translate(92 128)"><g class="wheel"><circle r="22" fill="#0b1d1a" /><circle r="14" fill="#e2e8f0" /><path d="M0-13V13M-13 0H13M-9-9L9 9M-9 9L9-9" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
+      <g transform="translate(268 128)"><g class="wheel"><circle r="22" fill="#0b1d1a" /><circle r="14" fill="#e2e8f0" /><path d="M0-13V13M-13 0H13M-9-9L9 9M-9 9L9-9" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
+    </symbol>
+
+    <!-- Ô tô 7 chỗ -->
+    <symbol id="art-van" viewBox="0 0 360 170">
+      <path d="M24 126 L22 96 C22 88 28 84 38 82 L56 78 C62 52 78 36 100 34 L262 34 C280 36 292 48 300 70 L320 78 C336 82 344 94 344 110 L344 126 Z" fill="currentColor" />
+      <path d="M24 126 L22 96 C22 88 28 84 38 82 L56 78 C62 52 78 36 100 34 L262 34 C280 36 292 48 300 70 L320 78 C336 82 344 94 344 110 L344 126 Z" fill="url(#mg-shade)" />
+      <path d="M64 76 C70 56 82 44 100 42 L136 42 L136 76 Z M144 42 L198 42 L198 76 L144 76 Z M206 42 L258 42 C272 44 282 54 292 76 L206 76 Z" fill="url(#mg-glass)" />
+      <path d="M140 42 V118 M202 42 V118" stroke="#000" stroke-opacity=".18" stroke-width="2" />
+      <rect x="114" y="88" width="14" height="4" rx="2" fill="#fff" fill-opacity=".7" />
+      <rect x="160" y="88" width="14" height="4" rx="2" fill="#fff" fill-opacity=".7" />
+      <rect x="214" y="88" width="14" height="4" rx="2" fill="#fff" fill-opacity=".7" />
+      <rect x="24" y="117" width="320" height="9" fill="#000" fill-opacity=".2" />
+      <path d="M328 92 L343 96 L341 103 L326 100 Z" fill="#fef9c3" />
+      <rect x="22" y="92" width="5" height="12" rx="2" fill="#fb7185" />
+      <circle cx="84" cy="128" r="29" fill="#06241f" />
+      <circle cx="282" cy="128" r="29" fill="#06241f" />
+      <g transform="translate(84 128)"><g class="wheel"><circle r="22" fill="#0b1d1a" /><circle r="14" fill="#e2e8f0" /><path d="M0-13V13M-13 0H13M-9-9L9 9M-9 9L9-9" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
+      <g transform="translate(282 128)"><g class="wheel"><circle r="22" fill="#0b1d1a" /><circle r="14" fill="#e2e8f0" /><path d="M0-13V13M-13 0H13M-9-9L9 9M-9 9L9-9" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
+    </symbol>
+
+    <!-- Xe máy điện -->
+    <symbol id="art-bike" viewBox="0 0 360 170">
+      <path d="M58 98 C60 78 82 64 118 62 L170 62 C180 62 186 70 186 80 L186 100 L128 110 C100 112 72 108 58 98 Z" fill="currentColor" />
+      <path d="M58 98 C60 78 82 64 118 62 L170 62 C180 62 186 70 186 80 L186 100 L128 110 C100 112 72 108 58 98 Z" fill="url(#mg-shade)" />
+      <path d="M92 58 C108 50 152 50 176 58 L176 65 L92 67 Z" fill="#1f2937" />
+      <rect x="172" y="104" width="76" height="11" rx="5.5" fill="currentColor" />
+      <rect x="172" y="104" width="76" height="11" rx="5.5" fill="#000" fill-opacity=".22" />
+      <path d="M232 114 L250 64 C252 56 260 52 268 54 L274 58 L264 114 Z" fill="currentColor" />
+      <path d="M232 114 L250 64 C252 56 260 52 268 54 L274 58 L264 114 Z" fill="url(#mg-shade)" />
+      <path d="M270 60 L268 124" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" />
+      <path d="M242 102 C252 86 284 86 294 102 L288 106 L248 106 Z" fill="currentColor" />
+      <path d="M248 50 L290 44" stroke="#1f2937" stroke-width="6" stroke-linecap="round" />
+      <path d="M268 50 L268 42 L282 38" stroke="#94a3b8" stroke-width="3" fill="none" stroke-linecap="round" />
+      <circle cx="285" cy="66" r="8" fill="#fef9c3" />
+      <circle cx="285" cy="66" r="4" fill="#fff" />
+      <path d="M76 82 C92 70 130 70 168 76" stroke="#fff" stroke-opacity=".6" stroke-width="3" fill="none" stroke-linecap="round" />
+      <rect x="56" y="88" width="5" height="10" rx="2" fill="#fb7185" />
+      <g transform="translate(96 126)"><g class="wheel"><circle r="24" fill="#0b1d1a" /><circle r="15" fill="#e2e8f0" /><path d="M0-14V14M-14 0H14M-10-10L10 10M-10 10L10-10" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
+      <g transform="translate(268 126)"><g class="wheel"><circle r="24" fill="#0b1d1a" /><circle r="15" fill="#e2e8f0" /><path d="M0-14V14M-14 0H14M-10-10L10 10M-10 10L10-10" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
+    </symbol>
+  </defs>
+</svg>

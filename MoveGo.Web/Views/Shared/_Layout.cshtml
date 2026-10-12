@@ -1,48 +1,60 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@inject IOptions<SiteOptions> SiteOpt
+@inject IOptions<ApiOptions> ApiOpt
+@{
+    var site = SiteOpt.Value;
+    var title = ViewData["Title"] is string t && t.Length > 0 ? $"{t} · {site.BrandName}" : $"{site.BrandName} – Thuê xe điện, ô tô & xe máy";
+    var description = ViewData["Description"] as string
+        ?? "Move-Go kết nối bạn với chủ xe: thuê ô tô điện & xe máy điện trực tiếp, chủ xe xác nhận qua Zalo, cọc chỉ 10%.";
+    var noIndex = ViewData["NoIndex"] as bool? ?? false;
+}
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MoveGo.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>@title</title>
+    <meta name="description" content="@description" />
+    <meta name="theme-color" content="#04231f" />
+    @if (noIndex) { <meta name="robots" content="noindex,nofollow" /> }
+    <meta property="og:title" content="@title" />
+    <meta property="og:description" content="@description" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="@($"{Context.Request.Scheme}://{Context.Request.Host}/brand/og-image.png")" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="~/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="~/brand/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="~/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="~/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="~/brand/site.webmanifest" />
+    <link rel="preload" href="~/lib/fonts/be-vietnam-pro-vietnamese-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="~/css/fonts.css" />
+    <link rel="stylesheet" href="~/lib/fontawesome/css/fontawesome.min.css" />
+    <link rel="stylesheet" href="~/lib/fontawesome/css/solid.min.css" />
+    <link rel="stylesheet" href="~/lib/fontawesome/css/brands.min.css" />
+    <link rel="stylesheet" href="~/lib/flatpickr/flatpickr.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/MoveGo.Web.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+    <script>document.documentElement.classList.add('js');</script>
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MoveGo.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+<body class="min-h-screen">
+    <div id="scroll-progress" class="fixed left-0 top-0 z-[90] h-[3px] w-full origin-left scale-x-0 bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400"></div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - MoveGo.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <partial name="_ArtSprite" />
+    <partial name="_Header" />
+
+    <main id="main">
+        @RenderBody()
+    </main>
+
+    <partial name="_Footer" />
+
+    <div id="toasts" class="pointer-events-none fixed bottom-24 left-1/2 z-[120] flex -translate-x-1/2 flex-col items-center gap-2 px-4 sm:bottom-6" aria-live="polite"></div>
+
+    <script>
+        window.MOVEGO = Object.assign({ apiBase: @Json.Serialize(ApiOpt.Value.PublicUrl.TrimEnd('/')) }, window.MOVEGO || {});
+    </script>
+    <script src="~/lib/flatpickr/flatpickr.min.js"></script>
+    <script src="~/lib/flatpickr/vn.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

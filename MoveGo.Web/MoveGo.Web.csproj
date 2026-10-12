@@ -2,8 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <RollForward>LatestMajor</RollForward>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MoveGo.Web</RootNamespace>
   </PropertyGroup>
+
+  <!-- Không cần NuGet package nào thêm: MVC + HttpClient đã có sẵn trong .NET -->
+
+  <ItemGroup>
+    <!-- Node chỉ dùng để build Tailwind, không đưa vào bản publish -->
+    <Content Remove="node_modules/**" />
+    <None Remove="node_modules/**" />
+    <Compile Remove="node_modules/**" />
+  </ItemGroup>
 
 </Project>

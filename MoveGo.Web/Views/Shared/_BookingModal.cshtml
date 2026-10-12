@@ -1,0 +1,115 @@
+@* Popup đặt xe: chọn ngày trên lịch (ngày bận bị gạch đỏ) → điền thông tin → AJAX tới API. Logic ở wwwroot/js/booking.js *@
+<div id="booking-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bm-title" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel">
+        <button type="button" class="absolute right-4 top-4 z-20 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-slate-500 shadow transition hover:rotate-90 hover:bg-emerald-500 hover:text-white" data-close aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+
+        <div class="grid md:grid-cols-5">
+            @* ---------- Cột trái: tóm tắt xe + giá ---------- *@
+            <aside class="modal-aside relative overflow-hidden p-6 text-white md:col-span-2 md:p-8">
+                <div class="relative">
+                    <span class="eyebrow eyebrow-light"><i class="fa-solid fa-bolt"></i> Yêu cầu thuê xe</span>
+                    <div id="bm-art" class="mx-auto mt-6 w-full max-w-[16rem]" style="color:#10b981">
+                        <svg class="art" viewBox="0 0 360 170"><use id="bm-art-use" href="#art-car" /></svg>
+                    </div>
+                    <h2 id="bm-title" class="mt-4 text-2xl font-extrabold !text-white">Chọn xe</h2>
+                    <p id="bm-meta" class="mt-1 text-sm text-emerald-100/80"></p>
+
+                    <div class="mt-6 rounded-2xl bg-white/10 p-4 text-sm backdrop-blur">
+                        <div id="bm-lines" class="space-y-2 text-emerald-50/90"></div>
+                        <div class="mt-3 flex items-end justify-between border-t border-white/15 pt-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-100/70">Tổng tiền thuê</span>
+                            <span id="bm-total" class="text-2xl font-extrabold">0đ</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 space-y-3 text-sm">
+                        <div class="flex items-start gap-3 rounded-2xl bg-emerald-400/15 p-3.5 ring-1 ring-emerald-300/30">
+                            <i class="fa-solid fa-qrcode mt-0.5 text-emerald-300"></i>
+                            <div>
+                                <div class="font-bold">Cọc online <span id="bm-deposit" class="text-emerald-300">0đ</span> (10%)</div>
+                                <div class="text-xs text-emerald-100/70">Chỉ thanh toán sau khi chủ xe đồng ý.</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 rounded-2xl bg-white/5 p-3.5">
+                            <i class="fa-solid fa-handshake mt-0.5 text-cyan-300"></i>
+                            <div>
+                                <div class="font-bold">Trả chủ xe <span id="bm-remaining" class="text-cyan-300">0đ</span> (90%)</div>
+                                <div class="text-xs text-emerald-100/70">Trực tiếp khi nhận xe.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            @* ---------- Cột phải: form ---------- *@
+            <div class="relative p-6 md:col-span-3 md:p-8">
+                <form id="bm-form" novalidate class="space-y-5">
+                    <div>
+                        <label class="field-label">1 · Chọn ngày nhận – trả xe</label>
+                        <div class="rounded-3xl border border-emerald-100 bg-emerald-50/40 p-3">
+                            <div id="bm-calendar-host"><input id="bm-calendar" type="text" class="sr-only" tabindex="-1" aria-hidden="true" /></div>
+                            <div class="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] font-semibold text-slate-500">
+                                <span class="inline-flex items-center gap-1.5"><i class="h-3 w-3 rounded bg-gradient-to-br from-emerald-500 to-cyan-500"></i> Bạn chọn</span>
+                                <span class="inline-flex items-center gap-1.5"><i class="h-3 w-3 rounded bg-red-100 ring-1 ring-red-200"></i> Đã có lịch / chủ xe khoá</span>
+                            </div>
+                            <p id="bm-busy-note" class="mt-2 hidden text-center text-xs text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải lịch trống…</p>
+                        </div>
+                        <p id="bm-range-text" class="mt-2 text-sm font-semibold text-slate-500">Chạm vào lịch để chọn ngày nhận, rồi ngày trả.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="field-label" for="bm-from-time">Giờ nhận xe</label>
+                            <select id="bm-from-time" class="field" data-time-select></select>
+                        </div>
+                        <div>
+                            <label class="field-label" for="bm-to-time">Giờ trả xe</label>
+                            <select id="bm-to-time" class="field" data-time-select></select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="field-label">2 · Thông tin của bạn</label>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <input id="bm-name" class="field" type="text" autocomplete="name" placeholder="Họ và tên" maxlength="100" required />
+                            <input id="bm-phone" class="field" type="tel" inputmode="tel" autocomplete="tel" placeholder="Số điện thoại (Zalo)" maxlength="16" required />
+                        </div>
+                        <textarea id="bm-note" class="field mt-3 resize-none" rows="2" maxlength="500" placeholder="Ghi chú cho chủ xe (không bắt buộc)"></textarea>
+                    </div>
+
+                    <div id="bm-error" class="hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600" role="alert"></div>
+
+                    <button id="bm-submit" type="submit" class="btn-primary btn-lg w-full">
+                        <span class="inline-flex items-center gap-2" data-label><i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu cho chủ xe</span>
+                    </button>
+                    <p class="text-center text-xs text-slate-400">
+                        Chưa cần thanh toán. Move-Go nhắn Zalo cho chủ xe; khi chủ xe đồng ý, bạn mới đặt cọc.
+                    </p>
+                </form>
+
+                @* ---------- Màn hình thành công ---------- *@
+                <div id="bm-success" class="hidden py-6 text-center">
+                    <svg class="success-check mx-auto h-24 w-24" viewBox="0 0 56 56" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="28" cy="28" r="26" /><path d="M16 29l8 8 16-17" />
+                    </svg>
+                    <h3 class="mt-5 text-2xl font-extrabold">Đã gửi yêu cầu!</h3>
+                    <p class="mx-auto mt-2 max-w-sm text-sm text-slate-500">Chủ xe vừa nhận tin nhắn Zalo. Bạn sẽ thấy kết quả ngay trên trang theo dõi đơn.</p>
+                    <div class="mx-auto mt-6 flex max-w-xs items-center justify-between rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50 px-5 py-3">
+                        <div class="text-left">
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Mã đơn của bạn</div>
+                            <div id="bm-code" class="text-xl font-extrabold tracking-wider text-ink-900">MG-XXXXXX</div>
+                        </div>
+                        <button type="button" id="bm-copy" class="grid h-10 w-10 place-items-center rounded-xl bg-white text-emerald-600 shadow-sm transition hover:bg-emerald-500 hover:text-white" aria-label="Sao chép mã"><i class="fa-solid fa-copy"></i></button>
+                    </div>
+                    <ol class="mx-auto mt-6 max-w-sm space-y-3 text-left text-sm text-slate-600">
+                        <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-500 text-xs font-bold text-white">1</span><span>Chủ xe bấm <b>Chấp nhận</b> trong Zalo.</span></li>
+                        <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-500 text-xs font-bold text-white">2</span><span>Bạn quét QR cọc 10% trong <b data-hold-minutes>30</b> phút.</span></li>
+                        <li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-500 text-xs font-bold text-white">3</span><span>Hai bên nhận số điện thoại nhau để bàn giao xe.</span></li>
+                    </ol>
+                    <a id="bm-track" href="#" class="btn-primary btn-lg mt-7 w-full max-w-xs"><i class="fa-solid fa-satellite-dish"></i> Theo dõi đơn của tôi</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

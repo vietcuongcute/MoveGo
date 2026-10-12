@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Có lỗi xảy ra";
+    ViewData["NoIndex"] = true;
+    var home = Url.Action("Index", "Home");
+}
+<section class="page-banner pb-40 pt-32 text-center">
+    <div class="container-x relative">
+        <div class="mx-auto mb-5 w-56 text-emerald-300 animate-float"><svg class="art" viewBox="0 0 360 170"><use href="#art-car" /></svg></div>
+        <h1 class="text-3xl font-extrabold !text-white sm:text-5xl anim-rise">Xe đang ghé trạm sạc một chút…</h1>
+        <p class="mx-auto mt-4 max-w-lg text-emerald-50/80 anim-rise" style="--d:.1s">Có lỗi xảy ra hoặc trang bạn tìm không còn nữa. Bạn thử quay lại trang chủ nhé.</p>
+        <a href="@home" class="btn-primary btn-lg mt-8 anim-rise" style="--d:.2s"><i class="fa-solid fa-house"></i> Về trang chủ</a>
+    </div>
+</section>
+<div class="h-24"></div>
