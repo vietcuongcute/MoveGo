@@ -1,0 +1,293 @@
+@model MoveGo.Web.Services.ApiResult<BookingTrackDto>
+@inject IOptions<SiteOptions> SiteOpt
+@{
+    var site = SiteOpt.Value;
+    var tel = new string(site.Hotline.Where(char.IsDigit).ToArray());
+    var home = Url.Action("Index", "Home");
+    var b = Model.Value;
+    ViewData["Title"] = b is null ? "Không tìm thấy đơn" : $"Đơn {b.Code}";
+    ViewData["NoIndex"] = true;
+}
+
+@if (b is null)
+{
+    @* ===================== KHÔNG TÌM THẤY ===================== *@
+    <section class="page-banner pb-40 pt-32 text-center">
+        <div class="container-x relative">
+            <span class="eyebrow eyebrow-light"><i class="fa-solid fa-magnifying-glass"></i> Theo dõi đơn</span>
+            <h1 class="mt-5 text-3xl font-extrabold !text-white sm:text-5xl">Không tìm thấy đơn này</h1>
+            <p class="mx-auto mt-4 max-w-xl text-emerald-50/80">@(Model.Error ?? "Mã đơn không đúng hoặc đã hết hạn.")</p>
+        </div>
+    </section>
+    <section class="container-x relative z-10 -mt-24 pb-24">
+        <div class="panel mx-auto max-w-xl text-center">
+            <div class="radar mx-auto grid place-items-center"><i></i><i></i><span class="relative text-3xl text-emerald-600"><span class="fa-solid fa-ticket"></span></span></div>
+            <p class="mt-6 text-slate-500">Hãy kiểm tra lại link trong tin nhắn Zalo / màn hình xác nhận. Mã đơn có dạng <b class="text-ink-900">MG-XXXXXX</b>.</p>
+            <form class="mt-6 flex gap-2" onsubmit="event.preventDefault(); var v=this.code.value.trim().toUpperCase(); if(v) location.href='/booking/'+encodeURIComponent(v);">
+                <input name="code" class="field" placeholder="Nhập mã đơn, ví dụ MG-K7P2QX" autocomplete="off" />
+                <button class="btn-primary shrink-0">Tra cứu</button>
+            </form>
+            <a href="@home" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:underline"><i class="fa-solid fa-arrow-left"></i> Về trang chủ</a>
+        </div>
+    </section>
+}
+else
+{
+    var st = b.Status;
+    var failed = st is BookingStatus.Rejected or BookingStatus.Expired or BookingStatus.Cancelled;
+
+    // Thanh tiến trình 4 bước. current = bước đang diễn ra; các bước trước đó là "xong".
+    int current = st switch
+    {
+        BookingStatus.PendingOwner => 1,
+        BookingStatus.AwaitingDeposit => 2,
+        BookingStatus.Confirmed => 3,
+        BookingStatus.Completed => 4,
+        _ => 1
+    };
+    var steps = new (string Title, string Text, string Icon)[]
+    {
+        ("Gửi yêu cầu", "Bạn đã chọn xe, ngày và điểm nhận.", "fa-paper-plane"),
+        ("Chủ xe xác nhận", "Chủ xe nhận tin Zalo và bấm đồng ý.", "fa-user-check"),
+        ("Đặt cọc 10%", "Quét mã QR để giữ xe cho bạn.", "fa-qrcode"),
+        ("Nhận xe", "Hai bên liên hệ trực tiếp, trả 90% còn lại.", "fa-key")
+    };
+
+    var (pillBg, pillText, pillIcon) = st switch
+    {
+        BookingStatus.PendingOwner => ("bg-amber-400/20 text-amber-200 ring-1 ring-amber-300/40", "Chờ chủ xe xác nhận", "fa-hourglass-half"),
+        BookingStatus.AwaitingDeposit => ("bg-cyan-400/20 text-cyan-100 ring-1 ring-cyan-300/40", "Chờ đặt cọc", "fa-qrcode"),
+        BookingStatus.Confirmed => ("bg-emerald-400/25 text-emerald-100 ring-1 ring-emerald-300/50", "Đã xác nhận", "fa-circle-check"),
+        BookingStatus.Completed => ("bg-emerald-400/25 text-emerald-100 ring-1 ring-emerald-300/50", "Hoàn tất", "fa-flag-checkered"),
+        BookingStatus.Rejected => ("bg-red-400/20 text-red-100 ring-1 ring-red-300/40", "Chủ xe từ chối", "fa-circle-xmark"),
+        BookingStatus.Expired => ("bg-slate-400/20 text-slate-100 ring-1 ring-slate-300/40", "Đã hết hạn", "fa-clock"),
+        _ => ("bg-slate-400/20 text-slate-100 ring-1 ring-slate-300/40", "Đã huỷ", "fa-ban")
+    };
+    var depositPct = b.TotalAmount > 0 ? (int)Math.Round(b.DepositAmount / b.TotalAmount * 100m) : 10;
+    var tone = ViewHelpers.Tone(new VehicleDto(0, b.VehicleName, "", b.Category, b.CategoryLabel, 0, 0, "", null, null, "", [], true));
+    var progressPct = failed ? 0 : Math.Min(100, (int)(current / 3.0 * 100));
+
+    <div id="track" data-code="@b.Code" data-status="@st" data-hold="@(b.HoldSecondsLeft ?? 0)" data-mock="@(b.IsMockPayment ? "1" : "0")">
+
+        @* ===================== BANNER ===================== *@
+        <section class="page-banner pb-36 pt-28 sm:pt-32">
+            <div class="container-x relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                <div class="anim-rise">
+                    <span class="eyebrow eyebrow-light"><i class="fa-solid fa-route"></i> Theo dõi đơn thuê xe</span>
+                    <h1 class="mt-4 flex flex-wrap items-center gap-3 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl">
+                        <span class="tabular">@b.Code</span>
+                        <button type="button" id="copy-code" class="grid h-10 w-10 place-items-center rounded-full bg-white/15 text-base text-white transition hover:bg-emerald-500" aria-label="Sao chép mã đơn" title="Sao chép mã đơn"><i class="fa-solid fa-copy"></i></button>
+                    </h1>
+                    <p class="mt-3 max-w-xl text-emerald-50/80">Xin chào <b class="text-white">@b.CustomerName</b>, trang này tự cập nhật khi chủ xe phản hồi — bạn có thể để mở hoặc quay lại bằng link này bất cứ lúc nào.</p>
+                </div>
+                <div class="anim-rise md:text-right" style="--d:.12s">
+                    <span id="status-pill" class="status-pill @pillBg"><i class="fa-solid @pillIcon"></i> @pillText</span>
+                    <p class="mt-2 text-xs text-emerald-100/60"><i class="fa-solid fa-rotate"></i> <span id="live-note">Đang theo dõi trực tiếp</span></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container-x relative z-10 -mt-24 pb-24">
+            <div class="grid gap-6 lg:grid-cols-5">
+
+                <div class="space-y-6 lg:col-span-3">
+
+                    @* ---------- Thanh tiến trình ---------- *@
+                    <div class="panel anim-rise" style="--d:.1s">
+                        <h2 class="text-lg font-extrabold">Tiến trình đơn</h2>
+                        <ol class="relative mt-6 space-y-6">
+                            <span class="stepper-line"><i style="height:@(progressPct)%"></i></span>
+                            @for (var i = 0; i < steps.Length; i++)
+                            {
+                                var isDone = !failed ? i < current : i == 0;
+                                var isCurrent = !failed && i == current;
+                                var isError = failed && i == 1;
+                                var cls = isError ? "is-error" : isDone ? "is-done" : isCurrent ? "is-current" : "";
+                                <li class="relative flex gap-4">
+                                    <span class="stepper-dot relative z-10 shrink-0 @cls">
+                                        @if (isError) { <i class="fa-solid fa-xmark"></i> }
+                                        else if (isDone) { <i class="fa-solid fa-check"></i> }
+                                        else { <i class="fa-solid @steps[i].Icon"></i> }
+                                    </span>
+                                    <div class="pt-1.5">
+                                        <div class="font-bold @(isDone || isCurrent ? "text-ink-900" : isError ? "text-red-500" : "text-slate-400")">@steps[i].Title</div>
+                                        <div class="text-sm @(isDone || isCurrent ? "text-slate-500" : "text-slate-400")">@steps[i].Text</div>
+                                    </div>
+                                </li>
+                            }
+                        </ol>
+                    </div>
+
+                    @* ---------- Khối trạng thái chính ---------- *@
+                    @switch (st)
+                    {
+                        case BookingStatus.PendingOwner:
+                            <div class="panel anim-rise text-center sm:text-left" style="--d:.2s">
+                                <div class="flex flex-col items-center gap-6 sm:flex-row">
+                                    <div class="radar grid shrink-0 place-items-center"><i></i><i></i><i></i><span class="relative grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 text-2xl text-white shadow-glow"><span class="fa-solid fa-comment-dots"></span></span></div>
+                                    <div>
+                                        <h2 class="text-xl font-extrabold">Đang chờ chủ xe xác nhận</h2>
+                                        <p class="mt-2 text-slate-500">Move-Go đã gửi tin nhắn Zalo cho chủ xe. Thường họ phản hồi trong <b class="text-ink-900">15–30 phút</b>. Khi chủ xe đồng ý, trang này sẽ tự hiện mã QR để bạn đặt cọc — <b class="text-ink-900">bạn chưa phải trả đồng nào</b>.</p>
+                                    </div>
+                                </div>
+                                <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                                    <div class="tile"><i class="fa-solid fa-shield-heart mr-1 text-emerald-500"></i> <b>Chưa mất phí</b><div class="mt-1 text-sm text-slate-500">Chỉ đặt cọc sau khi chủ xe chấp nhận.</div></div>
+                                    <div class="tile"><i class="fa-solid fa-bell mr-1 text-cyan-500"></i> <b>Lâu quá chưa thấy trả lời?</b><div class="mt-1 text-sm text-slate-500">Gọi <a class="font-bold text-emerald-600 hover:underline" href="tel:@tel">@site.Hotline</a> để chúng tôi nhắc chủ xe.</div></div>
+                                </div>
+                            </div>
+                            break;
+
+                        case BookingStatus.AwaitingDeposit:
+                            <div class="panel anim-rise overflow-hidden" style="--d:.2s">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                        <span class="status-pill bg-emerald-50 text-emerald-700"><i class="fa-solid fa-circle-check"></i> Chủ xe đã đồng ý</span>
+                                        <h2 class="mt-3 text-xl font-extrabold">Đặt cọc @(depositPct)% để giữ xe</h2>
+                                    </div>
+                                    <div class="rounded-2xl bg-ink-900 px-4 py-2.5 text-white" id="hold-box" data-seconds="@(b.HoldSecondsLeft ?? 0)">
+                                        <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Giữ xe còn</div>
+                                        <div id="hold-clock" class="countdown-digit text-2xl font-extrabold">--:--</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 grid items-center gap-8 md:grid-cols-2">
+                                    <div class="text-center">
+                                        <div class="qr-frame" id="qr-frame" data-qr="@b.QrCode">
+                                            <div id="qr-target" class="grid h-[12.5rem] w-[12.5rem] place-items-center text-slate-300"><span class="spinner !border-slate-200 !border-t-emerald-500"></span></div>
+                                        </div>
+                                        <p class="mt-3 text-xs text-slate-400">Mở app ngân hàng → Quét mã QR</p>
+                                    </div>
+                                    <div>
+                                        <div class="tile-label">Số tiền cọc</div>
+                                        <div class="mt-1 text-4xl font-extrabold text-gradient tabular">@ViewHelpers.Vnd(b.DepositAmount)</div>
+                                        <ul class="mt-4 space-y-2.5 text-sm text-slate-600">
+                                            <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Nội dung chuyển khoản đã nằm sẵn trong mã QR.</li>
+                                            <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Thanh toán xong, trang này tự cập nhật trong vài giây.</li>
+                                            <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Sau đó bạn nhận số điện thoại &amp; Zalo chủ xe.</li>
+                                        </ul>
+                                        <div class="mt-5 flex flex-wrap gap-3">
+                                            @if (!string.IsNullOrWhiteSpace(b.CheckoutUrl) && !b.IsMockPayment)
+                                            {
+                                                <a href="@b.CheckoutUrl" target="_blank" rel="noopener" class="btn-primary"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trang thanh toán</a>
+                                            }
+                                            <button type="button" id="refresh-now" class="btn-outline-dark"><i class="fa-solid fa-rotate"></i> Tôi đã chuyển khoản</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (b.IsMockPayment)
+                                {
+                                    <div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+                                        <div><b><i class="fa-solid fa-flask"></i> Chế độ thử nghiệm</b> — chưa nối PayOS thật nên không có tiền thật. Bấm nút bên phải để giả lập khách đã thanh toán.</div>
+                                        <button type="button" id="mock-pay" class="btn-dark btn-sm shrink-0"><i class="fa-solid fa-wand-magic-sparkles"></i> Giả lập đã thanh toán</button>
+                                    </div>
+                                }
+                            </div>
+                            break;
+
+                        case BookingStatus.Confirmed:
+                        case BookingStatus.Completed:
+                            <div class="panel anim-rise relative overflow-hidden" style="--d:.2s">
+                                <div class="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-emerald-300/30 blur-3xl"></div>
+                                <div class="relative flex items-center gap-4">
+                                    <svg class="success-check h-14 w-14 shrink-0" viewBox="0 0 54 54" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="27" cy="27" r="26" /><path d="M15 28l8 8 16-17" /></svg>
+                                    <div>
+                                        <h2 class="text-xl font-extrabold">@(st == BookingStatus.Completed ? "Chuyến đi đã hoàn tất — cảm ơn bạn!" : "Chốt đơn thành công!")</h2>
+                                        <p class="text-sm text-slate-500">Bạn đã cọc @ViewHelpers.Vnd(b.DepositAmount). Giờ hãy liên hệ trực tiếp với chủ xe để hẹn giờ nhận xe.</p>
+                                    </div>
+                                </div>
+
+                                @if (b.Owner is not null)
+                                {
+                                    var ph = new string(b.Owner.Phone.Where(char.IsDigit).ToArray());
+                                    <div class="relative mt-6 rounded-3xl bg-gradient-to-br from-emerald-50 to-cyan-50 p-5 ring-1 ring-emerald-100">
+                                        <div class="flex items-center gap-4">
+                                            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xl font-extrabold text-white shadow-glow">@b.Owner.Name.Trim().Substring(0, 1).ToUpperInvariant()</span>
+                                            <div class="min-w-0">
+                                                <div class="tile-label">Chủ xe của bạn</div>
+                                                <div class="truncate text-lg font-extrabold">@b.Owner.Name</div>
+                                                <a href="tel:@ph" class="text-lg font-bold text-emerald-700 hover:underline tabular">@b.Owner.Phone</a>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                            <a href="tel:@ph" class="btn-primary"><i class="fa-solid fa-phone"></i> Gọi chủ xe</a>
+                                            <a href="@b.Owner.ZaloLink" target="_blank" rel="noopener" class="btn-white !text-[#0068ff] ring-1 ring-sky-100"><span class="font-extrabold">Zalo</span> Nhắn chủ xe</a>
+                                        </div>
+                                    </div>
+                                }
+
+                                <div class="relative mt-6 grid gap-3 sm:grid-cols-2">
+                                    <div class="tile"><i class="fa-solid fa-wallet mr-1 text-emerald-500"></i> <b>Trả chủ xe khi nhận xe</b><div class="mt-1 text-2xl font-extrabold tabular">@ViewHelpers.Vnd(b.OwnerAmount)</div></div>
+                                    <div class="tile"><i class="fa-solid fa-id-card mr-1 text-cyan-500"></i> <b>Nhớ mang theo</b><div class="mt-1 text-sm text-slate-500">CCCD + giấy phép lái xe phù hợp loại xe.</div></div>
+                                </div>
+                            </div>
+                            break;
+
+                        case BookingStatus.Rejected:
+                            <div class="panel anim-rise" style="--d:.2s">
+                                <div class="flex items-start gap-4">
+                                    <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-red-50 text-xl text-red-500"><i class="fa-solid fa-circle-xmark"></i></span>
+                                    <div>
+                                        <h2 class="text-xl font-extrabold">Rất tiếc, chủ xe chưa nhận được chuyến này</h2>
+                                        <p class="mt-2 text-slate-500">@(string.IsNullOrWhiteSpace(b.RejectReason) ? "Chủ xe bận trong khoảng thời gian bạn chọn." : b.RejectReason) Bạn chưa bị trừ bất kỳ khoản tiền nào.</p>
+                                    </div>
+                                </div>
+                                <a href="@(home)#fleet" class="btn-primary mt-6"><i class="fa-solid fa-magnifying-glass"></i> Tìm xe khác còn trống</a>
+                            </div>
+                            break;
+
+                        default:
+                            <div class="panel anim-rise" style="--d:.2s">
+                                <div class="flex items-start gap-4">
+                                    <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-slate-100 text-xl text-slate-500"><i class="fa-solid @(st == BookingStatus.Expired ? "fa-clock" : "fa-ban")"></i></span>
+                                    <div>
+                                        <h2 class="text-xl font-extrabold">@(st == BookingStatus.Expired ? "Đơn đã hết hạn" : "Đơn đã được huỷ")</h2>
+                                        <p class="mt-2 text-slate-500">@(st == BookingStatus.Expired ? "Đã quá thời gian chờ nên xe được mở lại cho khách khác." : "Đơn này không còn hiệu lực.") Bạn có thể đặt lại chỉ trong vài giây.</p>
+                                    </div>
+                                </div>
+                                <a href="@(home)#fleet" class="btn-primary mt-6"><i class="fa-solid fa-rotate-right"></i> Đặt lại</a>
+                            </div>
+                            break;
+                    }
+                </div>
+
+                @* ---------- Tóm tắt đơn ---------- *@
+                <aside class="lg:col-span-2">
+                    <div class="panel anim-rise lg:sticky lg:top-28" style="--d:.15s">
+                        <div class="vcard-art !rounded-3xl" style="--tone:@tone">
+                            <div class="mx-auto w-[88%] max-w-[18rem] pt-6" style="color:@tone">
+                                <svg class="art" viewBox="0 0 360 170" role="img" aria-label="@b.VehicleName"><use href="#@ViewHelpers.ArtId(b.Category)" /></svg>
+                            </div>
+                            <div class="vcard-shadow"></div>
+                        </div>
+                        <h2 class="mt-5 text-xl font-extrabold">@b.VehicleName</h2>
+                        <span class="chip mt-1"><i class="fa-solid @ViewHelpers.CategoryIcon(b.Category) text-slate-400"></i> @b.CategoryLabel</span>
+
+                        <dl class="mt-5 space-y-3.5 text-sm">
+                            <div class="flex gap-3"><dt class="w-6 text-emerald-500"><i class="fa-solid fa-calendar-check"></i></dt><dd><div class="tile-label">Nhận xe</div><div class="font-semibold">@ViewHelpers.DateTimeVn(b.StartDate)</div></dd></div>
+                            <div class="flex gap-3"><dt class="w-6 text-cyan-500"><i class="fa-solid fa-calendar-xmark"></i></dt><dd><div class="tile-label">Trả xe</div><div class="font-semibold">@ViewHelpers.DateTimeVn(b.EndDate) <span class="text-slate-400">· @b.RentalDays ngày</span></div></dd></div>
+                            <div class="flex gap-3"><dt class="w-6 text-emerald-500"><i class="fa-solid fa-location-dot"></i></dt><dd><div class="tile-label">Điểm nhận xe</div><div class="font-semibold">@b.PickupLocation</div>
+                                @if (!string.IsNullOrWhiteSpace(b.PickupAddress)) { <div class="text-slate-500">@b.PickupAddress</div> }
+                                else if (st is BookingStatus.PendingOwner or BookingStatus.AwaitingDeposit) { <div class="text-xs text-slate-400">Địa chỉ cụ thể hiện sau khi bạn đặt cọc.</div> }</dd></div>
+                        </dl>
+
+                        <div class="mt-6 rounded-2xl bg-slate-50 p-4">
+                            <div class="flex items-center justify-between text-sm"><span class="text-slate-500">Tổng tiền thuê</span><b class="tabular">@ViewHelpers.Vnd(b.TotalAmount)</b></div>
+                            <div class="split-bar mt-3"><i class="block h-full bg-gradient-to-r from-emerald-500 to-cyan-500" style="width:@(depositPct)%"></i><i class="block h-full bg-slate-300" style="width:@(100 - depositPct)%"></i></div>
+                            <div class="mt-3 space-y-1.5 text-sm">
+                                <div class="flex items-center justify-between"><span class="flex items-center gap-2 text-slate-600"><i class="h-2.5 w-2.5 rounded-full bg-emerald-500"></i> Cọc online (@depositPct%)</span><b class="tabular text-emerald-600">@ViewHelpers.Vnd(b.DepositAmount)</b></div>
+                                <div class="flex items-center justify-between"><span class="flex items-center gap-2 text-slate-600"><i class="h-2.5 w-2.5 rounded-full bg-slate-300"></i> Trả chủ xe (@(100 - depositPct)%)</span><b class="tabular">@ViewHelpers.Vnd(b.OwnerAmount)</b></div>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-xs leading-relaxed text-slate-400">Move-Go là đơn vị trung gian kết nối. Tiền cọc là phí dịch vụ của Move-Go; phần còn lại bạn thanh toán trực tiếp cho chủ xe khi nhận xe.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/qrcode/qrcode.js"></script>
+    <script src="~/js/track.js" asp-append-version="true"></script>
+}
