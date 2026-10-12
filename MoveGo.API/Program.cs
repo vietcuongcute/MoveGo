@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<BusinessOptions>(builder.Configuration.GetSection("Business"));
 builder.Services.AddScoped<PricingService>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<OwnerPortalService>();
 
 // Zalo ZNS: chưa bật → chế độ giả lập (chỉ in tin nhắn ra console). Bật trong appsettings: Zalo:Enabled = true
 builder.Services.Configure<ZaloOptions>(builder.Configuration.GetSection("Zalo"));
@@ -67,6 +68,15 @@ using (var scope = app.Services.CreateScope())
 
     if (app.Configuration.GetValue<bool>("Seed:Enabled"))
         await SeedData.EnsureSeededAsync(db, scope.ServiceProvider.GetRequiredService<IClock>());
+
+    // Khi lập trình: in link quản lý lịch của từng chủ xe ra console để bạn bấm thử.
+    if (app.Environment.IsDevelopment())
+    {
+        var web = (app.Configuration["Business:WebBaseUrl"] ?? "http://localhost:5200").TrimEnd('/');
+        var log = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Seed");
+        foreach (var o in await db.Owners.AsNoTracking().OrderBy(x => x.Id).ToListAsync())
+            log.LogInformation("Chủ xe {Name}: {Web}/owner/manage/{Token}", o.Name, web, o.ManageToken);
+    }
 }
 
 app.UseExceptionHandler();   // lỗi không lường trước → ProblemDetails JSON thay vì stack trace
