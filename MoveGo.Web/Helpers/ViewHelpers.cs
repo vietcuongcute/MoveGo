@@ -65,4 +65,31 @@ public static class ViewHelpers
         BookingStatus.Rejected => ("bg-red-50 text-red-600", "fa-circle-xmark"),
         _ => ("bg-slate-100 text-slate-500", "fa-clock")
     };
+
+    /// <summary>Các loại xe hiển thị ở form tìm xe và tab lọc.</summary>
+    public static readonly (string Key, string Label, string Icon)[] Categories =
+    [
+        ("", "Tất cả", "fa-border-all"),
+        ("Car4Seats", "Ô tô 4 chỗ", "fa-car-side"),
+        ("Car7Seats", "Ô tô 7 chỗ", "fa-van-shuttle"),
+        ("ElectricBike", "Xe máy điện", "fa-motorcycle")
+    ];
+
+    /// <summary>Giờ nhận/trả xe: 06:00 → 22:00, mỗi 30 phút.</summary>
+    public static readonly string[] TimeSlots =
+        Enumerable.Range(0, 33).Select(i => TimeSpan.FromMinutes(360 + i * 30).ToString(@"hh\:mm")).ToArray();
+
+    /// <summary>Dữ liệu trang gửi cho booking.js (máy tính giá và popup đặt xe).</summary>
+    public static object BookingData(HomeViewModel m, IEnumerable<VehicleDto> vehicles) => new
+    {
+        vehicles = vehicles.Select(v => new
+        {
+            v.Id, v.Name, Category = v.Category.ToString(), v.CategoryLabel, v.Seats, v.PricePerDay, v.PickupLocation,
+            v.ImageUrl, v.RangeKm, tone = Tone(v), art = ArtId(v.Category)
+        }),
+        commissionRate = m.Meta.CommissionRate,
+        depositHoldMinutes = m.Meta.DepositHoldMinutes,
+        maxRentalDays = m.Meta.MaxRentalDays,
+        search = new { from = m.Search.From, to = m.Search.To, fromTime = m.Search.FromTime, toTime = m.Search.ToTime }
+    };
 }

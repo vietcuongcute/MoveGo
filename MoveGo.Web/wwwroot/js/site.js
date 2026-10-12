@@ -81,19 +81,6 @@
   }, { threshold: 0.6 }) : null;
   $$('[data-count]').forEach(function (el) { if (cio) cio.observe(el); else animateCount(el); });
 
-  /* ---------- Menu: tô sáng mục đang xem ---------- */
-  var links = {};
-  $$('[data-nav]').forEach(function (a) { links[a.getAttribute('data-nav')] = a; });
-  if ('IntersectionObserver' in window && Object.keys(links).length) {
-    var nio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        Object.keys(links).forEach(function (k) { links[k].classList.toggle('is-active', k === e.target.id); });
-      });
-    }, { rootMargin: '-45% 0px -50% 0px' });
-    Object.keys(links).forEach(function (id) { var s = document.getElementById(id); if (s) nio.observe(s); });
-  }
-
   /* ---------- Hero: parallax theo chuột + xe chạy chậm lại sau khi vào cảnh ---------- */
   var scene = $('#hero-scene');
   var car = $('#hero-car');

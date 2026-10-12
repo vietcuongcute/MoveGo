@@ -232,7 +232,7 @@ else
                                         <p class="mt-2 text-slate-500">@(string.IsNullOrWhiteSpace(b.RejectReason) ? "Chủ xe bận trong khoảng thời gian bạn chọn." : b.RejectReason) Bạn chưa bị trừ bất kỳ khoản tiền nào.</p>
                                     </div>
                                 </div>
-                                <a href="@(home)#fleet" class="btn-primary mt-6"><i class="fa-solid fa-magnifying-glass"></i> Tìm xe khác còn trống</a>
+                                <a href="@Url.Action("Fleet", "Home")" class="btn-primary mt-6"><i class="fa-solid fa-magnifying-glass"></i> Tìm xe khác còn trống</a>
                             </div>
                             break;
 
@@ -245,7 +245,7 @@ else
                                         <p class="mt-2 text-slate-500">@(st == BookingStatus.Expired ? "Đã quá thời gian chờ nên xe được mở lại cho khách khác." : "Đơn này không còn hiệu lực.") Bạn có thể đặt lại chỉ trong vài giây.</p>
                                     </div>
                                 </div>
-                                <a href="@(home)#fleet" class="btn-primary mt-6"><i class="fa-solid fa-rotate-right"></i> Đặt lại</a>
+                                <a href="@Url.Action("Fleet", "Home")" class="btn-primary mt-6"><i class="fa-solid fa-rotate-right"></i> Đặt lại</a>
                             </div>
                             break;
                     }

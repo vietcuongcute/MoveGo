@@ -3,35 +3,20 @@
 @{
     ViewData["Title"] = null;
     ViewData["HeaderMode"] = "overlay";
+    ViewData["Nav"] = "home";
     ViewData["DepositPercent"] = Model.Meta.Stats.DepositPercent;
     var site = SiteOpt.Value;
     var meta = Model.Meta;
-    var vehicles = Model.AvailableVehicles;
     var depositPct = meta.Stats.DepositPercent;
-    var times = Enumerable.Range(0, 33).Select(i => TimeSpan.FromMinutes(360 + i * 30).ToString(@"hh\:mm")).ToList();
 
-    var categories = new[]
-    {
-        (Key: "", Label: "Tất cả", Icon: "fa-border-all"),
-        (Key: "Car4Seats", Label: "Ô tô 4 chỗ", Icon: "fa-car-side"),
-        (Key: "Car7Seats", Label: "Ô tô 7 chỗ", Icon: "fa-van-shuttle"),
-        (Key: "ElectricBike", Label: "Xe máy điện", Icon: "fa-motorcycle")
-    };
-    var selectedCategory = Model.Search.Category?.ToString() ?? "";
-    int CountOf(string key) => key == "" ? vehicles.Count : vehicles.Count(v => v.Category.ToString() == key);
-
-    var jsData = new
-    {
-        vehicles = vehicles.Select(v => new { v.Id, v.Name, Category = v.Category.ToString(), v.CategoryLabel, v.Seats, v.PricePerDay, v.PickupLocation, v.ImageUrl, v.RangeKm, tone = ViewHelpers.Tone(v), art = ViewHelpers.ArtId(v.Category) }),
-        commissionRate = meta.CommissionRate,
-        depositHoldMinutes = meta.DepositHoldMinutes,
-        maxRentalDays = meta.MaxRentalDays,
-        search = new { from = Model.Search.From, to = Model.Search.To, fromTime = Model.Search.FromTime, toTime = Model.Search.ToTime }
-    };
+    // Xe nổi bật: mỗi loại xe lấy 1 chiếc rẻ nhất, tối đa 3 chiếc
+    var vehicles = Model.AvailableVehicles
+        .GroupBy(v => v.Category).Select(g => g.OrderBy(v => v.PricePerDay).First())
+        .Take(3).ToList();
 }
 
 @section Scripts {
-    <script>window.MOVEGO.data = @Json.Serialize(jsData);</script>
+    <script>window.MOVEGO.data = @Json.Serialize(ViewHelpers.BookingData(Model, vehicles));</script>
     <script src="~/js/booking.js" asp-append-version="true"></script>
 }
 
@@ -60,7 +45,7 @@
 
             <div class="mt-9 flex flex-wrap items-center gap-4 anim-rise" style="--d:.55s">
                 <a href="#search" class="btn-primary btn-lg"><i class="fa-solid fa-magnifying-glass-location"></i> Tìm xe trống</a>
-                <a href="#quy-trinh" class="btn-outline btn-lg"><i class="fa-solid fa-circle-play"></i> Cách hoạt động</a>
+                <a href="@Url.Action("Process", "Home")" class="btn-outline btn-lg"><i class="fa-solid fa-circle-play"></i> Cách hoạt động</a>
             </div>
 
             <ul class="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-sm font-semibold text-white anim-rise [text-shadow:0_1px_12px_rgb(2_44_34_/_.6)]" style="--d:.7s">
@@ -93,60 +78,7 @@
 @* ======================= FORM TÌM XE (nổi lên trên hero) ======================= *@
 <section id="search" class="relative z-20 -mt-20 pb-6">
     <div class="container-x">
-        <form id="search-form" method="get" action="@(Url.Action("Index", "Home"))#fleet" class="glass-light reveal rounded-4xl p-4 sm:p-7" data-reveal="zoom" autocomplete="off">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Loại xe">
-                    @foreach (var c in categories)
-                    {
-                        <label class="cursor-pointer">
-                            <input type="radio" name="category" value="@c.Key" class="peer sr-only" checked="@(selectedCategory == c.Key)" />
-                            <span class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-500 transition peer-checked:border-transparent peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-cyan-500 peer-checked:text-white peer-checked:shadow-glow peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 hover:border-emerald-300">
-                                <i class="fa-solid @c.Icon"></i> @c.Label
-                            </span>
-                        </label>
-                    }
-                </div>
-                <span class="hidden items-center gap-2 text-xs font-semibold text-slate-400 md:inline-flex"><i class="dot-live"></i> Lịch xe cập nhật thời gian thực</span>
-            </div>
-
-            <div class="mt-5 grid gap-3 md:grid-cols-12">
-                <div class="md:col-span-3">
-                    <label class="field-label" for="s-location"><i class="fa-solid fa-location-dot mr-1 text-emerald-500"></i> Điểm nhận xe</label>
-                    <select id="s-location" name="location" class="field">
-                        <option value="">Tất cả địa điểm</option>
-                        @foreach (var loc in meta.Locations)
-                        {
-                            <option value="@loc" selected="@(string.Equals(Model.Search.Location, loc, StringComparison.OrdinalIgnoreCase))">@loc</option>
-                        }
-                    </select>
-                </div>
-                <div class="md:col-span-3">
-                    <label class="field-label" for="s-range"><i class="fa-solid fa-calendar-days mr-1 text-emerald-500"></i> Ngày nhận → trả</label>
-                    <input id="s-range" type="text" class="field cursor-pointer" placeholder="Chọn khoảng ngày" readonly value="" />
-                    <input type="hidden" name="from" id="s-from" value="@Model.Search.From" />
-                    <input type="hidden" name="to" id="s-to" value="@Model.Search.To" />
-                </div>
-                <div class="md:col-span-2">
-                    <label class="field-label" for="s-from-time"><i class="fa-solid fa-clock mr-1 text-emerald-500"></i> Giờ nhận</label>
-                    <select id="s-from-time" name="fromTime" class="field">
-                        @foreach (var tm in times) { <option value="@tm" selected="@(tm == Model.Search.FromTime)">@tm</option> }
-                    </select>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="field-label" for="s-to-time"><i class="fa-solid fa-clock mr-1 text-cyan-500"></i> Giờ trả</label>
-                    <select id="s-to-time" name="toTime" class="field">
-                        @foreach (var tm in times) { <option value="@tm" selected="@(tm == Model.Search.ToTime)">@tm</option> }
-                    </select>
-                </div>
-                <div class="flex items-end md:col-span-2">
-                    <button type="submit" class="btn-primary w-full !py-[.95rem]"><i class="fa-solid fa-magnifying-glass"></i> Tìm xe</button>
-                </div>
-            </div>
-            @if (!string.IsNullOrEmpty(Model.SearchError))
-            {
-                <p class="mt-3 text-sm font-semibold text-red-500"><i class="fa-solid fa-circle-exclamation"></i> @Model.SearchError</p>
-            }
-        </form>
+        <partial name="_SearchForm" model="Model" />
     </div>
 </section>
 
@@ -208,41 +140,16 @@
     </div>
 </section>
 
-@* ======================= DANH SÁCH XE ======================= *@
-<section id="fleet" class="section">
-    <div class="pointer-events-none absolute right-0 top-10 -z-10 h-96 w-96 rounded-full bg-cyan-200/40 blur-3xl"></div>
+@* ======================= XE NỔI BẬT ======================= *@
+<section class="section">
     <div class="container-x">
         <div class="flex flex-wrap items-end justify-between gap-6">
             <div class="max-w-2xl">
-                <span class="eyebrow reveal"><i class="fa-solid fa-car-side"></i> Đội xe</span>
-                <h2 class="section-title reveal" style="--d:.1s">
-                    @(Model.HasSearch ? "Xe còn trống cho chuyến đi của bạn" : "Chọn xe hợp với chuyến đi")
-                </h2>
+                <span class="eyebrow reveal"><i class="fa-solid fa-car-side"></i> Xe nổi bật</span>
+                <h2 class="section-title reveal" style="--d:.1s">Vài chiếc <span class="text-gradient">đang được thuê nhiều</span></h2>
             </div>
-            <div class="reveal" style="--d:.2s">
-                <div class="filter-tabs" id="filter-tabs" role="tablist" aria-label="Lọc theo loại xe">
-                    <span class="filter-pill" id="filter-pill"></span>
-                    @foreach (var c in categories)
-                    {
-                        <button type="button" role="tab" class="filter-tab @(selectedCategory == c.Key ? "is-active" : "")" data-filter="@(c.Key == "" ? "all" : c.Key)">
-                            @c.Label <span class="count">@CountOf(c.Key)</span>
-                        </button>
-                    }
-                </div>
-            </div>
+            <a href="@Url.Action("Fleet", "Home")" class="btn-outline-dark reveal" style="--d:.2s">Xem tất cả xe <i class="fa-solid fa-arrow-right"></i></a>
         </div>
-
-        @if (Model.HasSearch && Model.SearchStart is DateTime ss && Model.SearchEnd is DateTime se)
-        {
-            <div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 reveal">
-                <span class="grid h-9 w-9 place-items-center rounded-full bg-emerald-500 text-white"><i class="fa-solid fa-calendar-check"></i></span>
-                <span>
-                    <b>@vehicles.Count xe</b> còn trống từ <b>@ViewHelpers.ShortDateTimeVn(ss)</b> đến <b>@ViewHelpers.ShortDateTimeVn(se)</b>
-                    @if (!string.IsNullOrEmpty(Model.Search.Location)) { <span> · tại <b>@Model.Search.Location</b></span> }
-                </span>
-                <a href="@(Url.Action("Index", "Home"))#fleet" class="ml-auto font-bold text-emerald-700 underline-offset-4 hover:underline"><i class="fa-solid fa-rotate-left"></i> Xoá bộ lọc</a>
-            </div>
-        }
 
         @if (Model.ApiError != null)
         {
@@ -256,216 +163,39 @@
             <div id="fleet-grid" class="mt-10 grid gap-7 sm:grid-cols-2 xl:grid-cols-3">
                 @for (var i = 0; i < vehicles.Count; i++)
                 {
-                    <partial name="_VehicleCard" model="vehicles[i]" view-data="@(new ViewDataDictionary(ViewData) { { "HasSearch", Model.HasSearch }, { "Delay", i % 3 } })" />
+                    <partial name="_VehicleCard" model="vehicles[i]" view-data="@(new ViewDataDictionary(ViewData) { { "HasSearch", false }, { "Delay", i % 3 } })" />
                 }
-            </div>
-
-            <div id="fleet-empty" class="@(vehicles.Count == 0 ? "" : "hidden") mt-12 rounded-4xl border border-dashed border-emerald-200 bg-emerald-50/50 p-12 text-center">
-                <div class="mx-auto w-48 opacity-80" style="color:#94a3b8"><svg class="art" viewBox="0 0 360 170"><use href="#art-car" /></svg></div>
-                <h3 class="mt-4 text-xl font-extrabold">Chưa có xe phù hợp</h3>
-                <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                    @(Model.HasSearch ? "Rất tiếc, không còn xe trống trong khoảng thời gian này. Hãy thử đổi ngày, địa điểm hoặc loại xe khác." : "Hiện chưa có xe nào thuộc nhóm này.")
-                </p>
-                <a href="@(Url.Action("Index", "Home"))#search" class="btn-primary mt-6"><i class="fa-solid fa-rotate-left"></i> Tìm lại</a>
             </div>
         }
     </div>
 </section>
 
-@* ======================= MÁY TÍNH GIÁ ======================= *@
-<section id="tinh-gia" class="section calc-bg overflow-hidden text-white">
+@* ======================= LỐI TẮT SANG CÁC TRANG ======================= *@
+<section class="pb-16 pt-2">
     <div class="container-x">
-        <div class="mx-auto max-w-2xl text-center">
-            <span class="eyebrow eyebrow-light reveal"><i class="fa-solid fa-calculator"></i> Tính giá tức thì</span>
-            <h2 class="section-title reveal !text-white" style="--d:.1s">Biết trước chi phí, <span class="bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">không phát sinh</span></h2>
-            <p class="section-sub mx-auto reveal !text-emerald-100/70" style="--d:.2s">Kéo chọn số ngày — tổng tiền và khoản cọc @depositPct% hiện ngay.</p>
-        </div>
-
-        <div class="mt-14 grid items-start gap-8 lg:grid-cols-12">
-            <div class="glass-dark space-y-8 rounded-4xl p-6 sm:p-8 lg:col-span-7 reveal" data-reveal="left">
-                <div>
-                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-emerald-200/70" for="calc-vehicle">1 · Chọn xe</label>
-                    <select id="calc-vehicle" class="field !border-white/15 !bg-white/10 !text-white" disabled="@(vehicles.Count == 0)">
-                        @foreach (var v in vehicles)
-                        {
-                            <option class="text-ink-900" value="@v.Id">@v.Name — @ViewHelpers.Vnd(v.PricePerDay)/ngày (@v.PickupLocation)</option>
-                        }
-                    </select>
-                </div>
-
-                <div>
-                    <div class="flex items-end justify-between">
-                        <label class="text-xs font-bold uppercase tracking-wider text-emerald-200/70" for="calc-days">2 · Số ngày thuê</label>
-                        <div class="flex items-center gap-3">
-                            <button type="button" id="days-minus" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-lg transition hover:bg-emerald-500" aria-label="Giảm 1 ngày"><i class="fa-solid fa-minus"></i></button>
-                            <div class="min-w-[4.5rem] text-center"><span id="days-out" class="text-5xl font-extrabold tabular-nums">3</span> <span class="text-sm text-emerald-100/70">ngày</span></div>
-                            <button type="button" id="days-plus" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-lg transition hover:bg-emerald-500" aria-label="Tăng 1 ngày"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                    </div>
-                    <input id="calc-days" type="range" class="range mt-5" min="1" max="@meta.MaxRentalDays" value="3" step="1" />
-                    <div class="mt-2 flex justify-between text-xs text-emerald-100/50"><span>1 ngày</span><span>@(meta.MaxRentalDays / 2) ngày</span><span>@meta.MaxRentalDays ngày</span></div>
-                </div>
-
-                <div class="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-6">
-                    <div class="mb-4 text-xs font-bold uppercase tracking-wider text-emerald-200/70">3 · Thanh toán thế nào?</div>
-                    <ul class="space-y-4 text-sm leading-relaxed text-emerald-50/80">
-                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-qrcode"></i></span><span><b class="text-white">Cọc online @depositPct%</b> bằng mã QR. Đây là phí dịch vụ của Move-Go, chỉ phải trả sau khi chủ xe đã đồng ý cho thuê.</span></li>
-                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-handshake"></i></span><span><b class="text-white">Phần còn lại trả trực tiếp cho chủ xe</b> khi nhận xe. Move-Go không giữ hay thu thêm khoản nào khác.</span></li>
-                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-comments"></i></span><span><b class="text-white">Giao xe tận nơi hay nhu cầu riêng?</b> Sau khi cọc, bạn nhận số điện thoại chủ xe và tự trao đổi trực tiếp.</span></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="lg:col-span-5 reveal" data-reveal="right">
-                <div class="overflow-hidden rounded-4xl bg-white text-slate-600 shadow-lift lg:sticky lg:top-24">
-                    <div class="relative p-6 pb-2 sm:p-8 sm:pb-2">
-                        <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-200/50 blur-2xl"></div>
-                        <div class="relative flex items-center gap-4">
-                            <div id="calc-art" class="w-28 shrink-0" style="color:#10b981"><svg class="art" viewBox="0 0 360 170"><use id="calc-art-use" href="#art-car" /></svg></div>
-                            <div>
-                                <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Báo giá cho</div>
-                                <div id="calc-name" class="text-lg font-extrabold leading-tight text-ink-900">—</div>
-                                <div id="calc-loc" class="text-sm text-slate-500"></div>
-                            </div>
-                        </div>
-                        <div id="calc-lines" class="relative mt-6 space-y-2.5 text-sm"></div>
-                    </div>
-
-                    <div class="mx-6 mt-4 border-t border-dashed border-slate-300 sm:mx-8"></div>
-
-                    <div class="p-6 pt-5 sm:p-8 sm:pt-5">
-                        <div class="flex items-end justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tổng tiền thuê</span>
-                            <span id="calc-total" class="text-4xl font-extrabold tracking-tight text-ink-900 tabular-nums">0đ</span>
-                        </div>
-
-                        <div class="split-bar mt-5" aria-hidden="true">
-                            <i id="bar-dep" class="bg-gradient-to-r from-emerald-500 to-cyan-500" style="width:@depositPct%"></i>
-                            <i id="bar-own" class="bg-slate-300" style="width:@(100 - depositPct)%"></i>
-                        </div>
-
-                        <div class="mt-4 space-y-3 text-sm">
-                            <div class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 p-3.5 ring-1 ring-emerald-200">
-                                <div class="flex items-center gap-3">
-                                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white"><i class="fa-solid fa-qrcode"></i></span>
-                                    <div><b class="block text-ink-900">Cọc online · @depositPct%</b><span class="text-xs text-slate-500">Phí dịch vụ Move-Go, thanh toán qua QR</span></div>
-                                </div>
-                                <b id="calc-deposit" class="text-lg text-emerald-600 tabular-nums">0đ</b>
-                            </div>
-                            <div class="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3.5">
-                                <div class="flex items-center gap-3">
-                                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-slate-200 text-slate-600"><i class="fa-solid fa-handshake"></i></span>
-                                    <div><b class="block text-ink-900">Trả chủ xe · @(100 - depositPct)%</b><span class="text-xs text-slate-500">Trực tiếp khi nhận xe</span></div>
-                                </div>
-                                <b id="calc-remaining" class="text-lg text-ink-900 tabular-nums">0đ</b>
-                            </div>
-                        </div>
-
-                        <button type="button" id="calc-book" class="btn-primary btn-lg mt-6 w-full" disabled="@(vehicles.Count == 0)"><i class="fa-solid fa-bolt"></i> Đặt xe với báo giá này</button>
-                        <p class="mt-3 text-center text-xs text-slate-400">Giá tham khảo. Thuê theo block 24 giờ kể từ giờ nhận xe; chủ xe xác nhận cuối cùng.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-@* ======================= QUY TRÌNH ======================= *@
-<section id="quy-trinh" class="section">
-    <div class="container-x">
-        <div class="mx-auto max-w-2xl text-center">
-            <span class="eyebrow reveal"><i class="fa-solid fa-route"></i> Quy trình</span>
-            <h2 class="section-title reveal" style="--d:.1s">Thuê xe trong <span class="text-gradient">3 bước</span></h2>
-            <p class="section-sub mx-auto reveal" style="--d:.2s">Không giấy tờ rườm rà, không chờ đợi lâu. Mọi việc diễn ra ngay trên điện thoại của bạn.</p>
-        </div>
-
-        <div id="timeline" class="relative mt-16" data-inview>
-            <span class="timeline-track is-h hidden lg:block"></span><span class="timeline-line is-h hidden lg:block"></span>
-            <span class="timeline-track is-v lg:hidden"></span><span class="timeline-line is-v lg:hidden"></span>
-
-            <ol class="grid gap-12 lg:grid-cols-3 lg:gap-8">
-                @{
-                    var steps = new[]
-                    {
-                        (Icon: "fa-magnifying-glass-location", Title: "Chọn xe & gửi yêu cầu", Text: "Chọn loại xe, điểm nhận, ngày giờ nhận – trả rồi gửi yêu cầu chỉ trong 60 giây. Không cần đăng ký tài khoản."),
-                        (Icon: "fa-comment-dots", Title: "Chủ xe xác nhận qua Zalo", Text: "Move-Go nhắn Zalo cho chủ xe. Chủ xe bấm Chấp nhận là xe được giữ chỗ riêng cho bạn."),
-                        (Icon: "fa-qrcode", Title: $"Cọc {depositPct}% & nhận xe", Text: $"Quét QR cọc {depositPct}% trong {meta.DepositHoldMinutes} phút. Ngay sau đó hai bên nhận số điện thoại của nhau để bàn giao; bạn trả {100 - depositPct}% còn lại cho chủ xe.")
-                    };
-                }
-                @for (var i = 0; i < steps.Length; i++)
-                {
-                    var st = steps[i];
-                    <li class="step reveal flex gap-6 lg:flex-col lg:items-center lg:text-center" style="--d:@(i * 0.2)s">
-                        <div class="step-node" style="--d:@(i * 0.5)s"><i class="fa-solid @st.Icon"></i>
-                            <span class="absolute -right-1 -top-1 grid h-7 w-7 place-items-center rounded-full bg-ink-900 text-xs font-extrabold text-white ring-4 ring-white">@(i + 1)</span>
-                        </div>
-                        <div class="lg:max-w-xs">
-                            <h3 class="text-xl font-extrabold">@st.Title</h3>
-                            <p class="mt-2 text-sm leading-relaxed text-slate-500">@st.Text</p>
-                        </div>
-                    </li>
-                }
-            </ol>
-        </div>
-    </div>
-</section>
-
-@* ======================= HỎI ĐÁP ======================= *@
-<section id="hoi-dap" class="section bg-gradient-to-b from-white to-emerald-50/70">
-    <div class="container-x grid gap-12 lg:grid-cols-12">
-        <div class="lg:col-span-4">
-            <span class="eyebrow reveal"><i class="fa-solid fa-circle-question"></i> Hỏi đáp</span>
-            <h2 class="section-title reveal" style="--d:.1s">Câu hỏi <span class="text-gradient">thường gặp</span></h2>
-            <p class="section-sub reveal" style="--d:.2s">Cần hỗ trợ thêm? Nhắn Zalo hoặc gọi hotline @site.Hotline.</p>
-            <a href="https://zalo.me/@site.ZaloPhone" target="_blank" rel="noopener" class="btn-dark mt-8 reveal" style="--d:.3s"><span class="font-extrabold">Zalo</span> Chat với Move-Go</a>
-        </div>
-        <div class="space-y-4 lg:col-span-8" id="faq">
+        <div class="grid gap-6 md:grid-cols-3">
             @{
-                var faqs = new[]
+                var shortcuts = new[]
                 {
-                    (Q: "Move-Go là gì và hoạt động thế nào?", A: $"Move-Go là nền tảng trung gian kết nối khách thuê với chủ xe. Bạn gửi yêu cầu, chủ xe xác nhận qua Zalo, sau đó bạn đặt cọc {depositPct}% qua QR. Hai bên nhận số điện thoại của nhau và tự bàn giao xe."),
-                    (Q: "Tôi cần thanh toán những gì và khi nào?", A: $"Gửi yêu cầu hoàn toàn miễn phí. Chỉ khi chủ xe đồng ý, bạn mới đặt cọc {depositPct}% tổng tiền thuê (khoản này là phí dịch vụ của Move-Go) trong vòng {meta.DepositHoldMinutes} phút. {100 - depositPct}% còn lại bạn trả trực tiếp cho chủ xe khi nhận xe."),
-                    (Q: "Làm sao biết xe có trống vào ngày tôi muốn?", A: "Lịch xe được cập nhật theo thời gian thực: xe đã có khách đặt cọc, đang giữ chỗ hoặc chủ xe tự khoá lịch sẽ không xuất hiện trong kết quả tìm kiếm. Khi mở xe để đặt, ngày bận được gạch đỏ trên lịch."),
-                    (Q: "Nếu chủ xe không đồng ý hoặc không trả lời thì sao?", A: "Bạn chưa mất khoản nào vì chưa phải thanh toán. Trang theo dõi đơn sẽ báo kết quả, bạn có thể chọn xe khác ngay."),
-                    (Q: "Tôi cần mang theo giấy tờ gì khi nhận xe?", A: "Thường là căn cước/CCCD (hoặc hộ chiếu) và giấy phép lái xe phù hợp với loại xe. Chủ xe có thể yêu cầu thêm — bạn sẽ trao đổi trực tiếp khi hai bên có số điện thoại của nhau."),
-                    (Q: "Tôi có xe muốn cho thuê, đăng ký thế nào?", A: $"Rất đơn giản: nhắn Zalo {site.ZaloPhone} hoặc gọi hotline {site.Hotline}. Bạn nhận yêu cầu qua Zalo và có trang riêng để khoá những ngày xe bận.")
+                    (Icon: "fa-calculator", Title: "Tính giá tức thì", Text: $"Chọn xe, kéo số ngày: biết ngay tổng tiền, khoản cọc {depositPct}% và phần trả trực tiếp cho chủ xe.", Url: Url.Action("Pricing", "Home")!, Cta: "Mở máy tính giá"),
+                    (Icon: "fa-route", Title: "Thuê xe trong 3 bước", Text: "Gửi yêu cầu, chủ xe xác nhận qua Zalo, cọc rồi nhận xe. Không cần tạo tài khoản.", Url: Url.Action("Process", "Home")!, Cta: "Xem quy trình"),
+                    (Icon: "fa-circle-question", Title: "Câu hỏi thường gặp", Text: "Thanh toán thế nào, giấy tờ cần mang gì, đăng ký làm chủ xe ra sao.", Url: Url.Action("Faq", "Home")!, Cta: "Xem giải đáp")
                 };
             }
-            @for (var i = 0; i < faqs.Length; i++)
+            @for (var i = 0; i < shortcuts.Length; i++)
             {
-                <div class="faq-item reveal" style="--d:@(i * 0.07)s">
-                    <button type="button" class="flex w-full items-center justify-between gap-4 px-6 py-5 text-left" aria-expanded="false">
-                        <span class="font-bold text-ink-900">@faqs[i].Q</span>
-                        <span class="faq-icon grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600"><i class="fa-solid fa-plus text-sm"></i></span>
-                    </button>
-                    <div class="faq-body"><div><p class="px-6 pb-6 text-sm leading-relaxed text-slate-500">@faqs[i].A</p></div></div>
-                </div>
+                var sc = shortcuts[i];
+                <a href="@sc.Url" class="feature-card reveal group block" style="--d:@(i * 0.12)s" data-glow>
+                    <div class="feature-icon"><i class="fa-solid @sc.Icon"></i></div>
+                    <h3 class="mt-6 text-lg font-extrabold">@sc.Title</h3>
+                    <p class="mt-3 text-sm leading-relaxed text-slate-500">@sc.Text</p>
+                    <span class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-emerald-600">@sc.Cta <i class="fa-solid fa-arrow-right transition group-hover:translate-x-1"></i></span>
+                </a>
             }
         </div>
     </div>
 </section>
 
-@* ======================= KÊU GỌI CHỦ XE ======================= *@
-<section class="px-5 pb-20 pt-6 sm:px-8">
-    <div class="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-emerald-500 via-emerald-600 to-cyan-600 p-8 text-white sm:p-14 reveal" data-reveal="zoom">
-        <div class="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/10 blur-2xl animate-float-slow"></div>
-        <div class="absolute -bottom-24 left-1/3 h-72 w-72 rounded-full bg-cyan-300/20 blur-2xl"></div>
-        <div class="relative grid items-center gap-10 lg:grid-cols-2">
-            <div>
-                <span class="eyebrow eyebrow-light"><i class="fa-solid fa-key"></i> Dành cho chủ xe</span>
-                <h2 class="mt-5 text-3xl font-extrabold !text-white sm:text-4xl">Xe đang nằm không? <br class="hidden sm:block" />Cho thuê cùng Move-Go.</h2>
-                <p class="mt-4 max-w-lg text-emerald-50/90">Nhận yêu cầu thẳng qua Zalo, tự quyết định nhận hay từ chối, tự khoá lịch những ngày xe bận. Move-Go chỉ thu phí khi chuyến đi được xác nhận.</p>
-                <div class="mt-8 flex flex-wrap gap-4">
-                    <a href="https://zalo.me/@site.ZaloPhone" target="_blank" rel="noopener" class="btn-white btn-lg"><span class="font-extrabold text-[#0068ff]">Zalo</span> Đăng ký làm chủ xe</a>
-                    <a href="tel:@(new string(site.Hotline.Where(char.IsDigit).ToArray()))" class="btn-outline btn-lg"><i class="fa-solid fa-phone"></i> @site.Hotline</a>
-                </div>
-            </div>
-            <div class="relative mx-auto w-full max-w-md">
-                <div class="animate-float" style="color:#ecfdf5;--wheel-state:running;--spin:2s"><svg class="art" viewBox="0 0 360 170"><use href="#art-van" /></svg></div>
-                <div class="mx-auto mt-1 h-4 w-[80%] rounded-full bg-black/25 blur-md"></div>
-            </div>
-        </div>
-    </div>
-</section>
+<partial name="_OwnerCta" />
 
 <partial name="_BookingModal" />

@@ -1,0 +1,59 @@
+@model HomeViewModel
+@inject IOptions<SiteOptions> SiteOpt
+@{
+    ViewData["Title"] = "Quy trình thuê xe";
+    ViewData["Description"] = "Thuê xe trên Move-Go trong 3 bước: gửi yêu cầu, chủ xe xác nhận qua Zalo, cọc 10% rồi nhận xe.";
+    ViewData["Nav"] = "process";
+    ViewData["BannerIcon"] = "fa-route";
+    ViewData["BannerEyebrow"] = "Quy trình";
+    ViewData["BannerTitle"] = "Thuê xe trong";
+    ViewData["BannerAccent"] = "3 bước";
+    ViewData["BannerSub"] = "Không giấy tờ rườm rà, không chờ đợi lâu. Mọi việc diễn ra ngay trên điện thoại của bạn.";
+    ViewData["BannerPad"] = "pb-20";
+    ViewData["DepositPercent"] = Model.Meta.Stats.DepositPercent;
+    var site = SiteOpt.Value;
+    var meta = Model.Meta;
+    var vehicles = Model.AvailableVehicles;
+    var depositPct = meta.Stats.DepositPercent;
+}
+
+<partial name="_PageBanner" />
+
+<section id="quy-trinh" class="section !pt-16">
+    <div class="container-x">
+        <div id="timeline" class="relative mt-4" data-inview>
+            <span class="timeline-track is-h hidden lg:block"></span><span class="timeline-line is-h hidden lg:block"></span>
+            <span class="timeline-track is-v lg:hidden"></span><span class="timeline-line is-v lg:hidden"></span>
+
+            <ol class="grid gap-12 lg:grid-cols-3 lg:gap-8">
+                @{
+                    var steps = new[]
+                    {
+                        (Icon: "fa-magnifying-glass-location", Title: "Chọn xe & gửi yêu cầu", Text: "Chọn loại xe, điểm nhận, ngày giờ nhận – trả rồi gửi yêu cầu chỉ trong 60 giây. Không cần đăng ký tài khoản."),
+                        (Icon: "fa-comment-dots", Title: "Chủ xe xác nhận qua Zalo", Text: "Move-Go nhắn Zalo cho chủ xe. Chủ xe bấm Chấp nhận là xe được giữ chỗ riêng cho bạn."),
+                        (Icon: "fa-qrcode", Title: $"Cọc {depositPct}% & nhận xe", Text: $"Quét QR cọc {depositPct}% trong {meta.DepositHoldMinutes} phút. Ngay sau đó hai bên nhận số điện thoại của nhau để bàn giao; bạn trả {100 - depositPct}% còn lại cho chủ xe.")
+                    };
+                }
+                @for (var i = 0; i < steps.Length; i++)
+                {
+                    var st = steps[i];
+                    <li class="step reveal flex gap-6 lg:flex-col lg:items-center lg:text-center" style="--d:@(i * 0.2)s">
+                        <div class="step-node" style="--d:@(i * 0.5)s"><i class="fa-solid @st.Icon"></i>
+                            <span class="absolute -right-1 -top-1 grid h-7 w-7 place-items-center rounded-full bg-ink-900 text-xs font-extrabold text-white ring-4 ring-white">@(i + 1)</span>
+                        </div>
+                        <div class="lg:max-w-xs">
+                            <h3 class="text-xl font-extrabold">@st.Title</h3>
+                            <p class="mt-2 text-sm leading-relaxed text-slate-500">@st.Text</p>
+                        </div>
+                    </li>
+                }
+            </ol>
+        </div>
+    </div>
+</section>
+
+<section class="px-5 pb-16 pt-2 text-center sm:px-8">
+    <a href="@Url.Action("Fleet", "Home")" class="btn-primary btn-lg"><i class="fa-solid fa-magnifying-glass-location"></i> Bắt đầu chọn xe</a>
+</section>
+
+<partial name="_OwnerCta" />

@@ -1,0 +1,55 @@
+@model HomeViewModel
+@inject IOptions<SiteOptions> SiteOpt
+@{
+    ViewData["Title"] = "Câu hỏi thường gặp";
+    ViewData["Description"] = "Giải đáp về cách thuê xe, đặt cọc 10%, lịch xe trống và cách đăng ký làm chủ xe trên Move-Go.";
+    ViewData["Nav"] = "faq";
+    ViewData["BannerIcon"] = "fa-circle-question";
+    ViewData["BannerEyebrow"] = "Hỏi đáp";
+    ViewData["BannerTitle"] = "Câu hỏi";
+    ViewData["BannerAccent"] = "thường gặp";
+    ViewData["BannerSub"] = "Những điều khách thuê và chủ xe hay hỏi nhất về Move-Go.";
+    ViewData["BannerPad"] = "pb-20";
+    ViewData["DepositPercent"] = Model.Meta.Stats.DepositPercent;
+    var site = SiteOpt.Value;
+    var meta = Model.Meta;
+    var vehicles = Model.AvailableVehicles;
+    var depositPct = meta.Stats.DepositPercent;
+}
+
+<partial name="_PageBanner" />
+
+<section id="hoi-dap" class="section !pt-16 bg-gradient-to-b from-white to-emerald-50/70">
+    <div class="container-x grid gap-12 lg:grid-cols-12">
+        <div class="lg:col-span-4">
+            <h2 class="section-title reveal">Cần <span class="text-gradient">hỗ trợ thêm?</span></h2>
+            <p class="section-sub reveal" style="--d:.1s">Nhắn Zalo hoặc gọi hotline @site.Hotline, Move-Go phản hồi trong giờ làm việc.</p>
+            <a href="https://zalo.me/@site.ZaloPhone" target="_blank" rel="noopener" class="btn-dark mt-8 reveal" style="--d:.3s"><span class="font-extrabold">Zalo</span> Chat với Move-Go</a>
+        </div>
+        <div class="space-y-4 lg:col-span-8" id="faq">
+            @{
+                var faqs = new[]
+                {
+                    (Q: "Move-Go là gì và hoạt động thế nào?", A: $"Move-Go là nền tảng trung gian kết nối khách thuê với chủ xe. Bạn gửi yêu cầu, chủ xe xác nhận qua Zalo, sau đó bạn đặt cọc {depositPct}% qua QR. Hai bên nhận số điện thoại của nhau và tự bàn giao xe."),
+                    (Q: "Tôi cần thanh toán những gì và khi nào?", A: $"Gửi yêu cầu hoàn toàn miễn phí. Chỉ khi chủ xe đồng ý, bạn mới đặt cọc {depositPct}% tổng tiền thuê (khoản này là phí dịch vụ của Move-Go) trong vòng {meta.DepositHoldMinutes} phút. {100 - depositPct}% còn lại bạn trả trực tiếp cho chủ xe khi nhận xe."),
+                    (Q: "Làm sao biết xe có trống vào ngày tôi muốn?", A: "Lịch xe được cập nhật theo thời gian thực: xe đã có khách đặt cọc, đang giữ chỗ hoặc chủ xe tự khoá lịch sẽ không xuất hiện trong kết quả tìm kiếm. Khi mở xe để đặt, ngày bận được gạch đỏ trên lịch."),
+                    (Q: "Nếu chủ xe không đồng ý hoặc không trả lời thì sao?", A: "Bạn chưa mất khoản nào vì chưa phải thanh toán. Trang theo dõi đơn sẽ báo kết quả, bạn có thể chọn xe khác ngay."),
+                    (Q: "Tôi cần mang theo giấy tờ gì khi nhận xe?", A: "Thường là căn cước/CCCD (hoặc hộ chiếu) và giấy phép lái xe phù hợp với loại xe. Chủ xe có thể yêu cầu thêm — bạn sẽ trao đổi trực tiếp khi hai bên có số điện thoại của nhau."),
+                    (Q: "Tôi có xe muốn cho thuê, đăng ký thế nào?", A: $"Rất đơn giản: nhắn Zalo {site.ZaloPhone} hoặc gọi hotline {site.Hotline}. Bạn nhận yêu cầu qua Zalo và có trang riêng để khoá những ngày xe bận.")
+                };
+            }
+            @for (var i = 0; i < faqs.Length; i++)
+            {
+                <div class="faq-item reveal" style="--d:@(i * 0.07)s">
+                    <button type="button" class="flex w-full items-center justify-between gap-4 px-6 py-5 text-left" aria-expanded="false">
+                        <span class="font-bold text-ink-900">@faqs[i].Q</span>
+                        <span class="faq-icon grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600"><i class="fa-solid fa-plus text-sm"></i></span>
+                    </button>
+                    <div class="faq-body"><div><p class="px-6 pb-6 text-sm leading-relaxed text-slate-500">@faqs[i].A</p></div></div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<partial name="_OwnerCta" />

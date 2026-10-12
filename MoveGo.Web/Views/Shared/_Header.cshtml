@@ -3,6 +3,16 @@
     var site = SiteOpt.Value;
     var overlay = ViewData["HeaderMode"] as string == "overlay";   // trang chủ: header trong suốt trên hero
     var home = Url.Action("Index", "Home");
+    var fleet = Url.Action("Fleet", "Home");
+    var nav = ViewData["Nav"] as string ?? "";
+    var items = new[]
+    {
+        (Key: "home", Label: "Trang chủ", Url: home!),
+        (Key: "fleet", Label: "Xe cho thuê", Url: fleet!),
+        (Key: "pricing", Label: "Tính giá", Url: Url.Action("Pricing", "Home")!),
+        (Key: "process", Label: "Quy trình", Url: Url.Action("Process", "Home")!),
+        (Key: "faq", Label: "Hỏi đáp", Url: Url.Action("Faq", "Home")!)
+    };
     var tel = new string(site.Hotline.Where(char.IsDigit).ToArray());
 }
 <header id="site-header" class="site-header @(overlay ? "" : "is-solid") fixed inset-x-0 top-0 z-50 py-3">
@@ -13,10 +23,10 @@
         </a>
 
         <nav class="hidden items-center gap-1 lg:flex" aria-label="Điều hướng chính">
-            <a class="nav-link" href="@(home)#fleet" data-nav="fleet">Xe cho thuê</a>
-            <a class="nav-link" href="@(home)#tinh-gia" data-nav="tinh-gia">Tính giá</a>
-            <a class="nav-link" href="@(home)#quy-trinh" data-nav="quy-trinh">Quy trình</a>
-            <a class="nav-link" href="@(home)#hoi-dap" data-nav="hoi-dap">Hỏi đáp</a>
+            @foreach (var it in items)
+            {
+                <a class="nav-link @(nav == it.Key ? "is-active" : "")" href="@it.Url" aria-current="@(nav == it.Key ? "page" : null)">@it.Label</a>
+            }
         </nav>
 
         <div class="flex items-center gap-3">
@@ -24,7 +34,7 @@
                 <span class="grid h-9 w-9 place-items-center rounded-full bg-emerald-500/15 text-emerald-500"><i class="fa-solid fa-phone-volume"></i></span>
                 @site.Hotline
             </a>
-            <a href="@(home)#fleet" class="btn-primary btn-sm hidden sm:inline-flex"><i class="fa-solid fa-bolt"></i> Đặt xe</a>
+            <a href="@fleet" class="btn-primary btn-sm hidden sm:inline-flex"><i class="fa-solid fa-bolt"></i> Đặt xe</a>
             <button id="burger" type="button" class="burger grid h-11 w-11 place-items-center rounded-full lg:hidden" aria-label="Mở menu" aria-expanded="false" aria-controls="mobile-menu">
                 <span class="relative block h-0.5 w-6 rounded bg-white transition before:absolute before:-top-2 before:left-0 before:h-0.5 before:w-6 before:rounded before:bg-inherit before:transition after:absolute after:left-0 after:top-2 after:h-0.5 after:w-6 after:rounded after:bg-inherit after:transition"></span>
             </button>
@@ -33,10 +43,10 @@
 
     <div id="mobile-menu" class="hidden px-5 pb-4 pt-3 lg:hidden">
         <div class="glass-light rounded-3xl p-3">
-            <a class="block rounded-2xl px-4 py-3 font-semibold text-ink-900 hover:bg-emerald-50" href="@(home)#fleet">Xe cho thuê</a>
-            <a class="block rounded-2xl px-4 py-3 font-semibold text-ink-900 hover:bg-emerald-50" href="@(home)#tinh-gia">Tính giá</a>
-            <a class="block rounded-2xl px-4 py-3 font-semibold text-ink-900 hover:bg-emerald-50" href="@(home)#quy-trinh">Quy trình</a>
-            <a class="block rounded-2xl px-4 py-3 font-semibold text-ink-900 hover:bg-emerald-50" href="@(home)#hoi-dap">Hỏi đáp</a>
+            @foreach (var it in items)
+            {
+                <a class="block rounded-2xl px-4 py-3 font-semibold hover:bg-emerald-50 @(nav == it.Key ? "bg-emerald-50 text-emerald-700" : "text-ink-900")" href="@it.Url">@it.Label</a>
+            }
             <a class="btn-primary mt-2 w-full" href="tel:@tel"><i class="fa-solid fa-phone-volume"></i> Gọi @site.Hotline</a>
         </div>
     </div>

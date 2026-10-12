@@ -421,7 +421,7 @@ public class BookingService(
             ["customer_name"] = b.CustomerName,
             ["vehicle_name"] = b.Vehicle.Name,
             ["order_code"] = b.Code,
-            ["search_link"] = Biz.WebBaseUrl.TrimEnd('/') + "/#fleet"
+            ["search_link"] = Biz.WebBaseUrl.TrimEnd('/') + "/xe"
         }, ct);
 
     private string OwnerConfirmLink(Booking b) => $"{Biz.WebBaseUrl.TrimEnd('/')}/owner/confirm/{b.OwnerToken}";

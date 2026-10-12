@@ -1,0 +1,116 @@
+@model HomeViewModel
+@inject IOptions<SiteOptions> SiteOpt
+@{
+    ViewData["Title"] = "Tính giá thuê xe";
+    ViewData["Description"] = "Chọn xe và số ngày để biết ngay tổng tiền thuê, khoản cọc 10% và phần trả trực tiếp cho chủ xe.";
+    ViewData["Nav"] = "pricing";
+    ViewData["DepositPercent"] = Model.Meta.Stats.DepositPercent;
+    var site = SiteOpt.Value;
+    var meta = Model.Meta;
+    var vehicles = Model.AvailableVehicles;
+    var depositPct = meta.Stats.DepositPercent;
+}
+
+@section Scripts {
+    <script>window.MOVEGO.data = @Json.Serialize(ViewHelpers.BookingData(Model, vehicles));</script>
+    <script src="~/js/booking.js" asp-append-version="true"></script>
+}
+
+<section id="tinh-gia" class="section calc-bg min-h-[80vh] overflow-hidden !pt-32 text-white">
+    <div class="container-x">
+        <div class="mx-auto max-w-2xl text-center">
+            <span class="eyebrow eyebrow-light reveal"><i class="fa-solid fa-calculator"></i> Tính giá tức thì</span>
+            <h2 class="section-title reveal !text-white" style="--d:.1s">Biết trước chi phí, <span class="bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">không phát sinh</span></h2>
+            <p class="section-sub mx-auto reveal !text-emerald-100/70" style="--d:.2s">Kéo chọn số ngày — tổng tiền và khoản cọc @depositPct% hiện ngay.</p>
+        </div>
+
+        <div class="mt-14 grid items-start gap-8 lg:grid-cols-12">
+            <div class="glass-dark space-y-8 rounded-4xl p-6 sm:p-8 lg:col-span-7 reveal" data-reveal="left">
+                <div>
+                    <label class="mb-2 block text-xs font-bold uppercase tracking-wider text-emerald-200/70" for="calc-vehicle">1 · Chọn xe</label>
+                    <select id="calc-vehicle" class="field !border-white/15 !bg-white/10 !text-white" disabled="@(vehicles.Count == 0)">
+                        @foreach (var v in vehicles)
+                        {
+                            <option class="text-ink-900" value="@v.Id">@v.Name — @ViewHelpers.Vnd(v.PricePerDay)/ngày (@v.PickupLocation)</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex items-end justify-between">
+                        <label class="text-xs font-bold uppercase tracking-wider text-emerald-200/70" for="calc-days">2 · Số ngày thuê</label>
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="days-minus" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-lg transition hover:bg-emerald-500" aria-label="Giảm 1 ngày"><i class="fa-solid fa-minus"></i></button>
+                            <div class="min-w-[4.5rem] text-center"><span id="days-out" class="text-5xl font-extrabold tabular-nums">3</span> <span class="text-sm text-emerald-100/70">ngày</span></div>
+                            <button type="button" id="days-plus" class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-lg transition hover:bg-emerald-500" aria-label="Tăng 1 ngày"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <input id="calc-days" type="range" class="range mt-5" min="1" max="@meta.MaxRentalDays" value="3" step="1" />
+                    <div class="mt-2 flex justify-between text-xs text-emerald-100/50"><span>1 ngày</span><span>@(meta.MaxRentalDays / 2) ngày</span><span>@meta.MaxRentalDays ngày</span></div>
+                </div>
+
+                <div class="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-6">
+                    <div class="mb-4 text-xs font-bold uppercase tracking-wider text-emerald-200/70">3 · Thanh toán thế nào?</div>
+                    <ul class="space-y-4 text-sm leading-relaxed text-emerald-50/80">
+                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-qrcode"></i></span><span><b class="text-white">Cọc online @depositPct%</b> bằng mã QR. Đây là phí dịch vụ của Move-Go, chỉ phải trả sau khi chủ xe đã đồng ý cho thuê.</span></li>
+                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-handshake"></i></span><span><b class="text-white">Phần còn lại trả trực tiếp cho chủ xe</b> khi nhận xe. Move-Go không giữ hay thu thêm khoản nào khác.</span></li>
+                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-comments"></i></span><span><b class="text-white">Giao xe tận nơi hay nhu cầu riêng?</b> Sau khi cọc, bạn nhận số điện thoại chủ xe và tự trao đổi trực tiếp.</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 reveal" data-reveal="right">
+                <div class="overflow-hidden rounded-4xl bg-white text-slate-600 shadow-lift lg:sticky lg:top-24">
+                    <div class="relative p-6 pb-2 sm:p-8 sm:pb-2">
+                        <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-200/50 blur-2xl"></div>
+                        <div class="relative flex items-center gap-4">
+                            <div id="calc-art" class="w-28 shrink-0" style="color:#10b981"><svg class="art" viewBox="0 0 360 170"><use id="calc-art-use" href="#art-car" /></svg></div>
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Báo giá cho</div>
+                                <div id="calc-name" class="text-lg font-extrabold leading-tight text-ink-900">—</div>
+                                <div id="calc-loc" class="text-sm text-slate-500"></div>
+                            </div>
+                        </div>
+                        <div id="calc-lines" class="relative mt-6 space-y-2.5 text-sm"></div>
+                    </div>
+
+                    <div class="mx-6 mt-4 border-t border-dashed border-slate-300 sm:mx-8"></div>
+
+                    <div class="p-6 pt-5 sm:p-8 sm:pt-5">
+                        <div class="flex items-end justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tổng tiền thuê</span>
+                            <span id="calc-total" class="text-4xl font-extrabold tracking-tight text-ink-900 tabular-nums">0đ</span>
+                        </div>
+
+                        <div class="split-bar mt-5" aria-hidden="true">
+                            <i id="bar-dep" class="bg-gradient-to-r from-emerald-500 to-cyan-500" style="width:@depositPct%"></i>
+                            <i id="bar-own" class="bg-slate-300" style="width:@(100 - depositPct)%"></i>
+                        </div>
+
+                        <div class="mt-4 space-y-3 text-sm">
+                            <div class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 p-3.5 ring-1 ring-emerald-200">
+                                <div class="flex items-center gap-3">
+                                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white"><i class="fa-solid fa-qrcode"></i></span>
+                                    <div><b class="block text-ink-900">Cọc online · @depositPct%</b><span class="text-xs text-slate-500">Phí dịch vụ Move-Go, thanh toán qua QR</span></div>
+                                </div>
+                                <b id="calc-deposit" class="text-lg text-emerald-600 tabular-nums">0đ</b>
+                            </div>
+                            <div class="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3.5">
+                                <div class="flex items-center gap-3">
+                                    <span class="grid h-9 w-9 place-items-center rounded-xl bg-slate-200 text-slate-600"><i class="fa-solid fa-handshake"></i></span>
+                                    <div><b class="block text-ink-900">Trả chủ xe · @(100 - depositPct)%</b><span class="text-xs text-slate-500">Trực tiếp khi nhận xe</span></div>
+                                </div>
+                                <b id="calc-remaining" class="text-lg text-ink-900 tabular-nums">0đ</b>
+                            </div>
+                        </div>
+
+                        <button type="button" id="calc-book" class="btn-primary btn-lg mt-6 w-full" disabled="@(vehicles.Count == 0)"><i class="fa-solid fa-bolt"></i> Đặt xe với báo giá này</button>
+                        <p class="mt-3 text-center text-xs text-slate-400">Giá tham khảo. Thuê theo block 24 giờ kể từ giờ nhận xe; chủ xe xác nhận cuối cùng.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<partial name="_BookingModal" />

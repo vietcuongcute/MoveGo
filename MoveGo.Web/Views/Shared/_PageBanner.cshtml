@@ -1,0 +1,15 @@
+@{
+    var icon = ViewData["BannerIcon"] as string ?? "fa-car-side";
+    var eyebrow = ViewData["BannerEyebrow"] as string ?? "";
+    var title = ViewData["BannerTitle"] as string ?? "";
+    var accent = ViewData["BannerAccent"] as string ?? "";
+    var sub = ViewData["BannerSub"] as string ?? "";
+    var pad = ViewData["BannerPad"] as string ?? "pb-40";
+}
+<section class="page-banner @pad pt-28 sm:pt-32">
+    <div class="container-x relative">
+        <span class="eyebrow eyebrow-light anim-rise"><i class="fa-solid @icon"></i> @eyebrow</span>
+        <h1 class="mt-4 max-w-3xl text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise" style="--d:.1s">@title <span class="bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">@accent</span></h1>
+        @if (sub.Length > 0) { <p class="mt-4 max-w-xl text-lg text-emerald-50/80 anim-rise" style="--d:.2s">@sub</p> }
+    </div>
+</section>

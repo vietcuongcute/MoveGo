@@ -41,11 +41,23 @@ cd MoveGo.Web && dotnet run          # http://localhost:5200
 
 Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 
-1. Vào http://localhost:5200, bấm **Thuê xe**, chọn ngày, nhập tên và SĐT, gửi yêu cầu, rồi bấm **Theo dõi đơn của tôi** để mở trang theo dõi đơn.
+1. Vào http://localhost:5200, bấm **Xe cho thuê** (hoặc **Đặt xe**), chọn ngày rồi bấm **Thuê xe** ở xe bạn thích, nhập tên và SĐT, gửi yêu cầu, rồi bấm **Theo dõi đơn của tôi** để mở trang theo dõi đơn.
 2. Terminal của API in ra tin Zalo giả lập, trong đó có dòng `confirm_link`. Mở link đó (đóng vai chủ xe) và bấm **Đồng ý cho thuê**.
 3. Quay lại trang theo dõi đơn: xuất hiện mã QR và đồng hồ đếm ngược 30 phút. Bấm **Giả lập đã thanh toán** (nút hiện khi PayOS đang tắt, và chỉ hoạt động khi API chạy ở môi trường `Development`).
 4. Đơn chuyển sang **Đã xác nhận**, hiện SĐT chủ xe và địa chỉ nhận xe. Terminal in thêm hai tin Zalo giả lập.
 5. Chủ xe có link quản lý lịch riêng (in ra terminal API lúc khởi động, dạng `/owner/manage/<token>`) để khoá ngày xe bận.
+
+## Các trang web
+
+| Địa chỉ | Nội dung |
+|---|---|
+| `/` | Trang chủ: giới thiệu, ô tìm xe, vài xe nổi bật |
+| `/xe` | Xe cho thuê: tìm theo ngày giờ, lọc loại xe, bấm Thuê xe |
+| `/tinh-gia` | Tính giá: nhập ngày để xem tổng tiền, tiền cọc 10% và phần trả chủ xe |
+| `/quy-trinh` | Quy trình thuê xe từng bước |
+| `/hoi-dap` | Hỏi đáp |
+| `/booking/track/<mã>` | Khách theo dõi đơn |
+| `/owner/...` | Trang chủ xe xác nhận đơn và quản lý lịch |
 
 ## Các API chính
 
