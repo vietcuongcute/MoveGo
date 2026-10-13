@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 
 # Zalo token tự gia hạn (bí mật)
 App_Data/
+MoveGo.Web/wwwroot/uploads/

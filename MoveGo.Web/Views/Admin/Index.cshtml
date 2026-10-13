@@ -1,0 +1,94 @@
+@model AdminOverviewViewModel
+@{
+    ViewData["Title"] = "Quản trị · Tổng quan";
+    ViewData["AdminTab"] = "home";
+    var s = Model.Summary;
+    int N(string k) => s.ByStatus.TryGetValue(k, out var v) ? v : 0;
+    var filters = new (string? Key, string Label)[]
+    {
+        (null, "Tất cả"), ("PendingOwner", "Chờ chủ xe"), ("AwaitingDeposit", "Chờ cọc"), ("Confirmed", "Đã xác nhận"),
+        ("Rejected", "Từ chối"), ("Expired", "Hết hạn"), ("Cancelled", "Đã huỷ"), ("Completed", "Hoàn tất")
+    };
+}
+<section class="page-banner pb-36 pt-28 sm:pt-32">
+    <div class="container-x relative">
+        <span class="eyebrow eyebrow-light"><i class="fa-solid fa-gauge-high"></i> Quản trị</span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise">Tổng quan Move-Go</h1>
+        <p class="mt-3 max-w-2xl text-emerald-50/80 anim-rise" style="--d:.1s">Theo dõi đơn thuê, hoa hồng đã thu và những việc cần bạn xử lý.</p>
+    </div>
+</section>
+
+<section class="container-x relative z-10 -mt-24 pb-24">
+    <partial name="_AdminNav" />
+
+    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="panel !p-5 anim-rise"><div class="tile-label">Chờ chủ xe trả lời</div><div class="mt-1 text-3xl font-extrabold tabular @(N("PendingOwner") > 0 ? "text-amber-500" : "")">@N("PendingOwner")</div></div>
+        <div class="panel !p-5 anim-rise" style="--d:.06s"><div class="tile-label">Chờ khách cọc</div><div class="mt-1 text-3xl font-extrabold tabular text-cyan-600">@N("AwaitingDeposit")</div></div>
+        <div class="panel !p-5 anim-rise" style="--d:.12s"><div class="tile-label">Đã chốt</div><div class="mt-1 text-3xl font-extrabold tabular text-emerald-600">@(N("Confirmed") + N("Completed"))</div></div>
+        <div class="panel !p-5 anim-rise" style="--d:.18s"><div class="tile-label">Hoa hồng đã thu</div><div class="mt-1 text-3xl font-extrabold tabular">@ViewHelpers.Vnd(s.CommissionEarned)</div></div>
+    </div>
+
+    @if (s.NeedRefund > 0)
+    {
+        <div class="mb-4 flex items-start gap-3 rounded-2xl bg-amber-50 p-4 text-sm font-semibold text-amber-800 ring-1 ring-amber-200"><i class="fa-solid fa-hand-holding-dollar mt-0.5"></i>
+            <span>Có <b>@s.NeedRefund</b> đơn cần hoàn cọc thủ công (khách cọc nhưng xe không còn trống). Xem cột ghi chú bên dưới.</span></div>
+    }
+    @if (s.OwnerNotNotified > 0)
+    {
+        <div class="mb-4 flex items-start gap-3 rounded-2xl bg-amber-50 p-4 text-sm font-semibold text-amber-800 ring-1 ring-amber-200"><i class="fa-solid fa-bell-slash mt-0.5"></i>
+            <span><b>@s.OwnerNotNotified</b> đơn chưa gửi được tin Zalo cho chủ xe. Bấm “Gửi lại Zalo” ở đơn tương ứng.</span></div>
+    }
+
+    <div class="panel">
+        <div class="flex flex-wrap items-center gap-2">
+            <h2 class="mr-2 text-xl font-extrabold">Đơn thuê</h2>
+            @foreach (var f in filters)
+            {
+                var on = (Model.StatusFilter ?? "") == (f.Key ?? "");
+                <a href="@Url.Action("Index", "Admin", new { status = f.Key })" class="rounded-full px-3.5 py-1.5 text-xs font-bold transition @(on ? "bg-ink-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700")">@f.Label</a>
+            }
+        </div>
+
+        @if (Model.Bookings.Count == 0)
+        {
+            <p class="mt-6 rounded-2xl bg-slate-50 p-6 text-center text-sm text-slate-400">Chưa có đơn nào.</p>
+        }
+        else
+        {
+            <div class="mt-5 divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-100">
+                @foreach (var b in Model.Bookings)
+                {
+                    var st = Enum.TryParse<BookingStatus>(b.Status, out var parsed) ? parsed : BookingStatus.PendingOwner;
+                    var (bc, bi) = ViewHelpers.StatusBadge(st);
+                    <div class="grid gap-3 bg-white p-4 text-sm lg:grid-cols-[1.2fr_1.2fr_1fr_auto] lg:items-center">
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-2"><b class="tabular">@b.Code</b>
+                                <span class="status-pill !py-1 @bc"><i class="fa-solid @bi"></i> @ViewHelpers.StatusLabel(st)</span></div>
+                            <div class="mt-1 font-bold">@b.Vehicle</div>
+                            <div class="text-slate-500">@b.StartDate.ToString("dd/MM HH:mm") → @b.EndDate.ToString("dd/MM HH:mm") · @b.RentalDays ngày</div>
+                        </div>
+                        <div class="min-w-0 text-slate-600">
+                            <div><i class="fa-solid fa-user w-4 text-slate-400"></i> @b.CustomerName · <a class="font-bold text-emerald-700 hover:underline" href="tel:@b.CustomerPhone">@b.CustomerPhone</a></div>
+                            <div><i class="fa-solid fa-user-tie w-4 text-slate-400"></i> @b.Owner · <a class="font-bold text-emerald-700 hover:underline" href="tel:@b.OwnerPhone">@b.OwnerPhone</a></div>
+                            @if (!string.IsNullOrWhiteSpace(b.AdminNote)) { <div class="mt-1 rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">@b.AdminNote</div> }
+                        </div>
+                        <div>
+                            <div class="tile-label">Tổng · Hoa hồng</div>
+                            <div class="font-extrabold tabular">@ViewHelpers.Vnd(b.TotalAmount)</div>
+                            <div class="text-xs font-bold tabular text-emerald-600">+ @ViewHelpers.Vnd(b.CommissionAmount)</div>
+                        </div>
+                        <div>
+                            @if (st == BookingStatus.PendingOwner)
+                            {
+                                <form method="post" asp-controller="Admin" asp-action="ResendOwner" asp-route-id="@b.Id">
+                                    <button type="submit" class="btn-outline-dark btn-sm"><i class="fa-solid fa-paper-plane"></i> Gửi lại Zalo</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <p class="mt-3 text-xs text-slate-400">Hiển thị tối đa 200 đơn mới nhất.</p>
+        }
+    </div>
+</section>

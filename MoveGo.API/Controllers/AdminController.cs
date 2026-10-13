@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MoveGo.API.Data;
+using MoveGo.API.Dtos;
 using MoveGo.API.Models;
 using MoveGo.API.Options;
 using MoveGo.API.Services;
@@ -38,16 +39,51 @@ public class AdminKeyAttribute : Attribute, IAsyncActionFilter
 [ApiController]
 [Route("api/admin")]
 [AdminKey]
-public class AdminController(AppDbContext db, BookingService bookings, IOptions<BusinessOptions> biz) : ControllerBase
+public class AdminController(AppDbContext db, BookingService bookings, AdminCatalogService catalog) : ControllerBase
 {
+    // ---------- Chủ xe ----------
+
     /// <summary>Danh sách chủ xe kèm link quản lý lịch (gửi link này cho chủ xe qua Zalo khi onboard).</summary>
     [HttpGet("owners")]
-    public async Task<IActionResult> Owners(CancellationToken ct)
-    {
-        var web = biz.Value.WebBaseUrl.TrimEnd('/');
-        var owners = await db.Owners.AsNoTracking().OrderBy(o => o.Id).ToListAsync(ct);
-        return Ok(owners.Select(o => new { o.Id, o.Name, o.PhoneNumber, o.ZaloPhone, ManageLink = $"{web}/owner/manage/{o.ManageToken}" }));
-    }
+    public async Task<IActionResult> Owners(CancellationToken ct) => Ok(await catalog.ListOwnersAsync(ct));
+
+    [HttpPost("owners")]
+    public async Task<IActionResult> CreateOwner([FromBody] OwnerInput input, CancellationToken ct) =>
+        (await catalog.CreateOwnerAsync(input, ct)).ToActionResult(this);
+
+    [HttpPut("owners/{id:int}")]
+    public async Task<IActionResult> UpdateOwner(int id, [FromBody] OwnerInput input, CancellationToken ct) =>
+        (await catalog.UpdateOwnerAsync(id, input, ct)).ToActionResult(this);
+
+    /// <summary>Cấp link quản lý mới (link cũ vô hiệu), dùng khi chủ xe lỡ lộ link.</summary>
+    [HttpPost("owners/{id:int}/reset-link")]
+    public async Task<IActionResult> ResetOwnerLink(int id, CancellationToken ct) =>
+        (await catalog.ResetOwnerTokenAsync(id, ct)).ToActionResult(this);
+
+    // ---------- Xe ----------
+
+    /// <summary>Toàn bộ xe, kể cả xe đang ẩn, kèm địa chỉ nhận xe cụ thể.</summary>
+    [HttpGet("vehicles")]
+    public async Task<IActionResult> Vehicles(CancellationToken ct) => Ok(await catalog.ListVehiclesAsync(ct));
+
+    [HttpGet("vehicles/{id:int}")]
+    public async Task<IActionResult> GetVehicle(int id, CancellationToken ct) =>
+        (await catalog.GetVehicleAsync(id, ct)).ToActionResult(this);
+
+    [HttpPost("vehicles")]
+    public async Task<IActionResult> CreateVehicle([FromBody] VehicleInput input, CancellationToken ct) =>
+        (await catalog.CreateVehicleAsync(input, ct)).ToActionResult(this);
+
+    [HttpPut("vehicles/{id:int}")]
+    public async Task<IActionResult> UpdateVehicle(int id, [FromBody] VehicleInput input, CancellationToken ct) =>
+        (await catalog.UpdateVehicleAsync(id, input, ct)).ToActionResult(this);
+
+    /// <summary>Ẩn hoặc hiện xe trên web (không xoá hẳn để giữ lịch sử đơn).</summary>
+    [HttpPut("vehicles/{id:int}/active")]
+    public async Task<IActionResult> SetVehicleActive(int id, [FromBody] SetActiveRequest body, CancellationToken ct) =>
+        (await catalog.SetActiveAsync(id, body.IsActive, ct)).ToActionResult(this);
+
+    // ---------- Đơn ----------
 
     /// <summary>Tổng quan: số đơn theo trạng thái, doanh thu hoa hồng, đơn cần hoàn cọc.</summary>
     [HttpGet("summary")]

@@ -84,36 +84,8 @@ public class MoveGoApi(IHttpClientFactory factory) : IMoveGoApi
     public Task<ApiResult<bool>> SetActiveAsync(string manageToken, int vehicleId, bool active, CancellationToken ct = default) =>
         SendAsync<bool>(HttpMethod.Post, $"api/owner/manage/{Uri.EscapeDataString(manageToken)}/vehicles/{vehicleId}/active?value={active.ToString().ToLowerInvariant()}", null, ct);
 
-    private async Task<ApiResult<T>> SendAsync<T>(HttpMethod method, string url, object? body, CancellationToken ct)
-    {
-        try
-        {
-            using var req = new HttpRequestMessage(method, url);
-            if (body is not null) req.Content = JsonContent.Create(body, options: Json);
-
-            using var res = await Http.SendAsync(req, ct);
-            if (res.IsSuccessStatusCode)
-                return new ApiResult<T>(await res.Content.ReadFromJsonAsync<T>(Json, ct), (int)res.StatusCode, null);
-
-            return new ApiResult<T>(default, (int)res.StatusCode, await ReadProblemTitleAsync(res, ct));
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
-        {
-            return new ApiResult<T>(default, 503, "Hệ thống đang bận, vui lòng thử lại sau ít phút.");
-        }
-    }
-
-    private static async Task<string> ReadProblemTitleAsync(HttpResponseMessage res, CancellationToken ct)
-    {
-        try
-        {
-            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync(ct));
-            if (doc.RootElement.TryGetProperty("title", out var t) && t.GetString() is { Length: > 0 } title) return title;
-        }
-        catch (JsonException) { }
-
-        return res.StatusCode == HttpStatusCode.NotFound ? "Không tìm thấy." : "Có lỗi xảy ra, vui lòng thử lại.";
-    }
+    private Task<ApiResult<T>> SendAsync<T>(HttpMethod method, string url, object? body, CancellationToken ct) =>
+        ApiHttp.SendAsync<T>(Http, Json, method, url, body, null, ct);
 
     private static string BuildQuery(params (string Key, string? Value)[] pairs)
     {

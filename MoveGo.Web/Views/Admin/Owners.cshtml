@@ -1,0 +1,87 @@
+@model AdminOwnersViewModel
+@{
+    ViewData["Title"] = "Quản trị · Chủ xe";
+    ViewData["AdminTab"] = "owners";
+    var editing = Model.Form.Id != 0;
+}
+<section class="page-banner pb-36 pt-28 sm:pt-32">
+    <div class="container-x relative">
+        <span class="eyebrow eyebrow-light"><i class="fa-solid fa-user-tie"></i> Quản trị</span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise">Quản lý chủ xe</h1>
+        <p class="mt-3 max-w-2xl text-emerald-50/80 anim-rise" style="--d:.1s">Thêm chủ xe, lấy link quản lý lịch để gửi cho họ qua Zalo.</p>
+    </div>
+</section>
+
+<section class="container-x relative z-10 -mt-24 pb-24">
+    <partial name="_AdminNav" />
+
+    <div class="grid gap-6 lg:grid-cols-[1fr_22rem]">
+        <div class="panel order-2 lg:order-1">
+            <h2 class="text-xl font-extrabold">@Model.Owners.Count chủ xe</h2>
+            @if (Model.Owners.Count == 0)
+            {
+                <p class="mt-5 rounded-2xl bg-slate-50 p-6 text-center text-sm text-slate-400">Chưa có chủ xe nào. Thêm người đầu tiên ở khung bên cạnh.</p>
+            }
+            else
+            {
+                <div class="mt-5 space-y-3">
+                    @foreach (var o in Model.Owners)
+                    {
+                        <article class="rounded-2xl border border-slate-100 bg-white p-4 text-sm shadow-sm">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <b class="text-base">@o.Name</b>
+                                    <div class="mt-0.5 text-slate-500"><i class="fa-solid fa-phone w-4 text-slate-400"></i> @o.PhoneNumber
+                                        @if (o.ZaloPhone != o.PhoneNumber) { <span> · Zalo @o.ZaloPhone</span> }
+                                        · @o.VehicleCount xe</div>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="@Url.Action("Owners", "Admin", new { edit = o.Id })" class="btn-outline-dark btn-sm"><i class="fa-solid fa-pen"></i> Sửa</a>
+                                    <form method="post" asp-controller="Admin" asp-action="ResetOwnerLink" asp-route-id="@o.Id" data-confirm="Cấp link mới? Link cũ của chủ xe này sẽ không dùng được nữa.">
+                                        <button type="submit" class="btn-outline-dark btn-sm"><i class="fa-solid fa-rotate"></i> Cấp link mới</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-center gap-2">
+                                <input readonly value="@o.ManageLink" class="field !py-2 text-xs" aria-label="Link quản lý lịch của @o.Name" />
+                                <button type="button" class="btn-dark btn-sm shrink-0" data-copy="@o.ManageLink"><i class="fa-regular fa-copy"></i> Sao chép</button>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </div>
+
+        <aside class="order-1 lg:order-2">
+            <form method="post" asp-controller="Admin" asp-action="SaveOwner" class="panel space-y-4 lg:sticky lg:top-24">
+                <h2 class="text-xl font-extrabold">@(editing ? "Sửa chủ xe" : "Thêm chủ xe")</h2>
+                @if (!string.IsNullOrEmpty(Model.Error))
+                {
+                    <div class="flex items-start gap-3 rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-600"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>@Model.Error</span></div>
+                }
+                <input type="hidden" name="Id" value="@Model.Form.Id" />
+                <div>
+                    <label class="field-label" for="o-name">Tên</label>
+                    <input id="o-name" name="Name" value="@Model.Form.Name" maxlength="120" class="field" required />
+                </div>
+                <div>
+                    <label class="field-label" for="o-phone">Số điện thoại</label>
+                    <input id="o-phone" name="PhoneNumber" value="@Model.Form.PhoneNumber" inputmode="tel" class="field" placeholder="0912345678" required />
+                </div>
+                <div>
+                    <label class="field-label" for="o-zalo">Số Zalo (nếu khác)</label>
+                    <input id="o-zalo" name="ZaloPhone" value="@Model.Form.ZaloPhone" inputmode="tel" class="field" placeholder="Để trống = dùng số điện thoại" />
+                    <p class="mt-1.5 text-xs text-slate-400">Số này nhận tin Zalo mỗi khi có khách thuê xe.</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> @(editing ? "Lưu" : "Thêm chủ xe")</button>
+                    @if (editing) { <a href="@Url.Action("Owners", "Admin")" class="btn-outline-dark">Huỷ</a> }
+                </div>
+            </form>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+}

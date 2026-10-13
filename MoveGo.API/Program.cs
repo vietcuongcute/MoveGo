@@ -13,6 +13,7 @@ builder.Services.Configure<BusinessOptions>(builder.Configuration.GetSection("Bu
 builder.Services.AddScoped<PricingService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<OwnerPortalService>();
+builder.Services.AddScoped<AdminCatalogService>();
 
 // Zalo ZNS: chưa bật → chế độ giả lập (chỉ in tin nhắn ra console). Bật trong appsettings: Zalo:Enabled = true
 builder.Services.Configure<ZaloOptions>(builder.Configuration.GetSection("Zalo"));

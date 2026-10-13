@@ -1,0 +1,35 @@
+@{
+    var tab = ViewData["AdminTab"] as string ?? "";
+    var tabs = new[]
+    {
+        (Key: "home", Label: "Tổng quan & đơn", Icon: "fa-gauge-high", Url: Url.Action("Index", "Admin")!),
+        (Key: "vehicles", Label: "Xe", Icon: "fa-car-side", Url: Url.Action("Vehicles", "Admin")!),
+        (Key: "owners", Label: "Chủ xe", Icon: "fa-user-tie", Url: Url.Action("Owners", "Admin")!)
+    };
+    var flash = TempData["Flash"] as string;
+    var flashError = TempData["FlashError"] as string;
+}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white p-2 shadow-soft ring-1 ring-emerald-100">
+    <nav class="flex flex-wrap gap-1" aria-label="Quản trị">
+        @foreach (var t in tabs)
+        {
+            <a href="@t.Url" class="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold transition @(tab == t.Key ? "bg-emerald-500 text-white shadow-glow" : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700")"
+               aria-current="@(tab == t.Key ? "page" : null)"><i class="fa-solid @t.Icon"></i> @t.Label</a>
+        }
+    </nav>
+    <form method="post" asp-controller="Admin" asp-action="Logout">
+        <button type="submit" class="btn-outline-dark btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+    </form>
+</div>
+@if (!string.IsNullOrEmpty(flash))
+{
+    <div class="mb-5 flex items-start gap-3 rounded-2xl bg-emerald-500 p-4 text-sm font-semibold text-white shadow-lift anim-pop"><i class="fa-solid fa-circle-check mt-0.5"></i><span>@flash</span></div>
+}
+@if (!string.IsNullOrEmpty(flashError))
+{
+    <div class="mb-5 flex items-start gap-3 rounded-2xl bg-red-500 p-4 text-sm font-semibold text-white shadow-lift anim-pop"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>@flashError</span></div>
+}
+@if (ViewData["AdminError"] is string apiError && apiError.Length > 0)
+{
+    <div class="mb-5 flex items-start gap-3 rounded-2xl bg-red-500 p-4 text-sm font-semibold text-white shadow-lift"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>@apiError</span></div>
+}

@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Đăng nhập quản trị";
+    var flashError = TempData["FlashError"] as string;
+}
+<section class="page-banner pb-40 pt-28 sm:pt-32">
+    <div class="container-x relative">
+        <span class="eyebrow eyebrow-light"><i class="fa-solid fa-shield-halved"></i> Khu vực quản trị</span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise">Đăng nhập Move-Go Admin</h1>
+        <p class="mt-3 max-w-xl text-emerald-50/80 anim-rise" style="--d:.1s">Nhập khoá quản trị để thêm xe, thêm chủ xe và theo dõi đơn.</p>
+    </div>
+</section>
+<section class="container-x relative z-10 -mt-24 pb-24">
+    <form method="post" asp-controller="Admin" asp-action="LoginPost" class="panel mx-auto max-w-md space-y-4 anim-pop">
+        @if (!string.IsNullOrEmpty(flashError))
+        {
+            <div class="flex items-start gap-3 rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-600"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>@flashError</span></div>
+        }
+        <div>
+            <label class="field-label" for="key">Khoá quản trị</label>
+            <input id="key" name="key" type="password" class="field" autocomplete="current-password" autofocus required />
+            <p class="mt-2 text-xs text-slate-400">Chính là giá trị <code>Business:AdminKey</code> trong cấu hình của API.</p>
+        </div>
+        <button type="submit" class="btn-primary w-full"><i class="fa-solid fa-lock-open"></i> Đăng nhập</button>
+    </form>
+</section>

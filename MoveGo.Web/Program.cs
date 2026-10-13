@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using MoveGo.Web.Models;
 using MoveGo.Web.Services;
 
@@ -18,6 +19,16 @@ builder.Services.AddHttpClient("MoveGoApi", c =>
     c.Timeout = TimeSpan.FromSeconds(20);
 });
 builder.Services.AddScoped<IMoveGoApi, MoveGoApi>();
+builder.Services.AddScoped<IAdminApi, AdminApi>();
+
+// Giới hạn đăng nhập quản trị: tối đa 5 lần/phút/IP để không ai dò được khoá
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("admin-login", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+});
 
 var app = builder.Build();
 
@@ -29,6 +40,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseRateLimiter();
 
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 

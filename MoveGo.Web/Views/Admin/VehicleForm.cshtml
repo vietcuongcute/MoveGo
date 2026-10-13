@@ -1,0 +1,130 @@
+@model VehicleForm
+@{
+    ViewData["Title"] = Model.IsNew ? "Quản trị · Thêm xe" : "Quản trị · Sửa xe";
+    ViewData["AdminTab"] = "vehicles";
+    string Sel(bool b) => b ? "selected" : "";
+}
+<section class="page-banner pb-36 pt-28 sm:pt-32">
+    <div class="container-x relative">
+        <span class="eyebrow eyebrow-light"><i class="fa-solid fa-car-side"></i> Quản trị</span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise">@(Model.IsNew ? "Thêm xe mới" : "Sửa thông tin xe")</h1>
+    </div>
+</section>
+
+<section class="container-x relative z-10 -mt-24 pb-24">
+    <partial name="_AdminNav" />
+
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <div class="mb-5 flex items-start gap-3 rounded-2xl bg-red-500 p-4 text-sm font-semibold text-white shadow-lift anim-pop"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>@Model.Error</span></div>
+    }
+
+    @if (Model.Owners.Count == 0)
+    {
+        <div class="panel text-center text-slate-500">Chưa có chủ xe nào. <a class="font-bold text-emerald-600" href="@Url.Action("Owners", "Admin")">Thêm chủ xe</a> trước khi thêm xe.</div>
+    }
+    else
+    {
+        <form method="post" asp-controller="Admin" asp-action="SaveVehicle" enctype="multipart/form-data" class="admin-vehicle-form panel space-y-8">
+            <input type="hidden" name="Id" value="@Model.Id" />
+
+            <div class="grid gap-5 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <label class="field-label" for="OwnerId">Chủ xe</label>
+                    <select id="OwnerId" name="OwnerId" class="field" required>
+                        <option value="">— Chọn chủ xe —</option>
+                        @foreach (var o in Model.Owners)
+                        {
+                            <option value="@o.Id" selected="@(Model.OwnerId == o.Id)">@o.Name · @o.PhoneNumber</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label" for="Name">Tên xe</label>
+                    <input id="Name" name="Name" value="@Model.Name" maxlength="120" class="field" placeholder="VinFast VF 3" required />
+                </div>
+                <div>
+                    <label class="field-label" for="Brand">Hãng</label>
+                    <input id="Brand" name="Brand" value="@Model.Brand" maxlength="60" class="field" placeholder="VinFast" required />
+                </div>
+                <div>
+                    <label class="field-label" for="Category">Loại xe</label>
+                    <select id="Category" name="Category" class="field">
+                        <option value="Car4Seats" selected="@(Model.Category == VehicleCategory.Car4Seats)">Ô tô 4 chỗ</option>
+                        <option value="Car7Seats" selected="@(Model.Category == VehicleCategory.Car7Seats)">Ô tô 7 chỗ</option>
+                        <option value="ElectricBike" selected="@(Model.Category == VehicleCategory.ElectricBike)">Xe máy điện</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label" for="Seats">Số chỗ ngồi</label>
+                    <input id="Seats" name="Seats" type="number" min="1" max="16" value="@Model.Seats" class="field" required />
+                </div>
+                <div>
+                    <label class="field-label" for="PricePerDay">Giá thuê một ngày (VNĐ)</label>
+                    <input id="PricePerDay" name="PricePerDay" type="number" min="50000" max="50000000" step="1000" value="@(Model.PricePerDay is { } p ? p.ToString("0") : "")" class="field" placeholder="650000" required />
+                    <p id="price-hint" class="mt-1.5 text-xs text-slate-400"></p>
+                </div>
+                <div id="range-box" class="@(Model.Category == VehicleCategory.ElectricBike ? "" : "hidden")">
+                    <label class="field-label" for="RangeKm">Quãng đường mỗi lần sạc (km)</label>
+                    <input id="RangeKm" name="RangeKm" type="number" min="1" max="1000" value="@Model.RangeKm" class="field" placeholder="110" />
+                </div>
+                <div>
+                    <label class="field-label" for="PickupLocation">Khu vực nhận xe</label>
+                    <input id="PickupLocation" name="PickupLocation" value="@Model.PickupLocation" maxlength="60" list="locations" class="field" placeholder="Đà Nẵng" required />
+                    <datalist id="locations">@foreach (var l in Model.KnownLocations) { <option value="@l"></option> }</datalist>
+                    <p class="mt-1.5 text-xs text-slate-400">Dùng để lọc xe theo thành phố. Viết giống nhau cho cùng một nơi.</p>
+                </div>
+                <div>
+                    <label class="field-label" for="PickupAddress">Địa chỉ nhận xe cụ thể</label>
+                    <input id="PickupAddress" name="PickupAddress" value="@Model.PickupAddress" maxlength="200" class="field" placeholder="12 Nguyễn Văn Linh, Hải Châu" required />
+                    <p class="mt-1.5 text-xs text-slate-400">Chỉ hiện cho khách sau khi họ đã cọc.</p>
+                </div>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <label class="field-label" for="Description">Mô tả</label>
+                    <textarea id="Description" name="Description" rows="3" maxlength="1000" class="field" placeholder="Xe mới, sạch sẽ, pin đầy khi giao…">@Model.Description</textarea>
+                </div>
+                <div>
+                    <label class="field-label" for="HighlightsText">Điểm nổi bật (mỗi dòng một ý, tối đa 6)</label>
+                    <textarea id="HighlightsText" name="HighlightsText" rows="5" class="field" placeholder="Đi phố linh hoạt&#10;Sạc đầy ~4 giờ&#10;Có bảo hiểm">@Model.HighlightsText</textarea>
+                </div>
+                <div>
+                    <label class="field-label" for="imageFile">Ảnh xe</label>
+                    <div class="flex items-start gap-4">
+                        <div class="grid h-24 w-32 shrink-0 place-items-center overflow-hidden rounded-2xl bg-emerald-50 text-3xl text-emerald-400">
+                            <img id="image-preview" src="@Model.ImageUrl" alt="" class="@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "hidden" : "") h-full w-full object-cover" />
+                            <i id="image-empty" class="fa-regular fa-image @(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "" : "hidden")"></i>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <input id="imageFile" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm file:mr-3 file:rounded-full file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-xs file:font-bold file:text-emerald-700" />
+                            <input id="ImageUrl" name="ImageUrl" value="@Model.ImageUrl" class="field !py-2 text-xs" placeholder="hoặc dán link ảnh https://…" />
+                            <p class="text-xs text-slate-400">JPG, PNG, WebP, tối đa 5 MB. Để trống sẽ dùng hình minh hoạ.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <label class="flex items-center gap-3 rounded-2xl bg-emerald-50/60 p-4 text-sm font-semibold ring-1 ring-emerald-100">
+                @* Checkbox đứng TRƯỚC input ẩn: khi tick sẽ gửi "true,false" và MVC lấy giá trị đầu (true); khi bỏ tick chỉ gửi "false". *@
+                <input type="checkbox" name="IsActive" value="true" class="h-5 w-5 rounded accent-emerald-500" @(Model.IsActive ? "checked" : null) />
+                <input type="hidden" name="IsActive" value="false" />
+                Hiện xe này trên web để khách đặt
+            </label>
+
+            <div class="flex flex-wrap gap-3">
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> @(Model.IsNew ? "Thêm xe" : "Lưu thay đổi")</button>
+                <a href="@Url.Action("Vehicles", "Admin")" class="btn-outline-dark">Huỷ</a>
+            </div>
+            @if (!Model.IsNew)
+            {
+                <p class="text-xs text-slate-400">Đổi giá chỉ áp dụng cho đơn mới. Các đơn đã gửi giữ nguyên số tiền lúc đặt.</p>
+            }
+        </form>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+}

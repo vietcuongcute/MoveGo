@@ -58,6 +58,16 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 | `/hoi-dap` | Hỏi đáp |
 | `/booking/<mã>` | Khách theo dõi đơn |
 | `/owner/...` | Trang chủ xe xác nhận đơn và quản lý lịch |
+| `/admin` | Quản trị (đăng nhập bằng khoá admin): tổng quan, đơn, thêm/sửa xe, thêm chủ xe |
+
+## Trang quản trị
+
+Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặc định là `movego-admin-dev` (đặt trong `MoveGo.API/appsettings.Development.json`).
+
+- **Chủ xe**: thêm người, sao chép link quản lý lịch gửi cho họ qua Zalo, cấp link mới nếu họ lỡ lộ link.
+- **Xe**: thêm xe (chọn chủ xe, giá, khu vực, địa chỉ nhận xe, ảnh), sửa, ẩn hoặc hiện trên web. Đổi giá chỉ áp dụng cho đơn mới.
+- **Ảnh xe**: tải lên JPG/PNG/WebP tối đa 5 MB. File lưu ở `MoveGo.Web/wwwroot/uploads/vehicles/` (đã gitignore), hoặc dán link ảnh có sẵn.
+- **Đơn**: lọc theo trạng thái, xem SĐT hai bên, gửi lại tin Zalo cho chủ xe khi lần đầu bị lỗi.
 
 ## Các API chính
 
@@ -72,7 +82,11 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 | `GET /api/owner/manage/{manageToken}` và các `blocks` | Chủ xe quản lý lịch |
 | `POST /api/payments/mock/{code}/complete` | Giả lập khách đã cọc (chỉ Development, PayOS tắt) |
 | `POST /api/payments/payos-webhook` | PayOS báo thanh toán (kiểm tra chữ ký) |
-| `GET /api/admin/...` | Quản trị, cần header `X-Admin-Key` (cấu hình `Business:AdminKey`) |
+| `GET /api/admin/summary`, `bookings`, `POST bookings/{id}/resend-owner` | Tổng quan, danh sách đơn, gửi lại Zalo cho chủ xe |
+| `GET/POST /api/admin/owners`, `PUT owners/{id}`, `POST owners/{id}/reset-link` | Quản lý chủ xe, cấp lại link quản lý lịch |
+| `GET/POST /api/admin/vehicles`, `PUT vehicles/{id}`, `PUT vehicles/{id}/active` | Thêm, sửa, ẩn/hiện xe (không xoá hẳn để giữ lịch sử đơn) |
+
+Mọi API admin cần header `X-Admin-Key` (cấu hình `Business:AdminKey`).
 
 Cấu hình nghiệp vụ nằm ở mục `Business` trong `MoveGo.API/appsettings.json`
 (tỉ lệ hoa hồng, số phút giữ xe, số giờ chủ xe được trả lời, số ngày thuê tối đa, địa chỉ website).
@@ -83,9 +97,11 @@ Zalo ZNS và PayOS được viết theo tài liệu chính thức nhưng **chưa
 
 1. **Zalo ZNS**: cần Zalo Official Account, đăng ký ứng dụng, và 5 template tin nhắn được Zalo duyệt (khoá: `owner_new_request`, `customer_accepted`, `customer_rejected`, `owner_confirmed`, `customer_confirmed`). Điền vào mục `Zalo` rồi đặt `Enabled: true`. Token tự gia hạn và lưu ở `App_Data/` (đã gitignore).
 2. **PayOS**: tạo kênh thanh toán, điền `ClientId`, `ApiKey`, `ChecksumKey` vào mục `PayOs`, đặt `Enabled: true`, và đăng ký webhook trỏ về `https://<tên-miền>/api/payments/payos-webhook`.
-3. **Bí mật** (khoá API, mật khẩu database, `AdminKey`) đặt bằng biến môi trường hoặc `appsettings.Production.json`, **không commit lên GitHub**.
+3. **Khoá admin**: đổi `Business:AdminKey` thành chuỗi dài, ngẫu nhiên (đặt bằng biến môi trường `Business__AdminKey`). Để trống thì API admin tự tắt. Trang `/admin` chỉ nên chạy qua HTTPS.
+   **Bí mật** (khoá API, mật khẩu database, `AdminKey`) đặt bằng biến môi trường hoặc `appsettings.Production.json`, **không commit lên GitHub**.
 4. **Hoàn cọc** khi khách cọc nhưng xe không còn trống: hệ thống ghi chú vào đơn (`AdminNote`, xem ở `/api/admin/summary`), việc chuyển tiền hoàn bạn làm thủ công.
-5. Nên chạy HTTPS, đặt giới hạn truy cập và sao lưu database. Nên tham khảo thêm về đăng ký kinh doanh, thuế và điều khoản sử dụng trước khi thu tiền thật.
+5. Ảnh xe tải lên nằm trên ổ đĩa của máy chủ web, nhớ sao lưu cùng database (hoặc chuyển sang kho lưu trữ đám mây khi chạy nhiều máy chủ).
+6. Nên chạy HTTPS, đặt giới hạn truy cập và sao lưu database. Nên tham khảo thêm về đăng ký kinh doanh, thuế và điều khoản sử dụng trước khi thu tiền thật.
 
 ## Cấu trúc
 

@@ -56,6 +56,18 @@ public static class ViewHelpers
     public static DateTime VnNow() => DateTime.UtcNow.AddHours(7);
 
     /// <summary>Màu + nhãn hiển thị cho trạng thái đơn trong trang chủ xe.</summary>
+    public static string StatusLabel(BookingStatus s) => s switch
+    {
+        BookingStatus.PendingOwner => "Chờ chủ xe",
+        BookingStatus.AwaitingDeposit => "Chờ cọc",
+        BookingStatus.Confirmed => "Đã xác nhận",
+        BookingStatus.Rejected => "Chủ xe từ chối",
+        BookingStatus.Cancelled => "Đã huỷ",
+        BookingStatus.Expired => "Hết hạn",
+        BookingStatus.Completed => "Hoàn tất",
+        _ => s.ToString()
+    };
+
     public static (string Cls, string Icon) StatusBadge(BookingStatus s) => s switch
     {
         BookingStatus.PendingOwner => ("bg-amber-50 text-amber-700", "fa-hourglass-half"),
