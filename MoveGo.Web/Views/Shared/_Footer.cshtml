@@ -1,4 +1,3 @@
-@inject IWebHostEnvironment Env
 @inject IOptions<SiteOptions> SiteOpt
 @{
     var site = SiteOpt.Value;
@@ -44,10 +43,6 @@
     </div>
     <div class="relative border-t border-white/10 py-6 text-center text-xs">
         © @DateTime.Now.Year @site.BrandName. Mọi quyền được bảo lưu.
-        @if (System.IO.File.Exists(System.IO.Path.Combine(Env.WebRootPath, MoveGo.Web.Controllers.CreditsController.CreditsRelativePath)))
-        {
-            <span class="mx-1 opacity-40">·</span><a href="@Url.Action("Index", "Credits")" class="underline-offset-2 hover:text-white hover:underline">Nguồn ảnh</a>
-        }
     </div>
 </footer>
 
