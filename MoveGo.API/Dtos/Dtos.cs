@@ -20,7 +20,8 @@ public record CategoryDto(VehicleCategory Key, string Label);
 /// <summary>Dữ liệu chung cho giao diện: loại xe, tỉ lệ cọc, thống kê thật.</summary>
 public record MetaDto(
     List<CategoryDto> Categories,
-    decimal CommissionRate, int DepositHoldMinutes, int MaxRentalDays, StatsDto Stats);
+    decimal CommissionRate, int DepositHoldMinutes, int MaxRentalDays, StatsDto Stats,
+    string PaymentMode = "mock");   // "bank" = chuyển khoản thật (SePay/Casso) · "payos" · "mock" = giả lập
 
 public class QuoteRequest
 {

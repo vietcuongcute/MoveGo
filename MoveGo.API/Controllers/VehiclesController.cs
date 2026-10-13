@@ -12,7 +12,8 @@ namespace MoveGo.API.Controllers;
 [ApiController]
 [Route("api/vehicles")]
 public class VehiclesController(
-    AppDbContext db, IAvailabilityService availability, IClock clock, IOptions<BusinessOptions> business) : ControllerBase
+    AppDbContext db, IAvailabilityService availability, IClock clock, IOptions<BusinessOptions> business,
+    IPaymentService payments) : ControllerBase
 {
     /// <summary>Danh sách toàn bộ xe đang cho thuê (chưa xét lịch).</summary>
     [HttpGet]
@@ -66,6 +67,7 @@ public class VehiclesController(
         return new MetaDto(
             categories,
             b.CommissionRate, b.DepositHoldMinutes, b.MaxRentalDays,
-            new StatsDto(vehicleCount, trips, (int)Math.Round(b.CommissionRate * 100)));
+            new StatsDto(vehicleCount, trips, (int)Math.Round(b.CommissionRate * 100)),
+            payments switch { BankTransferPaymentService => "bank", PayOsService => "payos", _ => "mock" });
     }
 }
