@@ -11,6 +11,7 @@
         (Key: "fleet", Label: "Xe cho thuê", Url: fleet!),
         (Key: "pricing", Label: "Tính giá", Url: Url.Action("Pricing", "Home")!),
         (Key: "process", Label: "Quy trình", Url: Url.Action("Process", "Home")!),
+        (Key: "lookup", Label: "Tra cứu đơn", Url: Url.Action("Lookup", "Booking")!),
         (Key: "faq", Label: "Hỏi đáp", Url: Url.Action("Faq", "Home")!)
     };
     var tel = new string(site.Hotline.Where(char.IsDigit).ToArray());

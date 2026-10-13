@@ -24,6 +24,14 @@
   function longDate(d) { return DAY_NAMES[d.getDay()] + ', ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
   function el(html) { var t = document.createElement('div'); t.innerHTML = html.trim(); return t.firstChild; }
   function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  /* Nhớ vài đơn gần nhất trên thiết bị này để trang Tra cứu đơn gợi ý lại (chỉ tiện lợi, không bắt buộc) */
+  function rememberOrder(code, vehicle) {
+    try {
+      var list = JSON.parse(localStorage.getItem('mg_orders') || '[]').filter(function (o) { return o.code !== code; });
+      list.unshift({ code: code, vehicle: vehicle, at: Date.now() });
+      localStorage.setItem('mg_orders', JSON.stringify(list.slice(0, 5)));
+    } catch (e) { /* bỏ qua */ }
+  }
   function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* trình duyệt chặn lưu trữ: bỏ qua */ } }
 
   /* Công thức giá PHẢN CHIẾU PricingService bên API (server luôn tính lại khi tạo đơn) */
@@ -292,6 +300,7 @@
           showError(msg); setLoading(false); return;
         }
         safeSet('mg_name', name); safeSet('mg_phone', phone); safeSet('mg_address', address);
+        rememberOrder(res.json.code, st.vehicle.name);
         $('#bm-code').textContent = res.json.code;
         $('#bm-track').setAttribute('href', '/booking/' + encodeURIComponent(res.json.code));
         f.form.classList.add('hidden'); f.success.classList.remove('hidden');

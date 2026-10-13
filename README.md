@@ -61,6 +61,7 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 | `/tinh-gia` | Tính giá: nhập ngày để xem tổng tiền, tiền cọc 10% và phần trả chủ xe |
 | `/quy-trinh` | Quy trình thuê xe từng bước |
 | `/hoi-dap` | Hỏi đáp |
+| `/tra-cuu` | Khách nhập mã đơn (MG-XXXXXX) để tra cứu; nhớ 5 đơn gần nhất trên thiết bị |
 | `/booking/<mã>` | Khách theo dõi đơn |
 | `/owner/...` | Trang chủ xe xác nhận đơn và quản lý lịch |
 | `/admin` | Quản trị (đăng nhập bằng khoá admin): tổng quan, đơn, thêm/sửa xe, thêm chủ xe |

@@ -67,3 +67,10 @@ public class ApiOptions
     /// <summary>Địa chỉ API mà TRÌNH DUYỆT của khách gọi (AJAX). Thường giống BaseUrl; khác nhau khi chạy trong Docker.</summary>
     public string PublicUrl { get; set; } = "http://localhost:5100";
 }
+
+/// <summary>Trang tra cứu đơn: giữ lại nội dung khách đã nhập khi mã sai định dạng.</summary>
+public class LookupViewModel
+{
+    public string? Input { get; set; }
+    public string? Error { get; set; }
+}

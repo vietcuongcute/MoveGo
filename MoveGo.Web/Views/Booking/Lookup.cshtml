@@ -1,0 +1,56 @@
+@model LookupViewModel
+@inject IOptions<SiteOptions> SiteOpt
+@{
+    ViewData["Title"] = "Tra cứu đơn";
+    ViewData["Nav"] = "lookup";
+    ViewData["NoIndex"] = true;
+    ViewData["BannerIcon"] = "fa-magnifying-glass";
+    ViewData["BannerEyebrow"] = "Tra cứu đơn";
+    ViewData["BannerTitle"] = "Xem tình trạng";
+    ViewData["BannerAccent"] = "đơn thuê xe";
+    ViewData["BannerSub"] = "Nhập mã đơn để xem chủ xe đã xác nhận chưa, quét QR cọc 10% và nhận số điện thoại chủ xe.";
+    ViewData["BannerPad"] = "pb-36";
+    var site = SiteOpt.Value;
+    var tel = new string(site.Hotline.Where(char.IsDigit).ToArray());
+}
+
+<partial name="_PageBanner" />
+
+<section class="container-x relative z-10 -mt-20 pb-24">
+    <div class="mx-auto grid max-w-4xl gap-6 lg:grid-cols-5">
+        <div class="panel lg:col-span-3">
+            <h2 class="text-xl font-extrabold">Nhập mã đơn của bạn</h2>
+            <p class="mt-2 text-sm text-slate-500">Mã gồm <b class="text-ink-900">MG-</b> và 6 ký tự, ví dụ <b class="text-ink-900">MG-K7P2QX</b>. Bạn có thể gõ chữ thường hoặc bỏ dấu gạch.</p>
+
+            <form method="get" action="@Url.Action("Lookup", "Booking")" class="mt-5 flex flex-col gap-3 sm:flex-row" id="lookup-form">
+                <label class="sr-only" for="ma">Mã đơn</label>
+                <input id="ma" name="ma" value="@Model.Input" class="field !py-3.5 text-lg font-bold uppercase tracking-wider" placeholder="MG-K7P2QX"
+                       autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="14" required autofocus />
+                <button type="submit" class="btn-primary btn-lg shrink-0"><i class="fa-solid fa-magnifying-glass"></i> Tra cứu</button>
+            </form>
+
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <p class="mt-3 flex items-start gap-2 rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-600" role="alert"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>@Model.Error</span></p>
+            }
+
+            <div id="recent" class="mt-7 hidden">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Đơn gần đây trên thiết bị này</div>
+                <ul id="recent-list" class="mt-3 space-y-2"></ul>
+            </div>
+        </div>
+
+        <aside class="panel lg:col-span-2">
+            <h3 class="text-base font-extrabold">Không thấy mã đơn?</h3>
+            <ul class="mt-4 space-y-3 text-sm text-slate-500">
+                <li class="flex gap-3"><i class="fa-solid fa-comment-dots mt-0.5 text-emerald-500"></i><span>Mã được hiện ngay sau khi bạn gửi yêu cầu thuê xe và nằm trong link theo dõi đơn.</span></li>
+                <li class="flex gap-3"><i class="fa-solid fa-clock-rotate-left mt-0.5 text-emerald-500"></i><span>Đơn quá hạn cọc sẽ tự huỷ, mã vẫn tra cứu được để xem trạng thái.</span></li>
+                <li class="flex gap-3"><i class="fa-solid fa-phone-volume mt-0.5 text-emerald-500"></i><span>Cần hỗ trợ? Gọi <a class="font-bold text-emerald-600" href="tel:@tel">@site.Hotline</a>.</span></li>
+            </ul>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/lookup.js" asp-append-version="true"></script>
+}

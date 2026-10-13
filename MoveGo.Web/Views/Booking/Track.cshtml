@@ -23,8 +23,8 @@
         <div class="panel mx-auto max-w-xl text-center">
             <div class="radar mx-auto grid place-items-center"><i></i><i></i><span class="relative text-3xl text-emerald-600"><span class="fa-solid fa-ticket"></span></span></div>
             <p class="mt-6 text-slate-500">Hãy kiểm tra lại link trong tin nhắn Zalo / màn hình xác nhận. Mã đơn có dạng <b class="text-ink-900">MG-XXXXXX</b>.</p>
-            <form class="mt-6 flex gap-2" onsubmit="event.preventDefault(); var v=this.code.value.trim().toUpperCase(); if(v) location.href='/booking/'+encodeURIComponent(v);">
-                <input name="code" class="field" placeholder="Nhập mã đơn, ví dụ MG-K7P2QX" autocomplete="off" />
+            <form class="mt-6 flex gap-2" method="get" action="@Url.Action("Lookup", "Booking")">
+                <input name="ma" class="field uppercase" placeholder="Nhập mã đơn, ví dụ MG-K7P2QX" autocomplete="off" autocapitalize="characters" maxlength="14" required />
                 <button class="btn-primary shrink-0">Tra cứu</button>
             </form>
             <a href="@home" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:underline"><i class="fa-solid fa-arrow-left"></i> Về trang chủ</a>
