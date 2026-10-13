@@ -48,7 +48,8 @@ public record OwnerRequestDto(
     string CustomerName, string? CustomerNote, string? CustomerPhone,
     DateTime StartDate, DateTime EndDate, int RentalDays,
     decimal TotalAmount, decimal OwnerAmount, decimal CommissionAmount,
-    string PickupAddress, int DepositHoldMinutes);
+    string PickupAddress, int DepositHoldMinutes,
+    string? ManageToken = null);
 
 public record OwnerBlockDto(int Id, DateTime StartDate, DateTime EndDate, string Reason);
 

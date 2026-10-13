@@ -563,6 +563,7 @@ public class BookingService(
             b.CustomerName, b.CustomerNote, revealed ? b.CustomerPhone : null,
             b.StartDate, b.EndDate, b.RentalDays,
             b.TotalAmount, b.OwnerAmount, b.CommissionAmount,
-            b.PickupAddress, Biz.DepositHoldMinutes);
+            b.PickupAddress, Biz.DepositHoldMinutes,
+            b.Vehicle.Owner.ManageToken);
     }
 }

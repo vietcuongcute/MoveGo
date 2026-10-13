@@ -18,6 +18,10 @@
         <p class="mt-3 max-w-xl text-emerald-50/80 anim-rise" style="--d:.1s">
             @(r is null ? "Link này không hợp lệ hoặc đã hết hạn." : $"Mã đơn {r.Code} · kiểm tra thông tin rồi bấm đồng ý hoặc từ chối.")
         </p>
+        @if (r is not null && !string.IsNullOrEmpty(r.ManageToken))
+        {
+            <a href="@Url.Action("Manage", "Owner", new { token = r.ManageToken })" class="btn-outline mt-5 anim-rise" style="--d:.15s"><i class="fa-solid fa-calendar-days"></i> Quản lý lịch &amp; các yêu cầu của tôi</a>
+        }
     </div>
 </section>
 

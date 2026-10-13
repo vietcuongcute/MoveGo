@@ -55,6 +55,10 @@ public class OwnerPortalService(AppDbContext db, IClock clock)
         if (end <= now) return ServiceResult<OwnerBlockDto>.Fail(400, "Không thể khoá ngày đã qua.");
         if ((end - start).TotalDays > 366) return ServiceResult<OwnerBlockDto>.Fail(400, "Mỗi lần khoá tối đa 1 năm.");
 
+        // Khoá theo xe (cùng cơ chế với lúc chủ xe chấp nhận đơn) để "khoá ngày" và "chấp nhận đơn" không thể chạy đua nhau rồi đè lịch.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({(long)vehicleId})", ct);
+
         // Không cho khoá đè lên chuyến khách đã cọc / đang giữ chỗ
         var clash = await db.Bookings.AsNoTracking().FirstOrDefaultAsync(b =>
             b.VehicleId == vehicleId
@@ -71,6 +75,7 @@ public class OwnerPortalService(AppDbContext db, IClock clock)
         };
         db.VehicleUnavailabilities.Add(block);
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         return ServiceResult<OwnerBlockDto>.Success(new OwnerBlockDto(block.Id, block.StartDate, block.EndDate, block.Reason));
     }

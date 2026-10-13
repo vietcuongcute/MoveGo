@@ -39,7 +39,8 @@ public record OwnerRequestDto(
     string CustomerName, string? CustomerNote, string? CustomerPhone,
     DateTime StartDate, DateTime EndDate, int RentalDays,
     decimal TotalAmount, decimal OwnerAmount, decimal CommissionAmount,
-    string PickupAddress, int DepositHoldMinutes);
+    string PickupAddress, int DepositHoldMinutes,
+    string? ManageToken = null);   // để chủ xe quay về cổng quản lý lịch từ trang xác nhận
 
 public class OwnerRespondRequest
 {
