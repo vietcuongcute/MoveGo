@@ -626,6 +626,67 @@ Quy tắc: `pricePerDay` từ **50.000đ đến 50.000.000đ**, là bội số c
 
 `DELETE` trả `200` với `true` (xoá hẳn) hoặc `false` (chỉ đánh dấu đã xoá vì xe có lịch sử đơn). `409` nếu xe đang có đơn chờ xử lý/đã xác nhận (hãy ẩn xe và xoá sau). Lỗi khác: `400` (dữ liệu sai), `404`.
 
+### Lịch từng xe
+
+| Method | Path | Mô tả |
+|---|---|---|
+| GET | `/api/admin/schedule` | Lịch của **tất cả** xe |
+| GET | `/api/admin/vehicles/{id}/schedule` | Lịch của một xe (`404` nếu không có xe) |
+
+Dùng cho trang Admin → Xe: xe đang cho thuê hay trống, ngày nào có khách, ngày nào chủ xe khoá. Mỗi xe có `entries` gồm 90 ngày gần nhất và toàn bộ lịch sắp tới; đơn bị từ chối/huỷ/hết hạn không hiện vì không chiếm xe.
+
+```json
+{
+  "vehicleId": 1,
+  "vehicleName": "VinFast VF 3",
+  "isActive": true,
+  "rentedNow": true,
+  "rentedUntil": "2026-10-15T08:00:00",
+  "nextBusyFrom": "2026-10-19T08:00:00",
+  "tripsDone": 0,
+  "upcomingCount": 1,
+  "pendingCount": 1,
+  "entries": [
+    {
+      "kind": "booking",
+      "phase": "now",
+      "bookingId": 7,
+      "code": "MG-EPAN7F",
+      "status": "Confirmed",
+      "label": "Đã cọc — khách thuê",
+      "customerName": "Nguyễn Văn A",
+      "customerPhone": "0912345678",
+      "startDate": "2026-10-12T08:00:00",
+      "endDate": "2026-10-15T08:00:00",
+      "days": 3,
+      "totalAmount": 1300000,
+      "depositAmount": 130000,
+      "ownerAmount": 1170000,
+      "holdExpiresAt": null,
+      "note": null
+    },
+    {
+      "kind": "block",
+      "phase": "upcoming",
+      "bookingId": null, "code": null, "status": null,
+      "label": "Chủ xe khoá: Bảo dưỡng định kỳ",
+      "customerName": null, "customerPhone": null,
+      "startDate": "2026-10-18T00:00:00",
+      "endDate": "2026-10-20T23:00:00",
+      "days": 3,
+      "totalAmount": null, "depositAmount": null, "ownerAmount": null,
+      "holdExpiresAt": null, "note": null
+    }
+  ]
+}
+```
+
+- `kind`: `"booking"` (đơn của khách) hoặc `"block"` (chủ xe khoá).
+- `phase`: `"past"` (đã qua), `"now"` (đang diễn ra), `"upcoming"` (sắp tới).
+- `status` của đơn có thể là `Confirmed`, `Completed`, `AwaitingDeposit` (đang giữ chỗ, còn hạn) hoặc `PendingOwner` (chờ chủ xe, **chưa chiếm xe**).
+- `rentedNow = true` chỉ khi có đơn **đã cọc** đang diễn ra; đơn chờ chủ xe/chờ cọc không tính là đang thuê.
+- `nextBusyFrom`: ngày bắt đầu của lịch bận kế tiếp (đơn đã cọc, đang giữ chỗ hoặc chủ xe khoá).
+
 ### Đơn
 
 | Method | Path | Mô tả |
@@ -720,7 +781,9 @@ Quy tắc: `pricePerDay` từ **50.000đ đến 50.000.000đ**, là bội số c
 | 31 | GET | `/api/admin/bookings` | X-Admin-Key | `?status=` |
 | 32 | POST | `/api/admin/bookings/{id}/confirm-payment` | X-Admin-Key | |
 | 33 | POST | `/api/admin/bookings/{id}/resend-owner` | X-Admin-Key | |
+| 34 | GET | `/api/admin/schedule` | X-Admin-Key | Lịch của tất cả xe |
+| 35 | GET | `/api/admin/vehicles/{id}/schedule` | X-Admin-Key | Lịch của một xe |
 
-Tổng cộng **33 endpoint** (+ Swagger `/swagger` khi chạy Development).
+Tổng cộng **35 endpoint** (+ Swagger `/swagger` khi chạy Development).
 
 > Lưu ý bảo mật: SĐT chủ xe chỉ xuất hiện trong `BookingTrackDto.owner` **sau khi khách đã cọc**; SĐT khách chỉ xuất hiện ở phía chủ xe sau khi đã cọc; mọi lỗi đều trả về ProblemDetails với thông điệp tiếng Việt.

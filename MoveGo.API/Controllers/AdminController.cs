@@ -88,6 +88,18 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
     public async Task<IActionResult> DeleteVehicle(int id, CancellationToken ct) =>
         (await catalog.DeleteVehicleAsync(id, ct)).ToActionResult(this);
 
+    /// <summary>Lịch của TẤT CẢ xe: đang cho thuê hay trống, ngày nào có khách, ngày nào chủ xe khoá.</summary>
+    [HttpGet("schedule")]
+    public async Task<IActionResult> Schedule(CancellationToken ct) => Ok(await catalog.GetSchedulesAsync(null, ct));
+
+    /// <summary>Lịch của một xe.</summary>
+    [HttpGet("vehicles/{id:int}/schedule")]
+    public async Task<IActionResult> VehicleSchedule(int id, CancellationToken ct)
+    {
+        var list = await catalog.GetSchedulesAsync(id, ct);
+        return list.Count == 0 ? Problem(title: "Không tìm thấy xe.", statusCode: 404) : Ok(list[0]);
+    }
+
     // ---------- Đơn ----------
 
     /// <summary>Tổng quan: số đơn theo trạng thái, doanh thu hoa hồng, đơn cần hoàn cọc.</summary>

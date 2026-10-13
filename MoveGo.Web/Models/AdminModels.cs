@@ -11,6 +11,23 @@ public record AdminVehicleDto(
     string PickupAddress, string Description, string? ImageUrl,
     int? RangeKm, string[] Highlights, bool IsActive, int ActiveBookings, string[]? Images = null);
 
+public record AdminScheduleEntryDto(
+    string Kind, string Phase, int? BookingId, string? Code, BookingStatus? Status, string Label,
+    string? CustomerName, string? CustomerPhone, DateTime StartDate, DateTime EndDate, int Days,
+    decimal? TotalAmount, decimal? DepositAmount, decimal? OwnerAmount, DateTime? HoldExpiresAt, string? Note);
+
+public record AdminVehicleScheduleDto(
+    int VehicleId, string VehicleName, bool IsActive, bool RentedNow, DateTime? RentedUntil,
+    DateTime? NextBusyFrom, int TripsDone, int UpcomingCount, int PendingCount,
+    List<AdminScheduleEntryDto> Entries);
+
+/// <summary>Dữ liệu cho trang Quản lý xe: danh sách xe + lịch từng xe (tra theo Id xe).</summary>
+public class AdminVehiclesViewModel
+{
+    public List<AdminVehicleDto> Vehicles { get; set; } = [];
+    public Dictionary<int, AdminVehicleScheduleDto> Schedules { get; set; } = [];
+}
+
 public record AdminSummaryDto(Dictionary<string, int> ByStatus, decimal CommissionEarned, int NeedRefund, int OwnerNotNotified);
 
 public record AdminBookingDto(

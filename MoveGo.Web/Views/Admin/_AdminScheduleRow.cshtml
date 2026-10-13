@@ -1,0 +1,39 @@
+@model AdminScheduleEntryDto
+@{
+    var e = Model;
+    var isBlock = e.Kind == "block";
+    var (cls, icon) = isBlock ? ("bg-slate-100 text-slate-600", "fa-lock") : ViewHelpers.StatusBadge(e.Status!.Value);
+    var label = isBlock ? "Chủ xe khoá" : ViewHelpers.StatusLabel(e.Status!.Value);
+    var bar = isBlock ? "bg-slate-500" : e.Status == BookingStatus.PendingOwner ? "bg-amber-400"
+        : e.Status == BookingStatus.AwaitingDeposit ? "bg-blue-400" : "bg-emerald-500";
+}
+<div class="flex gap-3 rounded-xl bg-white p-3 ring-1 ring-slate-100">
+    <span class="w-1 shrink-0 rounded-full @bar"></span>
+    <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2">
+            <b class="tabular">@e.StartDate.ToString("dd/MM/yyyy HH:mm") → @e.EndDate.ToString("dd/MM/yyyy HH:mm")</b>
+            <span class="text-xs text-slate-400">· @e.Days ngày</span>
+            <span class="status-pill !py-0.5 @cls"><i class="fa-solid @icon"></i> @label</span>
+            @if (e.Phase == "now") { <span class="status-pill !py-0.5 bg-red-50 text-red-600">Đang diễn ra</span> }
+        </div>
+        @if (isBlock)
+        {
+            <div class="mt-1 text-slate-500">@e.Label</div>
+        }
+        else
+        {
+            <div class="mt-1 text-slate-600">
+                <i class="fa-regular fa-user text-slate-400"></i> @e.CustomerName
+                · <a class="font-semibold text-emerald-700" href="tel:@e.CustomerPhone">@e.CustomerPhone</a>
+                · <span class="font-mono text-xs text-slate-400">@e.Code</span>
+            </div>
+            <div class="mt-0.5 text-xs text-slate-500">
+                Tổng <b class="tabular text-ink-900">@ViewHelpers.Vnd(e.TotalAmount ?? 0)</b>
+                · cọc <span class="tabular">@ViewHelpers.Vnd(e.DepositAmount ?? 0)</span>
+                · trả chủ xe <span class="tabular">@ViewHelpers.Vnd(e.OwnerAmount ?? 0)</span>
+                @if (e.Status == BookingStatus.AwaitingDeposit && e.HoldExpiresAt is { } h) { <span class="text-cyan-700">· giữ chỗ đến @h.ToString("HH:mm dd/MM")</span> }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(e.Note)) { <div class="mt-1 rounded-lg bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">@e.Note</div> }
+        }
+    </div>
+</div>

@@ -141,7 +141,14 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
         var r = await api.GetVehiclesAsync(AdminKey, ct);
         if (KickIfUnauthorized(r.Status) is { } kick) return kick;
         ViewData["AdminError"] = r.Error;
-        return View(r.Value ?? []);
+
+        // Lịch là phần phụ: nếu lấy lỗi thì vẫn hiện danh sách xe, chỉ không có lịch.
+        var sch = await api.GetSchedulesAsync(AdminKey, ct);
+        return View(new AdminVehiclesViewModel
+        {
+            Vehicles = r.Value ?? [],
+            Schedules = sch.Value?.ToDictionary(x => x.VehicleId) ?? []
+        });
     }
 
     [HttpGet("xe/moi")]

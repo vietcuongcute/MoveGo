@@ -44,3 +44,17 @@ public record AdminVehicleDto(
     VehicleCategory Category, string CategoryLabel, int Seats, decimal PricePerDay,
     string PickupAddress, string Description, string? ImageUrl,
     int? RangeKm, string[] Highlights, bool IsActive, int ActiveBookings, string[] Images);
+
+/// <summary>Một dòng trong lịch của xe: đơn của khách hoặc khoảng chủ xe tự khoá.</summary>
+/// <param name="Kind">"booking" (đơn của khách) hoặc "block" (chủ xe khoá).</param>
+/// <param name="Phase">"past" (đã qua), "now" (đang diễn ra), "upcoming" (sắp tới).</param>
+public record AdminScheduleEntryDto(
+    string Kind, string Phase, int? BookingId, string? Code, BookingStatus? Status, string Label,
+    string? CustomerName, string? CustomerPhone, DateTime StartDate, DateTime EndDate, int Days,
+    decimal? TotalAmount, decimal? DepositAmount, decimal? OwnerAmount, DateTime? HoldExpiresAt, string? Note);
+
+/// <summary>Lịch của một xe cho trang quản trị: đang cho thuê hay trống, ngày bận, ngày chủ xe khoá.</summary>
+public record AdminVehicleScheduleDto(
+    int VehicleId, string VehicleName, bool IsActive, bool RentedNow, DateTime? RentedUntil,
+    DateTime? NextBusyFrom, int TripsDone, int UpcomingCount, int PendingCount,
+    List<AdminScheduleEntryDto> Entries);

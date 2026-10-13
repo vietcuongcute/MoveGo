@@ -183,6 +183,81 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
         return ServiceResult<bool>.Success(!hasHistory);
     }
 
+    // ---------- Lịch từng xe ----------
+
+    /// <summary>
+    /// Lịch cho trang quản trị: với mỗi xe, các đơn đã cọc/đang giữ chỗ/đang chờ chủ xe và các khoảng chủ xe khoá.
+    /// Lấy cả lịch sử 90 ngày gần đây và toàn bộ lịch sắp tới. Đơn bị từ chối/huỷ/hết hạn không hiện (không chiếm xe).
+    /// </summary>
+    public async Task<List<AdminVehicleScheduleDto>> GetSchedulesAsync(int? vehicleId, CancellationToken ct)
+    {
+        var now = clock.Now;
+        var since = now.AddDays(-90);
+
+        var vehicles = await db.Vehicles.AsNoTracking().Where(v => !v.IsDeleted && (vehicleId == null || v.Id == vehicleId))
+            .OrderBy(v => v.Id).ToListAsync(ct);
+        var ids = vehicles.Select(v => v.Id).ToList();
+
+        var bookings = await db.Bookings.AsNoTracking()
+            .Where(b => ids.Contains(b.VehicleId) && b.EndDate >= since
+                && (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed
+                    || b.Status == BookingStatus.PendingOwner
+                    || (b.Status == BookingStatus.AwaitingDeposit && (b.HoldExpiresAt == null || b.HoldExpiresAt > now))))
+            .ToListAsync(ct);
+        var blocks = await db.VehicleUnavailabilities.AsNoTracking()
+            .Where(u => ids.Contains(u.VehicleId) && u.EndDate >= since).ToListAsync(ct);
+
+        static string PhaseOf(DateTime start, DateTime end, DateTime now) =>
+            end <= now ? "past" : start <= now ? "now" : "upcoming";
+
+        var result = new List<AdminVehicleScheduleDto>();
+        foreach (var v in vehicles)
+        {
+            var entries = new List<AdminScheduleEntryDto>();
+
+            foreach (var b in bookings.Where(b => b.VehicleId == v.Id))
+            {
+                var label = b.Status switch
+                {
+                    BookingStatus.Confirmed or BookingStatus.Completed => "Đã cọc — khách thuê",
+                    BookingStatus.AwaitingDeposit => "Đang giữ chỗ, chờ khách cọc",
+                    _ => "Chờ chủ xe xác nhận (chưa chiếm xe)"
+                };
+                entries.Add(new("booking", PhaseOf(b.StartDate, b.EndDate, now), b.Id, b.Code, b.Status, label,
+                    b.CustomerName, b.CustomerPhone, b.StartDate, b.EndDate, b.RentalDays,
+                    b.TotalAmount, b.CommissionAmount, b.OwnerAmount, b.HoldExpiresAt, b.AdminNote));
+            }
+            foreach (var u in blocks.Where(u => u.VehicleId == v.Id))
+            {
+                entries.Add(new("block", PhaseOf(u.StartDate, u.EndDate, now), null, null, null,
+                    string.IsNullOrWhiteSpace(u.Reason) ? "Chủ xe khoá lịch" : "Chủ xe khoá: " + u.Reason,
+                    null, null, u.StartDate, u.EndDate,
+                    Math.Max(1, (int)Math.Ceiling((u.EndDate - u.StartDate).TotalDays)), null, null, null, null, null));
+            }
+
+            entries = entries.OrderBy(e => e.StartDate).ThenBy(e => e.EndDate).ToList();
+
+            // "Đang cho thuê" = có đơn ĐÃ CỌC đang diễn ra; đơn chờ chủ xe/chờ cọc không tính là đang thuê.
+            var current = entries.Where(e => e.Kind == "booking" && e.Phase == "now"
+                && e.Status is BookingStatus.Confirmed or BookingStatus.Completed).ToList();
+            var busy = entries.Where(e => e.Phase != "past" && (e.Kind == "block"
+                || e.Status is BookingStatus.Confirmed or BookingStatus.AwaitingDeposit)).ToList();
+
+            result.Add(new AdminVehicleScheduleDto(
+                v.Id, v.Name, v.IsActive,
+                RentedNow: current.Count > 0,
+                RentedUntil: current.Count > 0 ? current.Max(e => e.EndDate) : null,
+                NextBusyFrom: busy.Where(e => e.Phase == "upcoming").Select(e => (DateTime?)e.StartDate).Min(),
+                TripsDone: entries.Count(e => e.Kind == "booking" && e.Phase == "past"
+                    && e.Status is BookingStatus.Confirmed or BookingStatus.Completed),
+                UpcomingCount: entries.Count(e => e.Kind == "booking" && e.Phase == "upcoming"
+                    && e.Status is BookingStatus.Confirmed or BookingStatus.AwaitingDeposit),
+                PendingCount: entries.Count(e => e.Status == BookingStatus.PendingOwner && e.Phase != "past"),
+                Entries: entries));
+        }
+        return result;
+    }
+
     private async Task<Dictionary<int, int>> LiveCountsAsync(CancellationToken ct) =>
         await db.Bookings.AsNoTracking().Where(b => LiveStatuses.Contains(b.Status))
             .GroupBy(b => b.VehicleId).Select(g => new { g.Key, Count = g.Count() })
