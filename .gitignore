@@ -485,5 +485,3 @@ $RECYCLE.BIN/
 App_Data/
 MoveGo.Web/wwwroot/uploads/
 
-# Ảnh tạm của scripts/fetch_vehicle_photos.py
-photo_staging/

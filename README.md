@@ -122,16 +122,3 @@ MoveGo.Web/   Controllers, Services/MoveGoApi.cs (gọi API qua IHttpClientFacto
 ```
 
 Sửa giao diện Tailwind: `cd MoveGo.Web && npm install && npm run css:watch` (chỉ cần khi sửa `Styles/tailwind.css` hoặc class trong view).
-
-
-## Ảnh xe thật (Wikimedia Commons)
-
-Ảnh xe mẫu có thể lấy từ Wikimedia Commons (chỉ ảnh giấy phép tự do CC BY / CC BY-SA / CC0 / public domain):
-
-```bash
-python3 scripts/fetch_vehicle_photos.py fetch                          # tải ảnh về photo_staging/ + tạo preview.html
-# mở photo_staging/preview.html, xoá file ảnh sai xe / xấu
-python3 scripts/fetch_vehicle_photos.py apply --key movego-admin-dev   # gắn vào xe (API phải đang chạy)
-```
-
-Ảnh được lưu ở `MoveGo.Web/wwwroot/uploads/vehicles/`; tên tác giả + giấy phép hiện ở trang `/nguon-anh` (bắt buộc giữ lại).
