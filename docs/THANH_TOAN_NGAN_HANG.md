@@ -13,7 +13,7 @@ Khách quét QR ─► Ngân hàng ─► tài khoản của bạn
 Mã QR do MoveGo tự sinh (chuẩn VietQR/NAPAS) từ **số tài khoản của bạn**, nên không cần tải ảnh QR lên: ảnh QR tĩnh không mang được *số tiền* và *mã đơn*, mà hai thứ đó là cái giúp hệ thống biết "ai vừa trả cho đơn nào".
 
 ## 1. Cấu hình MoveGo (3 phút)
-Trong `appsettings.Production.json` (host) hoặc `MoveGo.API/appsettings.Development.json` (chạy máy bạn):
+Trong `appsettings.Production.json` (host), hoặc khi chạy máy bạn thì tạo file **`MoveGo.API/appsettings.Local.json`** (đã được gitignore nên không bị đẩy lên GitHub — **đừng** ghi số tài khoản/khoá vào file được commit):
 
 ```json
 "BankPayment": {
@@ -31,13 +31,22 @@ Trong `appsettings.Production.json` (host) hoặc `MoveGo.API/appsettings.Develo
 
 Mã BIN thường gặp: MB `970422` · Vietcombank `970436` · Techcombank `970407` · ACB `970416` · BIDV `970418` · VietinBank `970415` · VPBank `970432` · TPBank `970423` · Sacombank `970403` · Agribank `970405` · OCB `970448` · VIB `970441` · MSB `970426`. Bank khác: tra "mã BIN ngân hàng" hoặc xem https://api.vietqr.io/v2/banks.
 
-## 2. Nối SePay (miễn phí gói cơ bản, giới hạn số giao dịch/tháng — xem sepay.vn)
-1. Đăng ký tại https://my.sepay.vn → **Ngân hàng → Thêm tài khoản** → làm theo hướng dẫn liên kết tài khoản của bạn (tuỳ ngân hàng: xác thực OTP/app ngân hàng).
-2. Vào **Tích hợp WebHooks → Thêm webhooks**:
-   - **Gọi đến URL**: `https://<tên-miền-của-bạn>/api/payments/bank-webhook`
-   - **Kiểu chứng thực**: `API Key` → nhập đúng `WebhookSecret` ở bước 1 (SePay sẽ gửi header `Authorization: Apikey <khoá>`).
-   - **Sự kiện**: *Có tiền vào*. Chọn đúng tài khoản ngân hàng ở bước 1.
-3. Bấm **Kiểm tra** (nếu có) hoặc tự chuyển 1 khoản nhỏ để thử.
+## 2. Nối SePay (gói FREE: 0đ, 50 giao dịch/tháng — đủ để demo)
+Làm theo đúng thứ tự (nhãn nút lấy từ tài liệu SePay: https://docs.sepay.vn):
+
+**2.1 Đăng ký** — vào https://my.sepay.vn/register → nhập email, mật khẩu, số điện thoại → **Đăng ký** → nhập mã OTP 6 số (nhận qua Zalo hoặc SMS) → ở trang **Chọn gói** chọn gói **FREE**.
+
+**2.2 Thêm tài khoản ngân hàng** — menu **Ngân hàng** → **+ Kết nối tài khoản**. Có 2 kiểu, SePay sẽ cho bạn chọn kiểu mà ngân hàng của bạn hỗ trợ:
+- **Kết nối API** (nếu SePay liệt kê MB Bank cho tài khoản cá nhân): làm theo hướng dẫn trên màn hình, tiền về được báo gần như tức thì.
+- **SMS Báo số dư**: chọn ngân hàng **MB Bank**, nhập **Số tài khoản** `6650123456779`, **Tên chủ tài khoản** `DINH LE VIET CUONG` → **Tiếp tục** → SePay hiện một **số điện thoại**; bạn đăng ký số đó với MB làm số nhận **SMS biến động số dư thứ hai** (chỉ đăng ký nhận biến động số dư, **không** đăng ký OTP). Tiền về thì SMS đến SePay và SePay gọi webhook.
+- Thử: chuyển 1.000đ vào tài khoản rồi xem ở menu **Giao dịch** (https://my.sepay.vn/transactions) có hiện giao dịch không.
+
+**2.3 Tạo webhook** — menu **Webhooks** (https://my.sepay.vn/webhooks) → **+ Thêm webhook** → điền 4 bước:
+1. **Thông tin cơ bản**: Tên `MoveGo`; Sự kiện **Có tiền vào**; URL `https://<tên-miền-của-bạn>/api/payments/bank-webhook`.
+2. **Tài khoản và bộ lọc**: chọn tài khoản MB vừa thêm; **không** đặt bộ lọc.
+3. **Bảo mật**: chọn **API Key** và nhập đúng giá trị `WebhookSecret` (SePay sẽ gửi header `Authorization: Apikey <khoá>`).
+4. **Cảnh báo**: tuỳ chọn (kênh báo khi webhook lỗi).
+→ **Thêm**. SePay coi webhook thành công khi nhận HTTP 200/201 kèm `{"success": true}` (MoveGo trả đúng như vậy) và tự gửi lại tối đa 7 lần nếu lỗi.
 
 > **Casso** (casso.vn) cũng dùng được: tạo webhook, URL như trên, header bảo mật `secure-token` = `WebhookSecret`. MoveGo tự nhận ra định dạng của SePay hay Casso.
 

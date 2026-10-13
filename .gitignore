@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 App_Data/
 MoveGo.Web/wwwroot/uploads/
 
+
+# cấu hình riêng của từng máy (có thể chứa số tài khoản, khoá bí mật)
+appsettings.Local.json

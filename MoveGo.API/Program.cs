@@ -3,6 +3,9 @@ using MoveGo.API.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// File cấu hình riêng của máy bạn (số tài khoản, khoá bí mật...) — nằm trong .gitignore nên không bị đẩy lên GitHub
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Toàn bộ dịch vụ lõi (DB, đặt xe, Zalo, PayOS, rate limit...) nằm trong Hosting/ApiHosting.cs
 builder.Services.AddMoveGoApiCore(builder.Configuration);
 
