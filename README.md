@@ -33,6 +33,7 @@ Hai khoảng trùng nhau khi `aStart < bEnd && aEnd > bStart` (trả xe 08:00 v�
 Không còn "điểm nhận xe" cố định. Khi đặt, khách tự nhập **địa chỉ muốn nhận xe** (khách sạn, nhà…); chủ xe thấy địa chỉ này trên trang xác nhận và trong tin Zalo (khoá `pickup_address` trong dữ liệu mẫu tin nhắn, nhớ thêm biến này vào template ZNS), rồi hai bên tự thống nhất giờ giao.
 
 > Test API (Swagger + bảng kết quả 69 trường hợp): xem [docs/API_TEST.md](docs/API_TEST.md).
+> Mô tả đầy đủ từng API (request/response/lỗi): xem [docs/API_REFERENCE.md](docs/API_REFERENCE.md).
 > Nhận cọc bằng QR ngân hàng của bạn + tự nhận diện tiền về (SePay/Casso): xem [docs/THANH_TOAN_NGAN_HANG.md](docs/THANH_TOAN_NGAN_HANG.md).
 > App iPhone demo (Expo Go) gọi API này: xem [MoveGo.Mobile/README.md](MoveGo.Mobile/README.md).
 > Đưa lên host chỉ có 1 website (MonsterASP...): xem [docs/DEPLOY_MONSTERASP.md](docs/DEPLOY_MONSTERASP.md).
