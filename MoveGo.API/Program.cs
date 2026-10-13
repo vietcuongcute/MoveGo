@@ -10,7 +10,28 @@ builder.Services.AddControllers()
     // Enum trả về dạng chữ ("Car4Seats") thay vì số (1) cho dễ đọc
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Nút "Authorize" trên Swagger: nhập khoá admin (Business:AdminKey) để gọi nhóm /api/admin
+    c.AddSecurityDefinition("AdminKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Name = "X-Admin-Key",
+        Description = "Khoá quản trị. Môi trường dev: movego-admin-dev"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        [new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Reference = new Microsoft.OpenApi.Models.OpenApiReference
+            {
+                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                Id = "AdminKey"
+            }
+        }] = Array.Empty<string>()
+    });
+});
 
 // CORS: cho phép trình duyệt ở website MVC gọi thẳng API (AJAX)
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:5200"];
