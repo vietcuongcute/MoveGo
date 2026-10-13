@@ -17,4 +17,20 @@
     <Compile Remove="node_modules/**" />
   </ItemGroup>
 
+  <!--
+    Chế độ GỘP API vào website (để up lên host chỉ có 1 website, ví dụ MonsterASP gói Free):
+      dotnet publish MoveGo.Web -c Release -p:EmbedApi=true -o publish
+    Khi không có EmbedApi, hai dự án vẫn chạy riêng như bình thường.
+  -->
+  <PropertyGroup Condition="'$(EmbedApi)' == 'true'">
+    <DefineConstants>$(DefineConstants);EMBED_API</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(EmbedApi)' == 'true'">
+    <Compile Include="..\MoveGo.API\**\*.cs" Exclude="..\MoveGo.API\Program.cs;..\MoveGo.API\obj\**;..\MoveGo.API\bin\**" LinkBase="_Api" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.*" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.*" />
+    <!-- Cấu hình mặc định của API (Business, Seed, Zalo, PayOs...) đi kèm bản gộp; appsettings.Production.json ghi đè lên -->
+    <None Include="..\MoveGo.API\appsettings.json" Link="appsettings.api.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
