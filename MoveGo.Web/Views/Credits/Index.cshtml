@@ -1,0 +1,49 @@
+@model Dictionary<string, List<MoveGo.Web.Controllers.CreditsController.PhotoCredit>>
+@{
+    ViewData["Title"] = "Nguồn ảnh";
+    ViewData["BannerIcon"] = "fa-camera";
+    ViewData["BannerEyebrow"] = "Nguồn ảnh";
+    ViewData["BannerTitle"] = "Ảnh xe được dùng";
+    ViewData["BannerAccent"] = "theo giấy phép mở";
+    ViewData["BannerSub"] = "Cảm ơn các nhiếp ảnh gia đã chia sẻ ảnh trên Wikimedia Commons.";
+    ViewData["BannerPad"] = "pb-36";
+
+    // Chỉ cho phép link về chính Wikimedia Commons
+    string? Safe(string? url) => url is not null && url.StartsWith("https://commons.wikimedia.org/", StringComparison.Ordinal) ? url : null;
+}
+
+<partial name="_PageBanner" />
+
+<section class="container-x relative z-10 -mt-20 pb-24">
+    <div class="panel mx-auto max-w-4xl">
+        @if (Model.Count == 0)
+        {
+            <p class="text-sm text-slate-500">Hiện chưa có ảnh nào cần ghi nguồn.</p>
+        }
+        else
+        {
+            <div class="space-y-8">
+                @foreach (var (vehicle, items) in Model)
+                {
+                    <div>
+                        <h2 class="text-base font-extrabold">@vehicle</h2>
+                        <ul class="mt-3 divide-y divide-slate-100 text-sm">
+                            @foreach (var c in items)
+                            {
+                                var link = Safe(c.Page);
+                                <li class="flex flex-col gap-1 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                                    <span class="min-w-0">
+                                        @if (link is not null) { <a class="font-semibold text-emerald-600 hover:underline" href="@link" target="_blank" rel="noopener">@c.Title.Replace("File:", "")</a> }
+                                        else { <span class="font-semibold">@c.Title.Replace("File:", "")</span> }
+                                        <span class="text-slate-500"> — @c.Author</span>
+                                    </span>
+                                    <span class="shrink-0 text-xs font-bold text-slate-500">@c.License</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
