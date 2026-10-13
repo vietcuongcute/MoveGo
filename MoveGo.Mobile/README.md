@@ -17,6 +17,8 @@ Có 3 tab: **Xe** (danh sách + lọc loại xe) → **Chi tiết xe** (lịch b
 | Cài Node.js 20+ (`brew install node` hoặc tải ở nodejs.org) | Tải **Expo Go** trên App Store (miễn phí) |
 | Đã chạy được API như README gốc (.NET 8 + Docker) | iPhone và Mac **cùng một Wi‑Fi** |
 
+> **Tài khoản Expo (miễn phí):** Expo Go bản mới bắt buộc đăng nhập, nếu không sẽ báo *"You need to be signed in to Expo Go and Expo CLI"*. Tạo tài khoản ở https://expo.dev/signup, chạy `npx expo login` trên Mac và đăng nhập **cùng tài khoản** trong Expo Go (tab Settings → Log in).
+
 > Expo Go phải là bản mới nhất (project dùng Expo SDK 57). Nếu app báo "SDK không tương thích" → cập nhật Expo Go trên App Store.
 
 ### Bước 1 — Chạy API cho điện thoại gọi được
@@ -68,6 +70,7 @@ Vào tab **Cài đặt** → nhập `http://192.168.1.23:5100` (IP Mac của b�
 | "Không kết nối được máy chủ" | Sai IP/cổng, khác Wi‑Fi, hoặc API đang chạy bằng `localhost`. Chạy lại với `--urls http://0.0.0.0:5100`, thử mở link ở Safari iPhone trước. |
 | Safari iPhone cũng không vào được | Tắt VPN; Wi‑Fi công ty/trường thường chặn thiết bị nói chuyện với nhau → dùng hotspot 4G của iPhone cho cả Mac, hoặc dùng địa chỉ host MonsterASP. |
 | Quét QR không mở được | Dùng `npx expo start --tunnel` (cần mạng internet; lần đầu hỏi cài `@expo/ngrok`). Lưu ý tunnel chỉ đưa *app* qua mạng, còn API vẫn cần đúng địa chỉ ở Cài đặt. |
+| "You need to be signed in to Expo Go and Expo CLI" | Chạy `npx expo login` trên Mac và đăng nhập cùng tài khoản trong Expo Go, rồi bấm Try again. |
 | "Project is incompatible with this version of Expo Go" | Cập nhật Expo Go trong App Store. |
 | Xe không có ảnh, hiện biểu tượng 🚗 | Bình thường — xe chưa có ảnh. Thêm ảnh trong Admin của website, app tự hiển thị. |
 | Sửa code nhưng app không đổi | Lắc iPhone → **Reload**, hoặc ở terminal bấm `r`. |
