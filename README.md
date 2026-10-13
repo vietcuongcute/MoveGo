@@ -70,8 +70,9 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặc định là `movego-admin-dev` (đặt trong `MoveGo.API/appsettings.Development.json`).
 
 - **Chủ xe**: thêm người, sao chép link quản lý lịch gửi cho họ qua Zalo, cấp link mới nếu họ lỡ lộ link.
-- **Xe**: thêm xe (chọn chủ xe, giá, ảnh, điểm nổi bật), sửa, ẩn hoặc hiện trên web. Đổi giá chỉ áp dụng cho đơn mới.
-- **Ảnh xe**: tải lên JPG/PNG/WebP tối đa 5 MB. File lưu ở `MoveGo.Web/wwwroot/uploads/vehicles/` (đã gitignore), hoặc dán link ảnh có sẵn.
+- **Xe**: thêm xe (chọn chủ xe, giá, ảnh, điểm nổi bật), sửa, ẩn/hiện trên web hoặc xoá. Đổi giá chỉ áp dụng cho đơn mới.
+- **Xoá xe**: xe chưa từng có đơn thì xoá hẳn (kèm file ảnh đã tải lên). Xe đã có lịch sử đơn chỉ bị đánh dấu đã xoá và ẩn để số liệu hoa hồng không sai. Xe đang có đơn chờ xử lý hoặc đã xác nhận thì chưa xoá được.
+- **Ảnh xe**: mỗi xe tối đa 8 ảnh (nên 5–6 ảnh từ ngoài vào trong), ảnh đầu tiên là ảnh bìa phủ kín khung thẻ xe; bấm ★ để đổi ảnh bìa. Tải JPG/PNG/WebP tối đa 5 MB mỗi ảnh, lưu ở `MoveGo.Web/wwwroot/uploads/vehicles/` (đã gitignore), hoặc dán link ảnh có sẵn. Khách bấm vào ảnh trên thẻ xe để xem cả bộ ảnh (mũi tên, vuốt, phím ← →).
 - **Đơn**: lọc theo trạng thái, xem SĐT hai bên, gửi lại tin Zalo cho chủ xe khi lần đầu bị lỗi.
 
 ## Các API chính
@@ -89,7 +90,7 @@ Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặ
 | `POST /api/payments/payos-webhook` | PayOS báo thanh toán (kiểm tra chữ ký) |
 | `GET /api/admin/summary`, `bookings`, `POST bookings/{id}/resend-owner` | Tổng quan, danh sách đơn, gửi lại Zalo cho chủ xe |
 | `GET/POST /api/admin/owners`, `PUT owners/{id}`, `POST owners/{id}/reset-link` | Quản lý chủ xe, cấp lại link quản lý lịch |
-| `GET/POST /api/admin/vehicles`, `PUT vehicles/{id}`, `PUT vehicles/{id}/active` | Thêm, sửa, ẩn/hiện xe (không xoá hẳn để giữ lịch sử đơn) |
+| `GET/POST /api/admin/vehicles`, `PUT vehicles/{id}`, `PUT vehicles/{id}/active`, `DELETE vehicles/{id}` | Thêm, sửa, ẩn/hiện, xoá xe (xe có lịch sử đơn chỉ đánh dấu đã xoá) |
 
 Mọi API admin cần header `X-Admin-Key` (cấu hình `Business:AdminKey`).
 

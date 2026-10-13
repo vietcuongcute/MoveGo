@@ -17,7 +17,7 @@ public class OwnerPortalService(AppDbContext db, IClock clock)
         if (owner is null) return ServiceResult<OwnerDashboardDto>.Fail(404, "Link quản lý không hợp lệ.");
 
         var now = clock.Now;
-        var vehicles = await db.Vehicles.AsNoTracking().Where(v => v.OwnerId == owner.Id).OrderBy(v => v.Name).ToListAsync(ct);
+        var vehicles = await db.Vehicles.AsNoTracking().Where(v => v.OwnerId == owner.Id && !v.IsDeleted).OrderBy(v => v.Name).ToListAsync(ct);
         var ids = vehicles.Select(v => v.Id).ToList();
 
         var blocks = await db.VehicleUnavailabilities.AsNoTracking()
@@ -96,5 +96,5 @@ public class OwnerPortalService(AppDbContext db, IClock clock)
     }
 
     private Task<Vehicle?> FindOwnedVehicleAsync(string manageToken, int vehicleId, CancellationToken ct) =>
-        db.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId && v.Owner.ManageToken == manageToken, ct);
+        db.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId && !v.IsDeleted && v.Owner.ManageToken == manageToken, ct);
 }

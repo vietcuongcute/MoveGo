@@ -8,7 +8,7 @@ using MoveGo.API.Options;
 namespace MoveGo.API.Services;
 
 /// <summary>
-/// Quản trị danh mục: thêm/sửa chủ xe và xe. Không xoá hẳn (đơn cũ còn tham chiếu), chỉ ẩn xe khỏi web.
+/// Quản trị danh mục: thêm/sửa chủ xe và xe. Xoá xe: xoá hẳn nếu chưa từng có đơn, ngược lại chỉ đánh dấu đã xoá để giữ lịch sử đơn.
 /// Đổi giá chỉ ảnh hưởng đơn mới: đơn cũ đã lưu số tiền tại thời điểm đặt.
 /// </summary>
 public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<BusinessOptions> biz)
@@ -28,14 +28,14 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
         v.Category, VehicleMapper.CategoryLabel(v.Category), v.Seats, v.PricePerDay,
         v.PickupAddress, v.Description, v.ImageUrl, v.RangeKm,
         v.Highlights.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-        v.IsActive, activeBookings);
+        v.IsActive, activeBookings, VehicleMapper.Images(v));
 
     // ---------- Chủ xe ----------
 
     public async Task<List<AdminOwnerDto>> ListOwnersAsync(CancellationToken ct)
     {
         var owners = await db.Owners.AsNoTracking().OrderBy(o => o.Id).ToListAsync(ct);
-        var counts = await db.Vehicles.AsNoTracking().GroupBy(v => v.OwnerId)
+        var counts = await db.Vehicles.AsNoTracking().Where(v => !v.IsDeleted).GroupBy(v => v.OwnerId)
             .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
         return owners.Select(o => ToDto(o, counts.GetValueOrDefault(o.Id))).ToList();
     }
@@ -73,7 +73,7 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
 
         owner.Name = name; owner.PhoneNumber = phone; owner.ZaloPhone = zalo;
         await db.SaveChangesAsync(ct);
-        return ServiceResult<AdminOwnerDto>.Success(ToDto(owner, await db.Vehicles.CountAsync(v => v.OwnerId == id, ct)));
+        return ServiceResult<AdminOwnerDto>.Success(ToDto(owner, await db.Vehicles.CountAsync(v => v.OwnerId == id && !v.IsDeleted, ct)));
     }
 
     /// <summary>Đổi link quản lý lịch khi chủ xe lộ link: link cũ vô hiệu ngay.</summary>
@@ -83,7 +83,7 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
         if (owner is null) return ServiceResult<AdminOwnerDto>.Fail(404, "Không tìm thấy chủ xe.");
         owner.ManageToken = Tokens.UrlToken();
         await db.SaveChangesAsync(ct);
-        return ServiceResult<AdminOwnerDto>.Success(ToDto(owner, await db.Vehicles.CountAsync(v => v.OwnerId == id, ct)));
+        return ServiceResult<AdminOwnerDto>.Success(ToDto(owner, await db.Vehicles.CountAsync(v => v.OwnerId == id && !v.IsDeleted, ct)));
     }
 
     private static ServiceResult<(string Name, string Phone, string Zalo)> ParseOwner(OwnerInput input)
@@ -110,7 +110,7 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
 
     public async Task<List<AdminVehicleDto>> ListVehiclesAsync(CancellationToken ct)
     {
-        var vehicles = await db.Vehicles.AsNoTracking().Include(v => v.Owner)
+        var vehicles = await db.Vehicles.AsNoTracking().Include(v => v.Owner).Where(v => !v.IsDeleted)
             .OrderBy(v => v.Id).ToListAsync(ct);
         var live = await LiveCountsAsync(ct);
         return vehicles.Select(v => ToDto(v, live.GetValueOrDefault(v.Id))).ToList();
@@ -118,7 +118,7 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
 
     public async Task<ServiceResult<AdminVehicleDto>> GetVehicleAsync(int id, CancellationToken ct)
     {
-        var v = await db.Vehicles.AsNoTracking().Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == id, ct);
+        var v = await db.Vehicles.AsNoTracking().Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, ct);
         if (v is null) return ServiceResult<AdminVehicleDto>.Fail(404, "Không tìm thấy xe.");
         return ServiceResult<AdminVehicleDto>.Success(ToDto(v, (await LiveCountsAsync(ct)).GetValueOrDefault(id)));
     }
@@ -136,7 +136,7 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
 
     public async Task<ServiceResult<AdminVehicleDto>> UpdateVehicleAsync(int id, VehicleInput input, CancellationToken ct)
     {
-        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.Id == id, ct);
+        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.Id == id && !v.IsDeleted, ct);
         if (vehicle is null) return ServiceResult<AdminVehicleDto>.Fail(404, "Không tìm thấy xe.");
 
         var error = await ApplyAsync(vehicle, input, isNew: false, ct);
@@ -149,11 +149,38 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
     /// <summary>Ẩn/hiện xe trên web. Đơn đang chạy vẫn giữ nguyên, chỉ không nhận thêm khách mới.</summary>
     public async Task<ServiceResult<AdminVehicleDto>> SetActiveAsync(int id, bool isActive, CancellationToken ct)
     {
-        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.Id == id, ct);
+        var vehicle = await db.Vehicles.FirstOrDefaultAsync(v => v.Id == id && !v.IsDeleted, ct);
         if (vehicle is null) return ServiceResult<AdminVehicleDto>.Fail(404, "Không tìm thấy xe.");
         vehicle.IsActive = isActive;
         await db.SaveChangesAsync(ct);
         return await GetVehicleAsync(id, ct);
+    }
+
+    /// <summary>
+    /// Xoá xe. Còn đơn đang chạy thì từ chối. Chưa từng có đơn: xoá hẳn khỏi DB (kèm lịch khoá).
+    /// Đã có đơn cũ: chỉ đánh dấu IsDeleted + ẩn, để báo cáo hoa hồng và lịch sử đơn vẫn đúng.
+    /// Trả về true nếu đã xoá hẳn (khi đó nơi gọi có thể dọn file ảnh).
+    /// </summary>
+    public async Task<ServiceResult<bool>> DeleteVehicleAsync(int id, CancellationToken ct)
+    {
+        var vehicle = await db.Vehicles.Include(v => v.Unavailabilities)
+            .FirstOrDefaultAsync(v => v.Id == id && !v.IsDeleted, ct);
+        if (vehicle is null) return ServiceResult<bool>.Fail(404, "Không tìm thấy xe.");
+
+        if (await db.Bookings.AnyAsync(b => b.VehicleId == id && LiveStatuses.Contains(b.Status), ct))
+            return ServiceResult<bool>.Fail(409, "Xe đang có đơn chờ xử lý hoặc đã xác nhận nên chưa thể xoá. Hãy ẩn xe và xoá sau khi các đơn này hoàn tất.");
+
+        var hasHistory = await db.Bookings.AnyAsync(b => b.VehicleId == id, ct);
+        if (hasHistory)
+        {
+            vehicle.IsDeleted = true;
+            vehicle.IsActive = false;
+            db.VehicleUnavailabilities.RemoveRange(vehicle.Unavailabilities);
+        }
+        else db.Vehicles.Remove(vehicle);
+
+        await db.SaveChangesAsync(ct);
+        return ServiceResult<bool>.Success(!hasHistory);
     }
 
     private async Task<Dictionary<int, int>> LiveCountsAsync(CancellationToken ct) =>
@@ -185,14 +212,20 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
         var description = i.Description?.Trim() ?? "";
         if (description.Length > 1000) return "Mô tả tối đa 1000 ký tự.";
 
-        string? image = string.IsNullOrWhiteSpace(i.ImageUrl) ? null : i.ImageUrl.Trim();
-        if (image is not null)
+        // Bộ ảnh: ưu tiên ImageUrls (ảnh đầu là ảnh bìa); không có thì dùng ImageUrl đơn lẻ (tương thích bản cũ).
+        var images = (i.ImageUrls ?? (string.IsNullOrWhiteSpace(i.ImageUrl) ? [] : [i.ImageUrl]))
+            .Select(x => x?.Trim() ?? "").Where(x => x.Length > 0).Distinct().ToList();
+        if (images.Count > VehicleMapper.MaxImages) return $"Mỗi xe tối đa {VehicleMapper.MaxImages} ảnh.";
+        foreach (var image in images)
         {
             if (image.Length > 500) return "Link ảnh tối đa 500 ký tự.";
+            if (image.Contains('|')) return "Link ảnh không được chứa ký tự |.";
             var okImage = image.StartsWith('/') && !image.StartsWith("//")
                           || Uri.TryCreate(image, UriKind.Absolute, out var u) && (u.Scheme == Uri.UriSchemeHttps || u.Scheme == Uri.UriSchemeHttp);
             if (!okImage) return "Link ảnh phải bắt đầu bằng https:// (hoặc để trống để dùng hình minh hoạ).";
         }
+        var gallery = string.Join("|", images);
+        if (gallery.Length > 2000) return "Danh sách ảnh quá dài, hãy bớt ảnh hoặc dùng link ngắn hơn.";
 
         int? range = i.RangeKm;
         if (category == VehicleCategory.ElectricBike)
@@ -217,7 +250,7 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
         v.Name = name; v.Brand = brand; v.Category = category; v.Seats = seats; v.PricePerDay = price;
         // Hiện chỉ cho thuê ở Đà Lạt; khách tự nhập địa chỉ nhận xe khi đặt.
         v.PickupLocation = DefaultCity; v.PickupAddress = address; v.Description = description;
-        v.ImageUrl = image; v.RangeKm = range; v.Highlights = joined;
+        v.ImageUrl = images.FirstOrDefault(); v.Gallery = gallery; v.RangeKm = range; v.Highlights = joined;
         if (i.IsActive is { } active) v.IsActive = active;
         return null;
     }

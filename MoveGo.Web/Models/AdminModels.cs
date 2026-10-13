@@ -9,7 +9,7 @@ public record AdminVehicleDto(
     int Id, int OwnerId, string OwnerName, string Name, string Brand,
     VehicleCategory Category, string CategoryLabel, int Seats, decimal PricePerDay,
     string PickupAddress, string Description, string? ImageUrl,
-    int? RangeKm, string[] Highlights, bool IsActive, int ActiveBookings);
+    int? RangeKm, string[] Highlights, bool IsActive, int ActiveBookings, string[]? Images = null);
 
 public record AdminSummaryDto(Dictionary<string, int> ByStatus, decimal CommissionEarned, int NeedRefund, int OwnerNotNotified);
 
@@ -38,7 +38,10 @@ public class VehicleForm
     public decimal? PricePerDay { get; set; }
     public string? PickupAddress { get; set; }
     public string? Description { get; set; }
-    public string? ImageUrl { get; set; }
+    /// <summary>Bộ ảnh hiện có (ảnh đầu tiên là ảnh bìa). Mỗi ảnh là một input ẩn tên Images.</summary>
+    public List<string> Images { get; set; } = [];
+    /// <summary>Link ảnh dán thêm (không bắt buộc).</summary>
+    public string? NewImageUrl { get; set; }
     public int? RangeKm { get; set; }
     /// <summary>Mỗi dòng một điểm nổi bật.</summary>
     public string? HighlightsText { get; set; }
@@ -53,7 +56,7 @@ public class VehicleForm
     {
         Id = v.Id, OwnerId = v.OwnerId, Name = v.Name, Brand = v.Brand, Category = v.Category, Seats = v.Seats,
         PricePerDay = v.PricePerDay, PickupAddress = v.PickupAddress,
-        Description = v.Description, ImageUrl = v.ImageUrl, RangeKm = v.RangeKm,
+        Description = v.Description, Images = (v.Images is { Length: > 0 } ? v.Images : string.IsNullOrWhiteSpace(v.ImageUrl) ? [] : [v.ImageUrl]).ToList(), RangeKm = v.RangeKm,
         HighlightsText = string.Join("\n", v.Highlights), IsActive = v.IsActive
     };
 }

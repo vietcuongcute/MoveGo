@@ -22,6 +22,8 @@ public class VehicleInput
     public string? PickupAddress { get; set; }
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
+    /// <summary>Bộ ảnh (ảnh đầu tiên là ảnh bìa). Nếu có thì dùng thay cho ImageUrl.</summary>
+    public List<string>? ImageUrls { get; set; }
     public int? RangeKm { get; set; }
     /// <summary>Mỗi điểm nổi bật một phần tử (tối đa 6).</summary>
     public List<string>? Highlights { get; set; }
@@ -41,4 +43,4 @@ public record AdminVehicleDto(
     int Id, int OwnerId, string OwnerName, string Name, string Brand,
     VehicleCategory Category, string CategoryLabel, int Seats, decimal PricePerDay,
     string PickupAddress, string Description, string? ImageUrl,
-    int? RangeKm, string[] Highlights, bool IsActive, int ActiveBookings);
+    int? RangeKm, string[] Highlights, bool IsActive, int ActiveBookings, string[] Images);

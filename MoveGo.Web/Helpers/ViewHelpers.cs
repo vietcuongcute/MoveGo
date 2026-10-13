@@ -38,6 +38,10 @@ public static class ViewHelpers
         _ => "art-car"
     };
 
+    /// <summary>Các ảnh thật của xe (ảnh đầu là ảnh bìa). Rỗng nếu xe chưa có ảnh.</summary>
+    public static string[] ImagesOf(VehicleDto v) =>
+        v.Images is { Length: > 0 } ? v.Images : string.IsNullOrWhiteSpace(v.ImageUrl) ? [] : [v.ImageUrl];
+
     private static readonly string[] CarTones = ["#3b9ae1", "#f9b928", "#34c38f", "#8b7cf6", "#ec6a8a"];
     private static readonly string[] BikeTones = ["#3b9ae1", "#f9b928", "#ec4899", "#8b5cf6"];
 
@@ -97,7 +101,7 @@ public static class ViewHelpers
         vehicles = vehicles.Select(v => new
         {
             v.Id, v.Name, v.Brand, Category = v.Category.ToString(), v.CategoryLabel, v.Seats, v.PricePerDay,
-            v.ImageUrl, v.RangeKm, tone = Tone(v), art = ArtId(v.Category)
+            images = ImagesOf(v), v.RangeKm, tone = Tone(v), art = ArtId(v.Category)
         }),
         commissionRate = m.Meta.CommissionRate,
         depositHoldMinutes = m.Meta.DepositHoldMinutes,

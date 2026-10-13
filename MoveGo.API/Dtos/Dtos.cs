@@ -7,7 +7,8 @@ public record VehicleDto(
     int Id, string Name, string Brand,
     VehicleCategory Category, string CategoryLabel, int Seats,
     decimal PricePerDay, string? ImageUrl,
-    int? RangeKm, string Description, string[] Highlights, bool IsAvailable);
+    int? RangeKm, string Description, string[] Highlights, bool IsAvailable,
+    string[]? Images = null);
 
 /// <summary>Một khoảng thời gian xe đang bận. Kind: "booked" (đã có khách) hoặc "blocked" (chủ xe khoá).</summary>
 public record BusyRangeDto(DateTime From, DateTime To, string Kind);

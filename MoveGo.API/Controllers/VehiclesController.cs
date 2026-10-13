@@ -19,7 +19,7 @@ public class VehiclesController(
     public async Task<ActionResult<List<VehicleDto>>> GetAll(
         [FromQuery] VehicleCategory? category, CancellationToken ct)
     {
-        var query = db.Vehicles.AsNoTracking().Where(v => v.IsActive);
+        var query = db.Vehicles.AsNoTracking().Where(v => v.IsActive && !v.IsDeleted);
         if (category.HasValue) query = query.Where(v => v.Category == category.Value);
 
         var vehicles = await query.OrderBy(v => v.Category).ThenBy(v => v.PricePerDay).ToListAsync(ct);

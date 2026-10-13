@@ -60,7 +60,18 @@
       host.appendChild(row);
     });
   }
-  function setArt(wrap, useNode, v) { wrap.style.color = v.tone; useNode.setAttribute('href', '#' + v.art); }
+  /* Hình đại diện của xe: có ảnh thật thì hiện ảnh (bấm để xem cả bộ), không thì dùng hình minh hoạ SVG */
+  function setArt(wrap, useNode, v) {
+    wrap.style.color = v.tone; useNode.setAttribute('href', '#' + v.art);
+    var photo = wrap.querySelector('[data-photo]'), svg = useNode.closest('svg'), imgs = v.images || [];
+    if (!photo) return;
+    if (imgs.length) {
+      photo.querySelector('img').src = imgs[0]; photo.querySelector('img').alt = v.name;
+      photo.setAttribute('data-gallery', JSON.stringify(imgs)); photo.setAttribute('data-gallery-title', v.name);
+      photo.querySelector('[data-photo-count]').innerHTML = imgs.length > 1 ? '<i class="fa-regular fa-images"></i> ' + imgs.length : '';
+      photo.classList.remove('hidden'); svg.classList.add('hidden');
+    } else { photo.classList.add('hidden'); svg.classList.remove('hidden'); }
+  }
 
   /* =====================================================================
    *  MÁY TÍNH GIÁ

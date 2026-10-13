@@ -32,6 +32,12 @@ public class Vehicle
     /// <summary>Ảnh thật của xe. Để trống thì web hiển thị hình minh hoạ SVG.</summary>
     [MaxLength(500)] public string? ImageUrl { get; set; }
 
+    /// <summary>Bộ ảnh của xe (tối đa 8 link, ngăn cách bằng dấu |). Ảnh đầu tiên cũng là ImageUrl (ảnh bìa).</summary>
+    [MaxLength(2000)] public string Gallery { get; set; } = "";
+
+    /// <summary>true = đã xoá. Xe có lịch sử đơn không xoá hẳn khỏi DB (giữ số liệu hoa hồng), chỉ đánh dấu và ẩn.</summary>
+    public bool IsDeleted { get; set; }
+
     /// <summary>Quãng đường 1 lần sạc (km), dành cho xe điện.</summary>
     public int? RangeKm { get; set; }
 

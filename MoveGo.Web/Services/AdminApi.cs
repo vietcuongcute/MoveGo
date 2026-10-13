@@ -18,6 +18,8 @@ public interface IAdminApi
     Task<ApiResult<AdminVehicleDto>> GetVehicleAsync(string key, int id, CancellationToken ct = default);
     Task<ApiResult<AdminVehicleDto>> SaveVehicleAsync(string key, VehicleForm form, CancellationToken ct = default);
     Task<ApiResult<AdminVehicleDto>> SetVehicleActiveAsync(string key, int id, bool active, CancellationToken ct = default);
+    /// <summary>Xoá xe. Giá trị trả về true = đã xoá hẳn khỏi DB, false = chỉ đánh dấu đã xoá (xe có lịch sử đơn).</summary>
+    Task<ApiResult<bool>> DeleteVehicleAsync(string key, int id, CancellationToken ct = default);
 }
 
 /// <summary>Client cho /api/admin. Khoá quản trị truyền theo từng lời gọi (không lưu trong object này).</summary>
@@ -67,11 +69,12 @@ public class AdminApi(IHttpClientFactory factory) : IAdminApi
     {
         var highlights = (f.HighlightsText ?? "")
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        var imageUrls = f.Images.Append(f.NewImageUrl ?? "").Select(x => x.Trim()).Where(x => x.Length > 0).Distinct().ToList();
         var body = new
         {
             ownerId = f.OwnerId, name = f.Name, brand = f.Brand, category = f.Category, seats = f.Seats,
             pricePerDay = f.PricePerDay, pickupAddress = f.PickupAddress,
-            description = f.Description, imageUrl = f.ImageUrl, rangeKm = f.RangeKm, highlights, isActive = f.IsActive
+            description = f.Description, imageUrls, rangeKm = f.RangeKm, highlights, isActive = f.IsActive
         };
         return f.Id == 0
             ? Send<AdminVehicleDto>(key, HttpMethod.Post, "api/admin/vehicles", body, ct)
@@ -80,4 +83,7 @@ public class AdminApi(IHttpClientFactory factory) : IAdminApi
 
     public Task<ApiResult<AdminVehicleDto>> SetVehicleActiveAsync(string key, int id, bool active, CancellationToken ct = default) =>
         Send<AdminVehicleDto>(key, HttpMethod.Put, $"api/admin/vehicles/{id}/active", new { isActive = active }, ct);
+
+    public Task<ApiResult<bool>> DeleteVehicleAsync(string key, int id, CancellationToken ct = default) =>
+        Send<bool>(key, HttpMethod.Delete, $"api/admin/vehicles/{id}", null, ct);
 }

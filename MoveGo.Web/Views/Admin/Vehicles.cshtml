@@ -7,7 +7,7 @@
     <div class="container-x relative">
         <span class="eyebrow eyebrow-light"><i class="fa-solid fa-car-side"></i> Quản trị</span>
         <h1 class="mt-4 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise">Quản lý xe</h1>
-        <p class="mt-3 max-w-2xl text-emerald-50/80 anim-rise" style="--d:.1s">Thêm xe mới, sửa giá và thông tin, ẩn xe khỏi web khi cần.</p>
+        <p class="mt-3 max-w-2xl text-emerald-50/80 anim-rise" style="--d:.1s">Thêm xe mới, sửa giá, ảnh và thông tin, ẩn hoặc xoá xe khi cần.</p>
     </div>
 </section>
 
@@ -31,13 +31,14 @@
                 {
                     <div class="grid gap-3 bg-white p-4 text-sm md:grid-cols-[4.5rem_1fr_auto] md:items-center @(v.IsActive ? "" : "bg-slate-50/70")">
                         <div class="grid h-16 w-[4.5rem] place-items-center overflow-hidden rounded-2xl bg-emerald-50 text-2xl text-emerald-500">
-                            @if (!string.IsNullOrWhiteSpace(v.ImageUrl)) { <img src="@v.ImageUrl" alt="" class="h-full w-full object-cover" loading="lazy" /> }
+                            @if (v.Images is { Length: > 0 } imgs) { <img src="@imgs[0]" alt="" class="h-full w-full object-cover" loading="lazy" /> }
                             else { <i class="fa-solid @ViewHelpers.CategoryIcon(v.Category)"></i> }
                         </div>
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2">
                                 <b class="text-base">@v.Name</b>
                                 <span class="status-pill !py-1 @(v.IsActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")">@(v.IsActive ? "Đang hiện" : "Đang ẩn")</span>
+                                @if (v.Images is { Length: > 0 } cnt) { <span class="status-pill !py-1 bg-slate-100 text-slate-500"><i class="fa-regular fa-images"></i> @cnt.Length ảnh</span> }
                                 @if (v.ActiveBookings > 0) { <span class="status-pill !py-1 bg-amber-50 text-amber-700">@v.ActiveBookings đơn đang chạy</span> }
                             </div>
                             <div class="mt-1 text-slate-500">@v.CategoryLabel · @v.Seats chỗ · <b class="text-ink-900 tabular">@ViewHelpers.Vnd(v.PricePerDay)</b>/ngày</div>
@@ -48,6 +49,10 @@
                             <form method="post" asp-controller="Admin" asp-action="ToggleVehicle" asp-route-id="@v.Id">
                                 <input type="hidden" name="active" value="@((!v.IsActive).ToString().ToLowerInvariant())" />
                                 <button type="submit" class="btn-outline-dark btn-sm"><i class="fa-solid @(v.IsActive ? "fa-eye-slash" : "fa-eye")"></i> @(v.IsActive ? "Ẩn" : "Hiện")</button>
+                            </form>
+                            <form method="post" asp-controller="Admin" asp-action="DeleteVehicle" asp-route-id="@v.Id"
+                                  data-confirm="Xoá xe “@v.Name”? Xe sẽ biến mất khỏi web và danh sách này, không hoàn tác được.@(v.ActiveBookings > 0 ? " Xe đang có đơn chạy nên sẽ không xoá được, hãy ẩn xe trước." : "")">
+                                <button type="submit" class="btn-outline-dark btn-sm !border-red-200 !text-red-500 hover:!border-red-400 hover:!bg-red-50 hover:!text-red-600"><i class="fa-solid fa-trash-can"></i> Xoá</button>
                             </form>
                         </div>
                     </div>

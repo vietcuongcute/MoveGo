@@ -10,7 +10,7 @@ public enum BookingStatus { PendingOwner, AwaitingDeposit, Confirmed, Rejected, 
 public record VehicleDto(
     int Id, string Name, string Brand, VehicleCategory Category, string CategoryLabel, int Seats,
     decimal PricePerDay, string? ImageUrl, int? RangeKm,
-    string Description, string[] Highlights, bool IsAvailable);
+    string Description, string[] Highlights, bool IsAvailable, string[]? Images = null);
 
 public record StatsDto(int Vehicles, int Trips, int DepositPercent);
 public record CategoryDto(VehicleCategory Key, string Label);

@@ -3,10 +3,11 @@
     var hasSearch = ViewData["HasSearch"] as bool? ?? false;
     var delay = (ViewData["Delay"] as int? ?? 0) * 0.07;
     var tone = ViewHelpers.Tone(Model);
+    var images = ViewHelpers.ImagesOf(Model);
 }
 <article class="vcard reveal" data-reveal="up" data-category="@Model.Category" data-vehicle-card data-id="@Model.Id"
          style="--tone:@tone;--d:@(delay.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))s">
-    <div class="vcard-art">
+    <div class="vcard-art @(images.Length > 0 ? "vcard-art-photo" : "")">
         <span class="absolute left-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-ink-900 shadow-sm backdrop-blur">
             <i class="fa-solid @ViewHelpers.CategoryIcon(Model.Category)" style="color:@tone"></i> @Model.CategoryLabel
         </span>
@@ -14,17 +15,23 @@
             <i class="dot-live"></i> @(hasSearch ? "Còn trống" : "Sẵn sàng")
         </span>
 
-        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        @if (images.Length > 0)
         {
-            <img src="@Model.ImageUrl" alt="@Model.Name" loading="lazy" class="vcard-vehicle relative z-[1] mx-auto mt-6 h-44 w-full object-contain" />
+            @* Ảnh thật phủ kín khung; bấm vào để xem cả bộ ảnh *@
+            <button type="button" class="vcard-photo" data-gallery="@System.Text.Json.JsonSerializer.Serialize(images)" data-gallery-title="@Model.Name"
+                    aria-label="Xem @(images.Length) ảnh của @Model.Name">
+                <img src="@images[0]" alt="@Model.Name" loading="lazy" />
+                <span class="vcard-photo-shade"></span>
+                <span class="photo-count"><i class="fa-regular fa-images"></i> @(images.Length > 1 ? $"{images.Length} ảnh" : "Phóng to")</span>
+            </button>
         }
         else
         {
             <div class="vcard-vehicle mx-auto mt-8 w-[92%] max-w-[22rem]" style="color:@tone">
                 <svg class="art" viewBox="0 0 360 170" role="img" aria-label="@Model.Name"><use href="#@ViewHelpers.ArtId(Model.Category)" /></svg>
             </div>
+            <div class="vcard-shadow"></div>
         }
-        <div class="vcard-shadow"></div>
     </div>
 
     <div class="flex flex-1 flex-col p-6">

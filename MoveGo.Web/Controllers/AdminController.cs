@@ -17,6 +17,7 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
 {
     private const string CookieName = "mg_admin";
     private const long MaxImageBytes = 5 * 1024 * 1024;
+    private const int MaxImages = 8;
 
     private ITimeLimitedDataProtector Protector => dp.CreateProtector("MoveGo.Web.AdminKey").ToTimeLimitedDataProtector();
 
@@ -147,21 +148,66 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
         return await FormViewAsync(VehicleForm.From(r.Value!), ct);
     }
 
-    [HttpPost("xe/luu"), ValidateAntiForgeryToken, RequestSizeLimit(MaxImageBytes + 512 * 1024)]
-    public async Task<IActionResult> SaveVehicle([Bind(Prefix = "")] VehicleForm form, IFormFile? imageFile, CancellationToken ct)
+    [HttpPost("xe/luu"), ValidateAntiForgeryToken, RequestSizeLimit(MaxImages * MaxImageBytes + 1024 * 1024)]
+    public async Task<IActionResult> SaveVehicle([Bind(Prefix = "")] VehicleForm form, List<IFormFile>? imageFiles, CancellationToken ct)
     {
-        if (imageFile is { Length: > 0 })
+        form.Images = form.Images.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+        var files = (imageFiles ?? []).Where(f => f.Length > 0).ToList();
+        if (form.Images.Count + files.Count > MaxImages)
         {
-            var (url, error) = await SaveImageAsync(imageFile, ct);
-            if (error is not null) { form.Error = error; return await FormViewAsync(form, ct); }
-            form.ImageUrl = url;
+            form.Error = $"Mỗi xe tối đa {MaxImages} ảnh (đang chọn {form.Images.Count + files.Count}). Hãy bỏ bớt ảnh.";
+            return await FormViewAsync(form, ct);
         }
+
+        var saved = new List<string>();
+        foreach (var file in files)
+        {
+            var (url, error) = await SaveImageAsync(file, ct);
+            if (error is not null)
+            {
+                DeleteLocalImages(saved);
+                form.Error = $"{file.FileName}: {error}";
+                return await FormViewAsync(form, ct);
+            }
+            saved.Add(url!);
+        }
+        form.Images.AddRange(saved);
+
+        // Ảnh cũ bị gỡ khỏi form sẽ được dọn file sau khi lưu thành công.
+        string[] previous = [];
+        if (!form.IsNew) previous = (await api.GetVehicleAsync(AdminKey, form.Id, ct)).Value?.Images ?? [];
 
         var r = await api.SaveVehicleAsync(AdminKey, form, ct);
         if (KickIfUnauthorized(r.Status) is { } kick) return kick;
-        if (!r.Ok) { form.Error = r.Error; return await FormViewAsync(form, ct); }
+        if (!r.Ok)
+        {
+            // Lưu thất bại: bỏ các file vừa tải lên để khỏi rác, và đưa form về trạng thái chưa có ảnh mới.
+            DeleteLocalImages(saved);
+            form.Images = form.Images.Except(saved).ToList();
+            form.Error = r.Error;
+            return await FormViewAsync(form, ct);
+        }
 
+        DeleteLocalImages(previous.Except(r.Value!.Images ?? []));
         return Flash(true, form.IsNew ? $"Đã thêm xe “{r.Value!.Name}”." : $"Đã lưu xe “{r.Value!.Name}”.", null, nameof(Vehicles));
+    }
+
+    [HttpPost("xe/{id:int}/xoa"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteVehicle(int id, CancellationToken ct)
+    {
+        var before = await api.GetVehicleAsync(AdminKey, id, ct);
+        if (KickIfUnauthorized(before.Status) is { } kick0) return kick0;
+
+        var r = await api.DeleteVehicleAsync(AdminKey, id, ct);
+        if (KickIfUnauthorized(r.Status) is { } kick) return kick;
+        if (!r.Ok) return Flash(false, "", r.Error, nameof(Vehicles));
+
+        var name = before.Value?.Name ?? "xe";
+        // Xoá hẳn khỏi DB thì dọn luôn file ảnh đã tải lên; còn xe có lịch sử đơn thì giữ ảnh (đơn cũ vẫn hiển thị).
+        if (r.Value && before.Value?.Images is { } imgs) DeleteLocalImages(imgs);
+        return Flash(true, r.Value
+            ? $"Đã xoá xe “{name}”."
+            : $"Đã xoá xe “{name}”. Xe có lịch sử đơn nên dữ liệu đơn cũ vẫn được giữ lại.", null, nameof(Vehicles));
     }
 
     [HttpPost("xe/{id:int}/an-hien"), ValidateAntiForgeryToken]
@@ -208,6 +254,19 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
             await file.CopyToAsync(fs, ct);
 
         return ($"/uploads/vehicles/{name}", null);
+    }
+
+    /// <summary>Xoá file ảnh đã tải lên (chỉ các file trong /uploads/vehicles, link ngoài bỏ qua).</summary>
+    private void DeleteLocalImages(IEnumerable<string> urls)
+    {
+        foreach (var url in urls)
+        {
+            const string prefix = "/uploads/vehicles/";
+            if (!url.StartsWith(prefix, StringComparison.Ordinal)) continue;
+            var name = Path.GetFileName(url);
+            if (name.Length == 0 || name != url[prefix.Length..]) continue;   // chặn đường dẫn lạ
+            try { System.IO.File.Delete(Path.Combine(env.WebRootPath, "uploads", "vehicles", name)); } catch (IOException) { }
+        }
     }
 
     // ---------- Chủ xe ----------

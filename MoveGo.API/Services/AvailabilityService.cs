@@ -37,7 +37,7 @@ public class AvailabilityService(AppDbContext db, IClock clock) : IAvailabilityS
     {
         var now = clock.Now;
 
-        var query = db.Vehicles.AsNoTracking().Where(v => v.IsActive);
+        var query = db.Vehicles.AsNoTracking().Where(v => v.IsActive && !v.IsDeleted);
 
         if (category.HasValue) query = query.Where(v => v.Category == category.Value);
 

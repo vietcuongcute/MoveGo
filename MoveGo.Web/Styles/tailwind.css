@@ -13,7 +13,7 @@
   ::selection { background: #b3e8cf; color: #082a1f; }
   h1, h2, h3, h4 { @apply text-ink-900; text-wrap: balance; }
   :focus-visible { outline: 2px solid #25a074; outline-offset: 3px; border-radius: 8px; }
-  svg.art { display: block; width: 100%; height: auto; overflow: visible; }
+  svg.art:not(.hidden) { display: block; width: 100%; height: auto; overflow: visible; }
 }
 
 @layer components {
@@ -205,6 +205,7 @@
   .vcard:hover { --wheel-state: running; --spin: .7s; box-shadow: 0 38px 70px -28px color-mix(in srgb, var(--tone) 70%, transparent); border-color: color-mix(in srgb, var(--tone) 45%, white); }
   .vcard-art {
     position: relative; overflow: hidden; padding: 2rem 1.5rem 1rem;
+    aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; flex-direction: column;
     background:
       radial-gradient(120% 90% at 85% 0%, color-mix(in srgb, var(--tone) 30%, white), transparent 60%),
       linear-gradient(160deg, color-mix(in srgb, var(--tone) 12%, white), #effbf8);
@@ -216,6 +217,15 @@
   .vcard-art::after { width: 6rem; height: 6rem; left: -2rem; bottom: -2rem; }
   .vcard:hover .vcard-art::before { transform: scale(1.35); }
   .vcard:hover .vcard-art::after { transform: scale(1.6); }
+  /* Ảnh thật của xe: phủ kín cả khung, bấm để xem bộ ảnh */
+  .vcard-art-photo { padding: 0; display: block; }
+  .vcard-art-photo::before, .vcard-art-photo::after { display: none; }
+  .vcard-photo { position: relative; z-index: 1; display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; cursor: zoom-in; background: #e3f4ec; }
+  .vcard-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2,.8,.2,1); }
+  .vcard:hover .vcard-photo img { transform: scale(1.06); }
+  .vcard-photo-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(8 36 27 / .38), transparent 32%, transparent 62%, rgb(8 36 27 / .5)); pointer-events: none; }
+  .photo-count { position: absolute; right: .75rem; bottom: .75rem; display: inline-flex; align-items: center; gap: .4rem; border-radius: 9999px; background: rgb(8 36 27 / .72); padding: .3rem .7rem; font-size: 11px; font-weight: 700; color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .photo-count:empty { display: none; }
   .vcard-vehicle { position: relative; z-index: 1; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
   .vcard:hover .vcard-vehicle { transform: translateX(10px) scale(1.04); }
   .vcard-shadow { position: absolute; z-index: 0; left: 18%; right: 14%; bottom: 1.1rem; height: 14px; border-radius: 50%; background: rgb(14 51 38 / .22); filter: blur(7px); }
@@ -308,6 +318,38 @@
   .animate-spin-slow { animation: spin 18s linear infinite; }
   .animate-gradient { background-size: 200% 200%; animation: gradient-pan 7s ease infinite; }
   .no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* ============================== BỘ ẢNH XE: admin + cửa sổ xem ảnh ============================== */
+@layer components {
+  .gal-item { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 1rem; background: #f0faf5; box-shadow: 0 1px 0 rgb(14 51 38 / .06), 0 0 0 1px rgb(14 51 38 / .08); }
+  .gal-item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .gal-tag { position: absolute; left: .5rem; top: .5rem; border-radius: 9999px; background: #25a074; padding: .15rem .6rem; font-size: 10px; font-weight: 800; color: #fff; }
+  .gal-tag-new { background: #3b9ae1; }
+  .gal-actions { position: absolute; right: .4rem; top: .4rem; display: flex; gap: .3rem; }
+  .gal-btn { display: grid; height: 1.75rem; width: 1.75rem; place-items: center; border-radius: 9999px; background: rgb(255 255 255 / .92); font-size: 12px; color: #0e3326; box-shadow: 0 2px 8px rgb(0 0 0 / .18); transition: transform .2s, background .2s, color .2s; }
+  .gal-btn:hover { transform: scale(1.12); background: #25a074; color: #fff; }
+  .gal-btn-danger:hover { background: #ef4444; }
+  .gal-add { display: flex; aspect-ratio: 4 / 3; cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; border-radius: 1rem; border: 2px dashed #82d6b2; background: #f7fcf9; color: #25a074; transition: background .25s, border-color .25s, transform .25s; }
+  .gal-add:hover { background: #d9f4e6; border-color: #25a074; transform: translateY(-2px); }
+
+  .gallery { position: fixed; inset: 0; z-index: 130; display: none; flex-direction: column; background: rgb(6 26 20 / .94); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .gallery.is-open { display: flex; animation: fade .25s both; }
+  .gallery-stage { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; padding: 3.5rem 3.5rem 0.5rem; touch-action: pan-y; }
+  .gallery-img { max-width: 100%; max-height: 100%; border-radius: 1rem; object-fit: contain; box-shadow: 0 30px 80px -20px rgb(0 0 0 / .6); animation: pop .35s cubic-bezier(.2,.9,.3,1.1) both; user-select: none; -webkit-user-drag: none; }
+  .gallery-nav { position: absolute; top: 50%; z-index: 2; display: grid; height: 3rem; width: 3rem; transform: translateY(-50%); place-items: center; border-radius: 9999px; background: rgb(255 255 255 / .14); color: #fff; font-size: 1.1rem; transition: background .2s, transform .2s; }
+  .gallery-nav:hover { background: #25a074; transform: translateY(-50%) scale(1.08); }
+  .gallery-nav[disabled] { opacity: .25; pointer-events: none; }
+  .gallery-thumbs { display: flex; gap: .5rem; overflow-x: auto; padding: .75rem 1rem 1.1rem; justify-content: safe center; scrollbar-width: none; }
+  .gallery-thumbs::-webkit-scrollbar { display: none; }
+  .gallery-thumb { flex: none; height: 3.6rem; width: 5rem; overflow: hidden; border-radius: .7rem; opacity: .55; outline: 2px solid transparent; outline-offset: 2px; transition: opacity .2s, outline-color .2s, transform .2s; }
+  .gallery-thumb img { height: 100%; width: 100%; object-fit: cover; }
+  .gallery-thumb:hover { opacity: .9; }
+  .gallery-thumb.is-current { opacity: 1; outline-color: #4cbd92; transform: translateY(-2px); }
+}
+@media (max-width: 640px) {
+  .gallery-stage { padding: 3.5rem .75rem .5rem; }
+  .gallery-nav { height: 2.6rem; width: 2.6rem; }
 }
 
 /* ============================== KEYFRAMES ============================== */

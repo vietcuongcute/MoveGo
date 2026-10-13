@@ -56,17 +56,67 @@
   price.addEventListener('input', updateHint);
   updateHint();
 
-  /* Xem trước ảnh */
-  var file = $('#imageFile', form), url = $('#ImageUrl', form), img = $('#image-preview', form), empty = $('#image-empty', form);
-  var show = function (src) {
-    if (src) { img.src = src; img.classList.remove('hidden'); empty.classList.add('hidden'); }
-    else { img.removeAttribute('src'); img.classList.add('hidden'); empty.classList.remove('hidden'); }
-  };
-  file.addEventListener('change', function () {
-    var f = file.files && file.files[0];
-    if (!f) return;
-    if (f.size > 5 * 1024 * 1024) { alert('Ảnh quá lớn, tối đa 5 MB.'); file.value = ''; return; }
-    show(URL.createObjectURL(f));
+  /* Bộ ảnh xe: ảnh đã có (đặt làm bìa / bỏ) + ảnh mới chọn từ máy (xem trước, bỏ từng ảnh) */
+  var grid = $('#gallery-grid', form), picker = $('#imageFiles', form), addTile = $('#gal-add', form), countEl = $('#gal-count', form);
+  if (!grid || !picker) return;
+  var MAX = parseInt(grid.getAttribute('data-max'), 10) || 8, MAX_BYTES = 5 * 1024 * 1024;
+  var pending = [];   // các File mới chọn, theo thứ tự
+
+  var existingTiles = function () { return $$('.gal-item[data-existing]', grid); };
+  var total = function () { return existingTiles().length + pending.length; };
+
+  function syncInput() {
+    try {
+      var dt = new DataTransfer();
+      pending.forEach(function (f) { dt.items.add(f); });
+      picker.files = dt.files;
+    } catch (e) { /* trình duyệt cũ: bỏ qua, giữ nguyên danh sách file */ }
+  }
+
+  function render() {
+    $$('.gal-item[data-new]', grid).forEach(function (n) { URL.revokeObjectURL(n.querySelector('img').src); n.remove(); });
+    pending.forEach(function (f, i) {
+      var tile = document.createElement('div');
+      tile.className = 'gal-item'; tile.setAttribute('data-new', '');
+      var im = document.createElement('img'); im.src = URL.createObjectURL(f); im.alt = '';
+      var tag = document.createElement('span'); tag.className = 'gal-tag gal-tag-new'; tag.textContent = 'Mới';
+      var actions = document.createElement('div'); actions.className = 'gal-actions';
+      var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'gal-btn gal-btn-danger'; rm.title = 'Bỏ ảnh này';
+      rm.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+      rm.addEventListener('click', function () { pending.splice(i, 1); syncInput(); render(); });
+      actions.appendChild(rm); tile.appendChild(im); tile.appendChild(tag); tile.appendChild(actions);
+      grid.insertBefore(tile, addTile);
+    });
+    // nhãn "Ảnh bìa" cho ảnh đầu tiên (ưu tiên ảnh đã có)
+    var first = existingTiles()[0];
+    $$('.gal-tag:not(.gal-tag-new)', grid).forEach(function (tg) { tg.classList.add('hidden'); });
+    if (first) first.querySelector('.gal-tag').classList.remove('hidden');
+    else { var n0 = $('.gal-item[data-new]', grid); if (n0) { var s = document.createElement('span'); s.className = 'gal-tag'; s.textContent = 'Ảnh bìa'; s.style.left = 'auto'; s.style.right = '.5rem'; n0.appendChild(s); } }
+    $$('[data-gal=cover]', grid).forEach(function (b) { b.classList.toggle('hidden', b.closest('.gal-item') === first); });
+    addTile.classList.toggle('hidden', total() >= MAX);
+    countEl.textContent = total() + '/' + MAX + ' ảnh';
+  }
+
+  picker.addEventListener('change', function () {
+    var added = Array.prototype.slice.call(picker.files || []), msg = '';
+    added.forEach(function (f) {
+      if (pending.some(function (p) { return p.name === f.name && p.size === f.size && p.lastModified === f.lastModified; })) return;
+      if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { msg = 'Chỉ nhận ảnh JPG, PNG hoặc WebP.'; return; }
+      if (f.size > MAX_BYTES) { msg = f.name + ' quá lớn, mỗi ảnh tối đa 5 MB.'; return; }
+      if (total() >= MAX) { msg = 'Mỗi xe tối đa ' + MAX + ' ảnh.'; return; }
+      pending.push(f);
+    });
+    syncInput(); render();
+    if (msg) alert(msg);
   });
-  url.addEventListener('change', function () { if (!file.value) show(url.value.trim()); });
+
+  grid.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-gal]');
+    if (!btn) return;
+    var tile = btn.closest('.gal-item');
+    if (btn.getAttribute('data-gal') === 'remove') { tile.remove(); render(); }
+    else if (btn.getAttribute('data-gal') === 'cover') { grid.insertBefore(tile, grid.firstChild); render(); }
+  });
+
+  render();
 })();

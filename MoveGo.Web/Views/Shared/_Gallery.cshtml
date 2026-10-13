@@ -1,0 +1,16 @@
+@* Cửa sổ xem bộ ảnh xe. Mở bằng bất kỳ phần tử nào có data-gallery='["url1","url2"]' (+ data-gallery-title). Logic ở wwwroot/js/gallery.js *@
+<div id="gallery" class="gallery" role="dialog" aria-modal="true" aria-label="Ảnh xe" aria-hidden="true">
+    <div class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 text-white sm:px-6">
+        <div class="min-w-0">
+            <div id="gallery-title" class="truncate text-base font-extrabold"></div>
+            <div id="gallery-count" class="text-xs font-semibold text-white/60"></div>
+        </div>
+        <button type="button" id="gallery-close" class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/15 text-lg transition hover:rotate-90 hover:bg-emerald-500" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="gallery-stage" id="gallery-stage">
+        <button type="button" id="gallery-prev" class="gallery-nav left-3 sm:left-5" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left"></i></button>
+        <img id="gallery-img" class="gallery-img" alt="" />
+        <button type="button" id="gallery-next" class="gallery-nav right-3 sm:right-5" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div id="gallery-thumbs" class="gallery-thumbs" aria-label="Danh sách ảnh"></div>
+</div>

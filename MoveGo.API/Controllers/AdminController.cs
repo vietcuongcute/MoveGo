@@ -83,6 +83,11 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
     public async Task<IActionResult> SetVehicleActive(int id, [FromBody] SetActiveRequest body, CancellationToken ct) =>
         (await catalog.SetActiveAsync(id, body.IsActive, ct)).ToActionResult(this);
 
+    /// <summary>Xoá xe. Trả về true nếu xoá hẳn, false nếu chỉ đánh dấu đã xoá (xe đã có lịch sử đơn).</summary>
+    [HttpDelete("vehicles/{id:int}")]
+    public async Task<IActionResult> DeleteVehicle(int id, CancellationToken ct) =>
+        (await catalog.DeleteVehicleAsync(id, ct)).ToActionResult(this);
+
     // ---------- Đơn ----------
 
     /// <summary>Tổng quan: số đơn theo trạng thái, doanh thu hoa hồng, đơn cần hoàn cọc.</summary>
