@@ -4,7 +4,7 @@
 
 /* ==========================================================================
    MOVEGO · Design system "Thông & Nắng"
-   Màu: Xanh thông #25A074 (emerald) · Xanh bạc hà #1EA78F (cyan) · San hô #FF6A3D (nút chính) · Ink (xanh rừng) cho chữ & nền tối · nền kem #FBFAF6
+   Màu: Xanh thông #25A074 (emerald) · Xanh bạc hà #1EA78F (cyan) · xanh thông đậm (nút chính) · Ink (xanh rừng) cho chữ & nền tối · nền kem #FBFAF6
    ========================================================================== */
 
 @layer base {
@@ -54,10 +54,10 @@
   .btn:active { transform: scale(.97); }
   .btn-primary {
     @apply btn text-white shadow-glow;
-    background-image: linear-gradient(110deg, #ff6a3d 0%, #ff8f5a 50%, #ff6a3d 100%);
+    background-image: linear-gradient(110deg, #1b8760 0%, #25a074 50%, #1b8760 100%);
     background-size: 220% 100%;
   }
-  .btn-primary:hover { background-position: 100% 0; transform: translateY(-2px); box-shadow: 0 18px 44px -10px rgb(255 106 61 / .65); }
+  .btn-primary:hover { background-position: 100% 0; transform: translateY(-2px); box-shadow: 0 18px 44px -10px rgb(37 160 116 / .65); }
   .btn-primary::after {
     content: ''; position: absolute; inset: 0; transform: translateX(-120%) skewX(-20deg);
     background: linear-gradient(90deg, transparent, rgb(255 255 255 / .45), transparent);
@@ -120,7 +120,7 @@
   .nav-link { @apply relative px-3 py-2 text-sm font-semibold transition; }
   .nav-link::after {
     content: ''; position: absolute; left: 12px; right: 12px; bottom: 2px; height: 2px; border-radius: 2px;
-    background: linear-gradient(90deg, #ff6a3d, #ffb36b); transform: scaleX(0); transform-origin: left; transition: transform .35s;
+    background: linear-gradient(90deg, #25a074, #82d6b2); transform: scaleX(0); transform-origin: left; transition: transform .35s;
   }
   .nav-link:hover::after, .nav-link.is-active::after { transform: scaleX(1); }
   .site-header:not(.is-solid) .nav-link, .site-header:not(.is-solid) .hotline { color: #0e3326; }
@@ -132,9 +132,9 @@
   /* ---------- Hero ---------- */
   .hero-sky {
     background:
-      radial-gradient(26% 34% at 80% 26%, rgb(255 232 205 / .8) 0%, rgb(255 205 165 / .3) 45%, transparent 75%),
+      radial-gradient(26% 34% at 80% 26%, rgb(255 246 214 / .85) 0%, rgb(255 236 180 / .3) 45%, transparent 75%),
       radial-gradient(60% 50% at 18% 8%, rgb(255 255 255 / .75), transparent 70%),
-      linear-gradient(180deg, #c8ece0 0%, #e0f5ec 38%, #fdf3e3 72%, #ffe5ca 100%);
+      linear-gradient(180deg, #c8ece0 0%, #e0f5ec 38%, #fcf6e6 72%, #fff2d2 100%);
   }
   .hero-layer { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; will-change: transform; }
   .mist {
@@ -226,7 +226,7 @@
   /* ---------- Máy tính giá ---------- */
   .calc-bg {
     background:
-      radial-gradient(45% 55% at 12% 8%, rgb(255 168 120 / .30), transparent 60%),
+      radial-gradient(45% 55% at 12% 8%, rgb(255 238 180 / .30), transparent 60%),
       radial-gradient(50% 60% at 92% 92%, rgb(110 220 175 / .38), transparent 62%),
       linear-gradient(135deg, #0f5a43 0%, #12684f 55%, #178062 100%);
   }
@@ -273,7 +273,7 @@
   .modal-backdrop { position: absolute; inset: 0; background: rgb(8 36 27 / .65); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade .3s both; }
   .modal-panel { position: relative; width: 100%; max-width: 62rem; max-height: calc(100dvh - 2rem); overflow: auto; border-radius: 2rem; background: #fff;
     box-shadow: 0 50px 120px -30px rgb(0 0 0 / .6); animation: modal-in .5s cubic-bezier(.2,.9,.3,1.1) both; overscroll-behavior: contain; }
-  .modal-aside { background: radial-gradient(70% 55% at 100% 0%, rgb(255 168 120 / .32), transparent 65%), radial-gradient(70% 60% at 100% 100%, rgb(110 220 175 / .4), transparent 70%), linear-gradient(150deg, #0f5a43, #12684f 70%, #178062); }
+  .modal-aside { background: radial-gradient(70% 55% at 100% 0%, rgb(255 238 180 / .32), transparent 65%), radial-gradient(70% 60% at 100% 100%, rgb(110 220 175 / .4), transparent 70%), linear-gradient(150deg, #0f5a43, #12684f 70%, #178062); }
   .success-check circle { stroke-dasharray: 166; stroke-dashoffset: 166; animation: draw .8s .1s ease forwards; }
   .success-check path { stroke-dasharray: 48; stroke-dashoffset: 48; animation: draw .5s .8s ease forwards; }
   .spinner { width: 18px; height: 18px; border-radius: 9999px; border: 3px solid rgb(255 255 255 / .35); border-top-color: #fff; animation: spin .7s linear infinite; }
@@ -354,7 +354,7 @@
   .page-banner {
     position: relative; overflow: hidden; color: #fff;
     background:
-      radial-gradient(50% 70% at 92% 0%, rgb(255 168 120 / .34), transparent 62%),
+      radial-gradient(50% 70% at 92% 0%, rgb(255 238 180 / .34), transparent 62%),
       radial-gradient(55% 80% at 100% 100%, rgb(110 220 175 / .4), transparent 65%),
       linear-gradient(120deg, #0f5a43 0%, #12684f 58%, #1b8760 120%);
   }

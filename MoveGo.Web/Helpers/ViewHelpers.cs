@@ -38,8 +38,8 @@ public static class ViewHelpers
         _ => "art-car"
     };
 
-    private static readonly string[] CarTones = ["#ff6a3d", "#f9b928", "#34c38f", "#3b9ae1", "#8b7cf6"];
-    private static readonly string[] BikeTones = ["#ff6a3d", "#f9b928", "#ec4899", "#8b5cf6"];
+    private static readonly string[] CarTones = ["#3b9ae1", "#f9b928", "#34c38f", "#8b7cf6", "#ec6a8a"];
+    private static readonly string[] BikeTones = ["#3b9ae1", "#f9b928", "#ec4899", "#8b5cf6"];
 
     /// <summary>Mỗi xe một màu riêng (ổn định theo Id) để lưới xe sinh động.</summary>
     public static string Tone(VehicleDto v) =>
