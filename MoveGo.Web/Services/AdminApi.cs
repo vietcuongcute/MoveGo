@@ -18,6 +18,7 @@ public interface IAdminApi
     Task<ApiResult<List<AdminVehicleDto>>> GetVehiclesAsync(string key, CancellationToken ct = default);
     Task<ApiResult<AdminVehicleDto>> GetVehicleAsync(string key, int id, CancellationToken ct = default);
     Task<ApiResult<List<AdminVehicleScheduleDto>>> GetSchedulesAsync(string key, CancellationToken ct = default);
+    Task<ApiResult<AdminVehicleScheduleDto>> GetVehicleScheduleAsync(string key, int id, DateTime from, DateTime to, CancellationToken ct = default);
     Task<ApiResult<AdminVehicleDto>> SaveVehicleAsync(string key, VehicleForm form, CancellationToken ct = default);
     Task<ApiResult<AdminVehicleDto>> SetVehicleActiveAsync(string key, int id, bool active, CancellationToken ct = default);
     /// <summary>Xoá xe. Giá trị trả về true = đã xoá hẳn khỏi DB, false = chỉ đánh dấu đã xoá (xe có lịch sử đơn).</summary>
@@ -69,6 +70,10 @@ public class AdminApi(IHttpClientFactory factory) : IAdminApi
 
     public Task<ApiResult<List<AdminVehicleScheduleDto>>> GetSchedulesAsync(string key, CancellationToken ct = default) =>
         Send<List<AdminVehicleScheduleDto>>(key, HttpMethod.Get, "api/admin/schedule", null, ct);
+
+    public Task<ApiResult<AdminVehicleScheduleDto>> GetVehicleScheduleAsync(string key, int id, DateTime from, DateTime to, CancellationToken ct = default) =>
+        Send<AdminVehicleScheduleDto>(key, HttpMethod.Get,
+            $"api/admin/vehicles/{id}/schedule?from={from:yyyy-MM-ddTHH:mm:ss}&to={to:yyyy-MM-ddTHH:mm:ss}", null, ct);
 
     public Task<ApiResult<AdminVehicleDto>> GetVehicleAsync(string key, int id, CancellationToken ct = default) =>
         Send<AdminVehicleDto>(key, HttpMethod.Get, $"api/admin/vehicles/{id}", null, ct);

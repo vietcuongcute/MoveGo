@@ -1,0 +1,175 @@
+@model AdminCalendarViewModel
+@{
+    var v = Model.Vehicle;
+    var sch = Model.Schedule;
+    ViewData["Title"] = "Quản trị · Lịch " + v.Name;
+    ViewData["AdminTab"] = "vehicles";
+
+    var today = ViewHelpers.VnNow();
+    var month = Model.Month;
+    var monthEnd = month.AddMonths(1);
+    var gridStart = month.AddDays(-(((int)month.DayOfWeek + 6) % 7));
+    var weeks = (int)Math.Ceiling(((monthEnd - gridStart).TotalDays) / 7.0);
+    string[] dow = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+    string Ym(DateTime d) => d.ToString("yyyy-MM");
+
+    static bool Overlaps(AdminScheduleEntryDto e, DateTime day) => e.StartDate < day.AddDays(1) && e.EndDate > day;
+    static bool Solid(AdminScheduleEntryDto e) => e.Kind == "booking" && e.Status is BookingStatus.Confirmed or BookingStatus.Completed;
+    static string Given(string? name) { var p = (name ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries); return p.Length == 0 ? "" : p[^1]; }
+
+    // Ưu tiên màu của một ngày: đã cọc > giữ chỗ > chủ xe khoá > chờ chủ xe duyệt
+    int Rank(AdminScheduleEntryDto e) => Solid(e) ? 4 : e.Status == BookingStatus.AwaitingDeposit ? 3 : e.Kind == "block" ? 2 : 1;
+
+    var inMonthDays = Enumerable.Range(0, (int)(monthEnd - month).TotalDays).Select(i => month.AddDays(i)).ToList();
+    var busyDays = inMonthDays.Count(d => sch.Entries.Any(e => Overlaps(e, d) && Rank(e) >= 2));
+    var rentedDays = inMonthDays.Count(d => sch.Entries.Any(e => Overlaps(e, d) && Rank(e) >= 3));
+    var monthEntries = sch.Entries.Where(e => e.StartDate < monthEnd && e.EndDate > month).ToList();
+    var selected = (today >= month && today < monthEnd) ? today.Date : month;
+}
+<section class="page-banner pb-36 pt-28 sm:pt-32">
+    <div class="container-x relative">
+        <span class="eyebrow eyebrow-light"><i class="fa-regular fa-calendar-days"></i> Quản trị</span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight !text-white sm:text-5xl anim-rise">Lịch xe · @v.Name</h1>
+        <p class="mt-3 max-w-2xl text-emerald-50/80 anim-rise" style="--d:.1s">Mỗi ô là một ngày: xanh là đã có khách thuê, đỏ là chủ xe khoá, trắng là còn trống. Bấm vào ngày để xem ai thuê.</p>
+    </div>
+</section>
+
+<section class="container-x relative z-10 -mt-24 pb-24">
+    <partial name="_AdminNav" />
+
+    <div class="panel">
+        <a href="@Url.Action("Vehicles", "Admin")" class="text-sm font-bold text-emerald-700"><i class="fa-solid fa-arrow-left"></i> Về danh sách xe</a>
+
+        @* Chọn xe khác *@
+        <div class="mt-3 flex gap-2 overflow-x-auto pb-1">
+            @foreach (var o in Model.AllVehicles)
+            {
+                <a href="@Url.Action("VehicleCalendar", "Admin", new { id = o.Id, thang = Ym(month) })"
+                   class="shrink-0 rounded-full px-3 py-1.5 text-xs font-bold @(o.Id == v.Id ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")">@o.Name</a>
+            }
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-xl font-extrabold">@v.Name <span class="text-sm font-semibold text-slate-400">· @v.CategoryLabel · chủ xe @v.OwnerName</span></h2>
+                <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                    @if (sch.RentedNow) { <span class="status-pill !py-1 bg-emerald-600 text-white"><i class="fa-solid fa-key"></i> Đang cho thuê · đến @sch.RentedUntil!.Value.ToString("dd/MM HH:mm")</span> }
+                    else { <span class="status-pill !py-1 bg-slate-100 text-slate-600"><i class="fa-regular fa-circle-check"></i> Hôm nay xe trống</span> }
+                    @if (!v.IsActive) { <span class="status-pill !py-1 bg-slate-100 text-slate-500">Đang ẩn khỏi web</span> }
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a class="btn-outline-dark btn-sm" href="@Url.Action("VehicleCalendar", "Admin", new { id = v.Id, thang = Ym(month.AddMonths(-1)) })" aria-label="Tháng trước"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="min-w-[9rem] text-center text-lg font-extrabold">Tháng @month.Month/@month.Year</div>
+                <a class="btn-outline-dark btn-sm" href="@Url.Action("VehicleCalendar", "Admin", new { id = v.Id, thang = Ym(month.AddMonths(1)) })" aria-label="Tháng sau"><i class="fa-solid fa-chevron-right"></i></a>
+                <a class="btn-outline-dark btn-sm" href="@Url.Action("VehicleCalendar", "Admin", new { id = v.Id })">Hôm nay</a>
+            </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-3 gap-3 text-center">
+            <div class="rounded-2xl bg-emerald-50 p-3"><div class="text-2xl font-extrabold text-emerald-700 tabular">@rentedDays</div><div class="text-xs font-semibold text-emerald-700/80">ngày có khách</div></div>
+            <div class="rounded-2xl bg-red-50 p-3"><div class="text-2xl font-extrabold text-red-500 tabular">@(busyDays - rentedDays)</div><div class="text-xs font-semibold text-red-500/80">ngày chủ xe khoá</div></div>
+            <div class="rounded-2xl bg-slate-50 p-3"><div class="text-2xl font-extrabold text-slate-600 tabular">@(inMonthDays.Count - busyDays)</div><div class="text-xs font-semibold text-slate-500">ngày còn trống</div></div>
+        </div>
+
+        <div class="mt-6 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+            @* ---------- Lịch tháng ---------- *@
+            <div>
+                <div class="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold text-slate-500">
+                    <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-emerald-500"></i>Đã cọc (đang/sắp thuê)</span>
+                    <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-blue-400"></i>Giữ chỗ, chờ cọc</span>
+                    <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-red-400"></i>Chủ xe khoá</span>
+                    <span class="inline-flex items-center gap-1"><i class="h-2.5 w-2.5 rounded bg-amber-300"></i>Chờ chủ xe duyệt</span>
+                </div>
+                <div class="grid grid-cols-7 gap-1.5 text-center" id="cal-grid">
+                    @foreach (var n in dow) { <div class="pb-1 text-[11px] font-bold text-slate-400">@n</div> }
+                    @for (var i = 0; i < weeks * 7; i++)
+                    {
+                        var day = gridStart.AddDays(i);
+                        var inMonth = day >= month && day < monthEnd;
+                        var past = day.AddDays(1) <= today;
+                        var list = sch.Entries.Where(e => Overlaps(e, day)).OrderByDescending(Rank).ToList();
+                        var top = list.FirstOrDefault();
+                        var cls = top is null ? "bg-white text-slate-600 ring-1 ring-inset ring-slate-200"
+                            : Solid(top) ? "bg-emerald-500 text-white"
+                            : top.Status == BookingStatus.AwaitingDeposit ? "bg-blue-400 text-white"
+                            : top.Kind == "block" ? "bg-red-400 text-white"
+                            : "bg-amber-300 text-amber-900";
+                        string label = top is null ? "" : top.Kind == "block" ? "Khoá"
+                            : top.Status == BookingStatus.PendingOwner ? "Chờ duyệt" : Given(top.CustomerName);
+                        string hint = "";
+                        if (top is { Kind: "booking" } && top.Status != BookingStatus.PendingOwner)
+                        {
+                            if (top.StartDate.Date == day) hint = "nhận " + top.StartDate.ToString("HH:mm");
+                            else if (top.EndDate.Date == day) hint = "trả " + top.EndDate.ToString("HH:mm");
+                        }
+                        <button type="button" data-day="@day.ToString("yyyy-MM-dd")"
+                                class="cal-day flex min-h-[4.25rem] flex-col items-start justify-between rounded-xl p-1.5 text-left transition hover:scale-[1.03] @cls @(inMonth ? "" : "opacity-35") @(past && inMonth ? "saturate-50" : "") @(day.Date == today.Date ? "outline outline-2 outline-offset-1 outline-emerald-600" : "")"
+                                title="@day.ToString("dd/MM/yyyy")">
+                            <span class="text-sm font-extrabold leading-none">@(day.Day == 1 ? day.ToString("d/M") : day.Day.ToString())</span>
+                            <span class="w-full truncate text-[10px] font-bold leading-tight">@label@(list.Count > 1 ? " +" + (list.Count - 1) : "")</span>
+                            @if (hint != "") { <span class="w-full truncate text-[9px] font-semibold leading-none opacity-90">@hint</span> }
+                        </button>
+                    }
+                </div>
+            </div>
+
+            @* ---------- Chi tiết ngày được chọn ---------- *@
+            <div>
+                <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500">Ngày <span id="day-title">@selected.ToString("dd/MM/yyyy")</span></h3>
+                <div id="day-panels" class="mt-3 grid gap-2" data-selected="@selected.ToString("yyyy-MM-dd")">
+                    @for (var i = 0; i < weeks * 7; i++)
+                    {
+                        var day = gridStart.AddDays(i);
+                        var list = sch.Entries.Where(e => Overlaps(e, day)).OrderByDescending(Rank).ToList();
+                        <div class="day-panel hidden gap-2" data-panel="@day.ToString("yyyy-MM-dd")" data-title="@day.ToString("dd/MM/yyyy") (@ViewHelpers.DayName(day))">
+                            @if (list.Count == 0)
+                            {
+                                <p class="rounded-xl bg-slate-50 p-4 text-center text-sm text-slate-500"><i class="fa-regular fa-circle-check text-emerald-600"></i> Ngày này xe còn trống.</p>
+                            }
+                            else
+                            {
+                                @foreach (var e in list) { <partial name="_AdminScheduleRow" model="e" /> }
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* ---------- Danh sách đơn trong tháng ---------- *@
+        <div class="mt-10">
+            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500">Tất cả lịch trong tháng @month.Month/@month.Year (@monthEntries.Count)</h3>
+            @if (monthEntries.Count == 0)
+            {
+                <p class="mt-3 rounded-2xl bg-slate-50 p-6 text-center text-sm text-slate-400">Tháng này chưa có lịch nào.</p>
+            }
+            else
+            {
+                <div class="mt-3 grid gap-2 lg:grid-cols-2">
+                    @foreach (var e in monthEntries) { <partial name="_AdminScheduleRow" model="e" /> }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+    (function () {
+      var cells = document.querySelectorAll('.cal-day');
+      var panels = document.querySelectorAll('.day-panel');
+      var title = document.getElementById('day-title');
+      function show(day) {
+        panels.forEach(function (p) {
+          var on = p.getAttribute('data-panel') === day;
+          p.classList.toggle('hidden', !on); p.classList.toggle('grid', on);
+          if (on) title.textContent = p.getAttribute('data-title');
+        });
+        cells.forEach(function (c) { c.classList.toggle('ring-4', c.getAttribute('data-day') === day); c.classList.toggle('ring-ink-900/30', c.getAttribute('data-day') === day); });
+      }
+      cells.forEach(function (c) { c.addEventListener('click', function () { show(c.getAttribute('data-day')); }); });
+      show(document.getElementById('day-panels').getAttribute('data-selected'));
+    })();
+    </script>
+}

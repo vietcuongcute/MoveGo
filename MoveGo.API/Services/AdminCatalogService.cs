@@ -187,25 +187,26 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
 
     /// <summary>
     /// Lịch cho trang quản trị: với mỗi xe, các đơn đã cọc/đang giữ chỗ/đang chờ chủ xe và các khoảng chủ xe khoá.
-    /// Lấy cả lịch sử 90 ngày gần đây và toàn bộ lịch sắp tới. Đơn bị từ chối/huỷ/hết hạn không hiện (không chiếm xe).
+    /// Mặc định lấy lịch sử 90 ngày gần đây và toàn bộ lịch sắp tới; truyền from/to để xem một khoảng khác (ví dụ một tháng cụ thể). Đơn bị từ chối/huỷ/hết hạn không hiện (không chiếm xe).
     /// </summary>
-    public async Task<List<AdminVehicleScheduleDto>> GetSchedulesAsync(int? vehicleId, CancellationToken ct)
+    public async Task<List<AdminVehicleScheduleDto>> GetSchedulesAsync(int? vehicleId, DateTime? from, DateTime? to, CancellationToken ct)
     {
         var now = clock.Now;
-        var since = now.AddDays(-90);
+        var since = from ?? now.AddDays(-90);
+        var until = to ?? DateTime.MaxValue;
 
         var vehicles = await db.Vehicles.AsNoTracking().Where(v => !v.IsDeleted && (vehicleId == null || v.Id == vehicleId))
             .OrderBy(v => v.Id).ToListAsync(ct);
         var ids = vehicles.Select(v => v.Id).ToList();
 
         var bookings = await db.Bookings.AsNoTracking()
-            .Where(b => ids.Contains(b.VehicleId) && b.EndDate >= since
+            .Where(b => ids.Contains(b.VehicleId) && b.EndDate >= since && b.StartDate < until
                 && (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed
                     || b.Status == BookingStatus.PendingOwner
                     || (b.Status == BookingStatus.AwaitingDeposit && (b.HoldExpiresAt == null || b.HoldExpiresAt > now))))
             .ToListAsync(ct);
         var blocks = await db.VehicleUnavailabilities.AsNoTracking()
-            .Where(u => ids.Contains(u.VehicleId) && u.EndDate >= since).ToListAsync(ct);
+            .Where(u => ids.Contains(u.VehicleId) && u.EndDate >= since && u.StartDate < until).ToListAsync(ct);
 
         static string PhaseOf(DateTime start, DateTime end, DateTime now) =>
             end <= now ? "past" : start <= now ? "now" : "upcoming";

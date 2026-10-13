@@ -631,7 +631,7 @@ Quy tắc: `pricePerDay` từ **50.000đ đến 50.000.000đ**, là bội số c
 | Method | Path | Mô tả |
 |---|---|---|
 | GET | `/api/admin/schedule` | Lịch của **tất cả** xe |
-| GET | `/api/admin/vehicles/{id}/schedule` | Lịch của một xe (`404` nếu không có xe) |
+| GET | `/api/admin/vehicles/{id}/schedule` | Lịch của một xe. Tuỳ chọn `?from=&to=` (datetime) để xem một khoảng, ví dụ cả một tháng; `400` nếu `to <= from`, `404` nếu không có xe |
 
 Dùng cho trang Admin → Xe: xe đang cho thuê hay trống, ngày nào có khách, ngày nào chủ xe khoá. Mỗi xe có `entries` gồm 90 ngày gần nhất và toàn bộ lịch sắp tới; đơn bị từ chối/huỷ/hết hạn không hiện vì không chiếm xe.
 

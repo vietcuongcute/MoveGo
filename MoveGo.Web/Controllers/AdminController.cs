@@ -151,6 +151,33 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
         });
     }
 
+    /// <summary>Lịch tháng của một xe (giống lịch bên cổng chủ xe): ngày nào bận, ai thuê, ai khoá.</summary>
+    [HttpGet("xe/{id:int}/lich")]
+    public async Task<IActionResult> VehicleCalendar(int id, string? thang, CancellationToken ct)
+    {
+        var month = DateTime.TryParseExact(thang, "yyyy-MM", System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var m)
+            ? new DateTime(m.Year, m.Month, 1)
+            : new DateTime(Helpers.ViewHelpers.VnNow().Year, Helpers.ViewHelpers.VnNow().Month, 1);
+
+        // Lưới hiển thị bắt đầu từ thứ Hai của tuần chứa ngày 1, dài tối đa 6 tuần.
+        var gridStart = month.AddDays(-(((int)month.DayOfWeek + 6) % 7));
+        var gridEnd = gridStart.AddDays(42);
+
+        var vehicle = await api.GetVehicleAsync(AdminKey, id, ct);
+        if (KickIfUnauthorized(vehicle.Status) is { } kick) return kick;
+        if (!vehicle.Ok) return Flash(false, "", vehicle.Error, nameof(Vehicles));
+
+        var sch = await api.GetVehicleScheduleAsync(AdminKey, id, gridStart, gridEnd, ct);
+        if (!sch.Ok) return Flash(false, "", sch.Error, nameof(Vehicles));
+
+        var all = await api.GetVehiclesAsync(AdminKey, ct);
+        return View("VehicleCalendar", new AdminCalendarViewModel
+        {
+            Vehicle = vehicle.Value!, Schedule = sch.Value!, AllVehicles = all.Value ?? [], Month = month
+        });
+    }
+
     [HttpGet("xe/moi")]
     public async Task<IActionResult> NewVehicle(CancellationToken ct) =>
         await FormViewAsync(new VehicleForm(), ct);

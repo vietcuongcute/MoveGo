@@ -90,13 +90,14 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
 
     /// <summary>Lịch của TẤT CẢ xe: đang cho thuê hay trống, ngày nào có khách, ngày nào chủ xe khoá.</summary>
     [HttpGet("schedule")]
-    public async Task<IActionResult> Schedule(CancellationToken ct) => Ok(await catalog.GetSchedulesAsync(null, ct));
+    public async Task<IActionResult> Schedule(CancellationToken ct) => Ok(await catalog.GetSchedulesAsync(null, null, null, ct));
 
-    /// <summary>Lịch của một xe.</summary>
+    /// <summary>Lịch của một xe. Tuỳ chọn ?from=&amp;to= để xem một khoảng ngày (ví dụ cả một tháng).</summary>
     [HttpGet("vehicles/{id:int}/schedule")]
-    public async Task<IActionResult> VehicleSchedule(int id, CancellationToken ct)
+    public async Task<IActionResult> VehicleSchedule(int id, [FromQuery] DateTime? from, [FromQuery] DateTime? to, CancellationToken ct)
     {
-        var list = await catalog.GetSchedulesAsync(id, ct);
+        if (from.HasValue && to.HasValue && to <= from) return Problem(title: "Khoảng ngày không hợp lệ.", statusCode: 400);
+        var list = await catalog.GetSchedulesAsync(id, from, to, ct);
         return list.Count == 0 ? Problem(title: "Không tìm thấy xe.", statusCode: 404) : Ok(list[0]);
     }
 

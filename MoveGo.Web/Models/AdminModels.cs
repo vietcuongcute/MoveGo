@@ -21,6 +21,15 @@ public record AdminVehicleScheduleDto(
     DateTime? NextBusyFrom, int TripsDone, int UpcomingCount, int PendingCount,
     List<AdminScheduleEntryDto> Entries);
 
+/// <summary>Dữ liệu cho trang lịch tháng của một xe.</summary>
+public class AdminCalendarViewModel
+{
+    public AdminVehicleDto Vehicle { get; set; } = null!;
+    public AdminVehicleScheduleDto Schedule { get; set; } = null!;
+    public List<AdminVehicleDto> AllVehicles { get; set; } = [];
+    public DateTime Month { get; set; }
+}
+
 /// <summary>Dữ liệu cho trang Quản lý xe: danh sách xe + lịch từng xe (tra theo Id xe).</summary>
 public class AdminVehiclesViewModel
 {
