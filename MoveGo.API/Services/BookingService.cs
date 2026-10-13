@@ -314,6 +314,55 @@ public class BookingService(
         return await MarkPaidAsync(booking, ct);
     }
 
+    /// <summary>
+    /// Tiền chuyển khoản đã về (webhook SePay/Casso). Nhận diện đơn theo NỘI DUNG chuyển khoản, kiểm tra đủ số tiền cọc rồi xác nhận đơn.
+    /// Gọi lặp nhiều lần (ngân hàng/cổng gửi lại) vẫn an toàn.
+    /// </summary>
+    public async Task<ServiceResult<BookingTrackDto>> MarkPaidByTransferAsync(
+        string? content, decimal amount, string? transactionId, CancellationToken ct = default)
+    {
+        var code = BankTransfer.ExtractCode(content);
+        if (code is null) return Fail<BookingTrackDto>(404, "Nội dung chuyển khoản không chứa mã đơn MoveGo.");
+
+        var booking = await LoadBookingAsync(b => b.Code == code, ct);
+        if (booking is null) return Fail<BookingTrackDto>(404, $"Không có đơn {code}.");
+        if (booking.Status is BookingStatus.Confirmed or BookingStatus.Completed)
+            return ServiceResult<BookingTrackDto>.Success(ToTrackDto(booking));       // gửi lặp → bỏ qua
+
+        var stamp = $"[{Fmt.DateTimeVn(clock.Now)}]";
+        if (amount + 0.5m < booking.CommissionAmount)
+        {
+            booking.AdminNote = $"{stamp} Nhận {Fmt.Money(amount)} nhưng cọc cần {Fmt.Money(booking.CommissionAmount)} (GD {transactionId}) → CHUYỂN THIẾU, liên hệ khách.";
+            await db.SaveChangesAsync(ct);
+            return Fail<BookingTrackDto>(409, "Số tiền chuyển khoản chưa đủ tiền cọc.");
+        }
+        if (booking.Status is not (BookingStatus.AwaitingDeposit or BookingStatus.Expired))
+        {
+            booking.AdminNote = $"{stamp} Nhận {Fmt.Money(amount)} (GD {transactionId}) nhưng đơn ở trạng thái {booking.Status} → CẦN HOÀN TIỀN cho khách.";
+            await db.SaveChangesAsync(ct);
+            return Fail<BookingTrackDto>(409, "Đơn không còn ở bước chờ cọc; cần hoàn tiền thủ công.");
+        }
+
+        booking.AdminNote = $"{stamp} Nhận cọc {Fmt.Money(amount)} qua chuyển khoản (GD {transactionId}).";
+        await db.SaveChangesAsync(ct);
+        return await MarkPaidAsync(booking, ct);
+    }
+
+    /// <summary>Admin tự xác nhận đã thấy tiền trong tài khoản (phương án dự phòng khi webhook chưa chạy).</summary>
+    public async Task<ServiceResult<BookingTrackDto>> ConfirmPaymentManuallyAsync(int bookingId, CancellationToken ct = default)
+    {
+        var booking = await LoadBookingAsync(b => b.Id == bookingId, ct);
+        if (booking is null) return Fail<BookingTrackDto>(404, "Không tìm thấy đơn.");
+        if (booking.Status is not (BookingStatus.AwaitingDeposit or BookingStatus.Expired or BookingStatus.Confirmed or BookingStatus.Completed))
+            return Fail<BookingTrackDto>(409, "Đơn không ở bước chờ cọc.");
+        if (booking.Status is BookingStatus.AwaitingDeposit or BookingStatus.Expired)
+        {
+            booking.AdminNote = $"[{Fmt.DateTimeVn(clock.Now)}] Admin xác nhận đã nhận cọc thủ công.";
+            await db.SaveChangesAsync(ct);
+        }
+        return await MarkPaidAsync(booking, ct);
+    }
+
     public async Task<ServiceResult<BookingTrackDto>> MockPayAsync(string code, CancellationToken ct = default)
     {
         var booking = await LoadBookingAsync(b => b.Code == code.ToUpperInvariant(), ct);
@@ -498,7 +547,8 @@ public class BookingService(
             secondsLeft,
             awaiting ? b.CheckoutUrl : null, awaiting ? b.QrCode : null, payments.IsMock,
             revealed ? new OwnerContactDto(owner.Name, owner.PhoneNumber, $"https://zalo.me/{owner.ZaloPhone}") : null,
-            b.RejectReason);
+            b.RejectReason,
+            awaiting ? payments.DescribeTransfer(b) : null);
     }
 
     private async Task<OwnerRequestDto> ToOwnerDtoAsync(Booking b, CancellationToken ct)

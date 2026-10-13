@@ -4,9 +4,12 @@ import { api, ApiError, Booking, BookingStatus, rememberOrder } from '../api';
 import { dmyHm, mmss, vnd } from '../format';
 import { Nav } from '../nav';
 import { C } from '../theme';
+import * as Clipboard from 'expo-clipboard';
+import QRCode from 'react-native-qrcode-svg';
 import { Btn, Card, ErrorBox, Header, Loading, Row, StatusBadge, VehicleThumb } from '../ui';
 
-const POLL_MS = 8000;
+const POLL_WAIT_OWNER_MS = 8000;
+const POLL_WAIT_DEPOSIT_MS = 3000;   // chờ tiền về: hỏi nhanh để thấy xác nhận gần như tức thì
 const WAITING: BookingStatus[] = ['PendingOwner', 'AwaitingDeposit'];
 
 const STEPS = ['Gửi yêu cầu', 'Chủ xe xác nhận', 'Đặt cọc 10%', 'Nhận xe'];
@@ -54,7 +57,7 @@ export default function OrderScreen({ code, nav }: { code: string; nav: Nav }) {
   // Tự làm mới trong lúc chờ chủ xe / chờ cọc
   useEffect(() => {
     if (!b || !WAITING.includes(b.status)) return;
-    const t = setInterval(() => load(true), POLL_MS);
+    const t = setInterval(() => load(true), b.status === 'AwaitingDeposit' ? POLL_WAIT_DEPOSIT_MS : POLL_WAIT_OWNER_MS);
     return () => clearInterval(t);
   }, [b?.status, load]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -153,16 +156,41 @@ export default function OrderScreen({ code, nav }: { code: string; nav: Nav }) {
             ) : (
               <Text style={[s.noteText, { color: C.red }]}>Hết thời gian giữ xe — kéo xuống để cập nhật.</Text>
             )}
-            <Btn
-              title={b.isMockPayment ? `Thanh toán cọc ${vnd(b.depositAmount)} (giả lập)` : `Thanh toán cọc ${vnd(b.depositAmount)}`}
-              onPress={pay}
-              loading={payBusy}
-              disabled={!holdActive}
-              style={{ marginTop: 12 }}
-            />
             {b.isMockPayment ? (
-              <Text style={[s.small, { textAlign: 'center', marginTop: 8 }]}>Bản demo: bấm là coi như đã chuyển khoản thành công.</Text>
-            ) : null}
+              <>
+                <Btn title={`Thanh toán cọc ${vnd(b.depositAmount)} (giả lập)`} onPress={pay} loading={payBusy} disabled={!holdActive} style={{ marginTop: 12 }} />
+                <Text style={[s.small, { textAlign: 'center', marginTop: 8 }]}>Bản thử nghiệm: bấm là coi như đã chuyển khoản thành công.</Text>
+              </>
+            ) : (
+              <>
+                {b.qrCode && holdActive ? (
+                  <View style={s.qrBox}>
+                    <QRCode value={b.qrCode} size={200} />
+                    <Text style={s.qrHint}>Quét mã bằng app ngân hàng (máy khác) — số tiền và nội dung đã điền sẵn</Text>
+                  </View>
+                ) : null}
+                {b.bank ? (
+                  <View style={s.bankBox}>
+                    <Row label="Ngân hàng" value={b.bank.bankName} />
+                    <Row label="Số tài khoản" value={b.bank.accountNumber} bold />
+                    <Row label="Chủ tài khoản" value={b.bank.accountName} />
+                    <Row label="Số tiền" value={vnd(b.bank.amount)} bold />
+                    <Row label="Nội dung (giữ nguyên)" value={b.bank.content} bold />
+                  </View>
+                ) : null}
+                {b.bank ? (
+                  <Btn title="Sao chép số tài khoản" kind="outline" onPress={async () => { await Clipboard.setStringAsync(b.bank!.accountNumber); Alert.alert('Đã sao chép', b.bank!.accountNumber); }} style={{ marginTop: 10 }} />
+                ) : null}
+                <Btn
+                  title={b.bank ? 'Mở ảnh QR để lưu / quét' : 'Mở trang thanh toán / app ngân hàng'}
+                  kind={b.bank ? 'outline' : 'primary'}
+                  onPress={pay} loading={payBusy} disabled={!holdActive || !b.checkoutUrl} style={{ marginTop: 10 }}
+                />
+                <Text style={[s.small, { textAlign: 'center', marginTop: 8 }]}>
+                  🔄 Đang chờ nhận tiền — chuyển khoản xong đơn tự xác nhận trong vài giây, không cần bấm gì thêm.
+                </Text>
+              </>
+            )}
           </Card>
         ) : null}
 
@@ -217,6 +245,9 @@ const s = StyleSheet.create({
   stepLabel: { color: C.muted, fontSize: 11, marginTop: 6, textAlign: 'center' },
   note: { marginTop: 14, borderWidth: 0 },
   noteText: { color: C.inkSoft, fontSize: 14, lineHeight: 20, marginTop: 6 },
+  qrBox: { alignItems: 'center', backgroundColor: C.white, borderRadius: 16, padding: 16, marginTop: 12 },
+  bankBox: { backgroundColor: C.white, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 6, marginTop: 12 },
+  qrHint: { color: C.muted, fontSize: 12, marginTop: 10, textAlign: 'center' },
   timer: { color: C.ink, fontSize: 22, fontWeight: '800', marginTop: 8 },
   owner: { color: C.ink, fontSize: 18, fontWeight: '800', marginTop: 8 },
   phone: { color: C.greenDark, fontSize: 22, fontWeight: '800', marginTop: 2, letterSpacing: 0.5 },

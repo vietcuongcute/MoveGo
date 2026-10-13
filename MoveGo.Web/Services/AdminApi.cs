@@ -9,6 +9,7 @@ public interface IAdminApi
     Task<ApiResult<AdminSummaryDto>> GetSummaryAsync(string key, CancellationToken ct = default);
     Task<ApiResult<List<AdminBookingDto>>> GetBookingsAsync(string key, string? status, CancellationToken ct = default);
     Task<ApiResult<bool>> ResendOwnerAsync(string key, int bookingId, CancellationToken ct = default);
+    Task<ApiResult<BookingTrackDto>> ConfirmPaymentAsync(string key, int bookingId, CancellationToken ct = default);
 
     Task<ApiResult<List<AdminOwnerDto>>> GetOwnersAsync(string key, CancellationToken ct = default);
     Task<ApiResult<AdminOwnerDto>> SaveOwnerAsync(string key, OwnerForm form, CancellationToken ct = default);
@@ -44,6 +45,9 @@ public class AdminApi(IHttpClientFactory factory) : IAdminApi
 
     public Task<ApiResult<bool>> ResendOwnerAsync(string key, int bookingId, CancellationToken ct = default) =>
         Send<bool>(key, HttpMethod.Post, $"api/admin/bookings/{bookingId}/resend-owner", null, ct);
+
+    public Task<ApiResult<BookingTrackDto>> ConfirmPaymentAsync(string key, int bookingId, CancellationToken ct = default) =>
+        Send<BookingTrackDto>(key, HttpMethod.Post, $"api/admin/bookings/{bookingId}/confirm-payment", null, ct);
 
     public Task<ApiResult<List<AdminOwnerDto>>> GetOwnersAsync(string key, CancellationToken ct = default) =>
         Send<List<AdminOwnerDto>>(key, HttpMethod.Get, "api/admin/owners", null, ct);

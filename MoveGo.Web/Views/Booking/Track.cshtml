@@ -161,12 +161,22 @@ else
                                         <div class="tile-label">Số tiền cọc</div>
                                         <div class="mt-1 text-4xl font-extrabold text-gradient tabular">@ViewHelpers.Vnd(b.DepositAmount)</div>
                                         <ul class="mt-4 space-y-2.5 text-sm text-slate-600">
-                                            <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Nội dung chuyển khoản đã nằm sẵn trong mã QR.</li>
+                                            <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Số tiền và nội dung chuyển khoản đã nằm sẵn trong mã QR — nếu chuyển tay, hãy giữ nguyên nội dung.</li>
                                             <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Thanh toán xong, trang này tự cập nhật trong vài giây.</li>
                                             <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Sau đó bạn nhận số điện thoại &amp; Zalo chủ xe.</li>
                                         </ul>
+                                        @if (b.Bank is { } bank)
+                                        {
+                                            <dl class="mt-4 space-y-1.5 rounded-2xl bg-slate-50 p-4 text-sm">
+                                                <div class="flex justify-between gap-3"><dt class="text-slate-500">Ngân hàng</dt><dd class="font-bold">@bank.BankName</dd></div>
+                                                <div class="flex justify-between gap-3"><dt class="text-slate-500">Số tài khoản</dt><dd class="font-extrabold tabular">@bank.AccountNumber</dd></div>
+                                                <div class="flex justify-between gap-3"><dt class="text-slate-500">Chủ tài khoản</dt><dd class="font-bold">@bank.AccountName</dd></div>
+                                                <div class="flex justify-between gap-3"><dt class="text-slate-500">Số tiền</dt><dd class="font-bold tabular">@ViewHelpers.Vnd(bank.Amount)</dd></div>
+                                                <div class="flex justify-between gap-3"><dt class="text-slate-500">Nội dung <span class="text-red-500">(giữ nguyên)</span></dt><dd class="font-extrabold tabular text-emerald-700">@bank.Content</dd></div>
+                                            </dl>
+                                        }
                                         <div class="mt-5 flex flex-wrap gap-3">
-                                            @if (!string.IsNullOrWhiteSpace(b.CheckoutUrl) && !b.IsMockPayment)
+                                            @if (!string.IsNullOrWhiteSpace(b.CheckoutUrl) && !b.IsMockPayment && b.Bank is null)
                                             {
                                                 <a href="@b.CheckoutUrl" target="_blank" rel="noopener" class="btn-primary"><i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trang thanh toán</a>
                                             }
@@ -178,7 +188,7 @@ else
                                 @if (b.IsMockPayment)
                                 {
                                     <div class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-                                        <div><b><i class="fa-solid fa-flask"></i> Chế độ thử nghiệm</b> — chưa nối PayOS thật nên không có tiền thật. Bấm nút bên phải để giả lập khách đã thanh toán.</div>
+                                        <div><b><i class="fa-solid fa-flask"></i> Chế độ thử nghiệm</b> — chưa nối cổng thanh toán thật nên không có tiền thật. Bấm nút bên phải để giả lập khách đã thanh toán.</div>
                                         <button type="button" id="mock-pay" class="btn-dark btn-sm shrink-0"><i class="fa-solid fa-wand-magic-sparkles"></i> Giả lập đã thanh toán</button>
                                     </div>
                                 }

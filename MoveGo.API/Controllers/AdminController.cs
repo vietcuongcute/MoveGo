@@ -123,6 +123,11 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
         }));
     }
 
+    /// <summary>Xác nhận thủ công "đã thấy tiền cọc trong tài khoản" — dự phòng khi webhook ngân hàng chưa chạy.</summary>
+    [HttpPost("bookings/{id:int}/confirm-payment")]
+    public async Task<IActionResult> ConfirmPayment(int id, CancellationToken ct) =>
+        (await bookings.ConfirmPaymentManuallyAsync(id, ct)).ToActionResult(this);
+
     /// <summary>Gửi lại tin Zalo cho chủ xe nếu lần đầu bị lỗi.</summary>
     [HttpPost("bookings/{id:int}/resend-owner")]
     public async Task<IActionResult> ResendOwner(int id, CancellationToken ct) =>

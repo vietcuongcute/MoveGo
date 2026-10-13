@@ -33,6 +33,7 @@ Hai khoảng trùng nhau khi `aStart < bEnd && aEnd > bStart` (trả xe 08:00 v�
 Không còn "điểm nhận xe" cố định. Khi đặt, khách tự nhập **địa chỉ muốn nhận xe** (khách sạn, nhà…); chủ xe thấy địa chỉ này trên trang xác nhận và trong tin Zalo (khoá `pickup_address` trong dữ liệu mẫu tin nhắn, nhớ thêm biến này vào template ZNS), rồi hai bên tự thống nhất giờ giao.
 
 > Test API (Swagger + bảng kết quả 69 trường hợp): xem [docs/API_TEST.md](docs/API_TEST.md).
+> Nhận cọc bằng QR ngân hàng của bạn + tự nhận diện tiền về (SePay/Casso): xem [docs/THANH_TOAN_NGAN_HANG.md](docs/THANH_TOAN_NGAN_HANG.md).
 > App iPhone demo (Expo Go) gọi API này: xem [MoveGo.Mobile/README.md](MoveGo.Mobile/README.md).
 > Đưa lên host chỉ có 1 website (MonsterASP...): xem [docs/DEPLOY_MONSTERASP.md](docs/DEPLOY_MONSTERASP.md).
 
@@ -52,7 +53,7 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 
 1. Vào http://localhost:5200, bấm **Xe cho thuê** (hoặc **Đặt xe**), chọn ngày rồi bấm **Thuê xe** ở xe bạn thích, nhập **địa chỉ nhận xe ở Đà Lạt**, nhập tên và SĐT, gửi yêu cầu, rồi bấm **Theo dõi đơn của tôi** để mở trang theo dõi đơn.
 2. Terminal của API in ra tin Zalo giả lập, trong đó có dòng `confirm_link`. Mở link đó (đóng vai chủ xe) và bấm **Đồng ý cho thuê**.
-3. Quay lại trang theo dõi đơn: xuất hiện mã QR và đồng hồ đếm ngược 30 phút. Bấm **Giả lập đã thanh toán** (nút hiện khi PayOS đang tắt, và chỉ hoạt động khi API chạy ở môi trường `Development`).
+3. Quay lại trang theo dõi đơn: xuất hiện mã QR và đồng hồ đếm ngược 30 phút. Bấm **Giả lập đã thanh toán** (nút hiện khi chưa bật `BankPayment`/PayOS, và chỉ hoạt động khi API chạy ở `Development` hoặc có `Business:AllowMockPayment=true`).
 4. Đơn chuyển sang **Đã xác nhận**, hiện SĐT chủ xe và địa chỉ nhận xe. Terminal in thêm hai tin Zalo giả lập.
 5. Chủ xe có link quản lý lịch riêng (in ra terminal API lúc khởi động, dạng `/owner/manage/<token>`) để khoá ngày xe bận.
 
@@ -94,6 +95,8 @@ Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặ
 | `GET /api/owner/manage/{manageToken}` và các `blocks` | Chủ xe quản lý lịch |
 | `POST /api/payments/mock/{code}/complete` | Giả lập khách đã cọc (chỉ Development, PayOS tắt) |
 | `POST /api/payments/payos-webhook` | PayOS báo thanh toán (kiểm tra chữ ký) |
+| `POST /api/payments/bank-webhook` | SePay/Casso báo tiền vào tài khoản (kiểm tra khoá bí mật), tự xác nhận đơn |
+| `POST /api/admin/bookings/{id}/confirm-payment` | Admin xác nhận tay đã nhận cọc (dự phòng) |
 | `GET /api/admin/summary`, `bookings`, `POST bookings/{id}/resend-owner` | Tổng quan, danh sách đơn, gửi lại Zalo cho chủ xe |
 | `GET/POST /api/admin/owners`, `PUT owners/{id}`, `POST owners/{id}/reset-link` | Quản lý chủ xe, cấp lại link quản lý lịch |
 | `GET/POST /api/admin/vehicles`, `PUT vehicles/{id}`, `PUT vehicles/{id}/active`, `DELETE vehicles/{id}` | Thêm, sửa, ẩn/hiện, xoá xe (xe có lịch sử đơn chỉ đánh dấu đã xoá) |
@@ -105,10 +108,11 @@ Cấu hình nghiệp vụ nằm ở mục `Business` trong `MoveGo.API/appsettin
 
 ## Trước khi chạy thật
 
-Zalo ZNS và PayOS được viết theo tài liệu chính thức nhưng **chưa được thử với tài khoản thật**. Mọi thứ khác đã chạy được ở chế độ giả lập.
+Zalo ZNS, PayOS và webhook ngân hàng (SePay/Casso) được viết theo tài liệu chính thức và thử với cổng giả lập, nhưng **chưa được thử với tài khoản thật**. Mọi thứ khác đã chạy được ở chế độ giả lập.
 
 1. **Zalo ZNS**: cần Zalo Official Account, đăng ký ứng dụng, và 5 template tin nhắn được Zalo duyệt (khoá: `owner_new_request`, `customer_accepted`, `customer_rejected`, `owner_confirmed`, `customer_confirmed`). Điền vào mục `Zalo` rồi đặt `Enabled: true`. Token tự gia hạn và lưu ở `App_Data/` (đã gitignore).
-2. **PayOS**: tạo kênh thanh toán, điền `ClientId`, `ApiKey`, `ChecksumKey` vào mục `PayOs`, đặt `Enabled: true`, và đăng ký webhook trỏ về `https://<tên-miền>/api/payments/payos-webhook`.
+2. **Nhận cọc bằng QR ngân hàng của bạn (khuyên dùng)**: xem [docs/THANH_TOAN_NGAN_HANG.md](docs/THANH_TOAN_NGAN_HANG.md).
+   **PayOS** (phương án khác): tạo kênh thanh toán, điền `ClientId`, `ApiKey`, `ChecksumKey` vào mục `PayOs`, đặt `Enabled: true`, và đăng ký webhook trỏ về `https://<tên-miền>/api/payments/payos-webhook`.
 3. **Khoá admin**: đổi `Business:AdminKey` thành chuỗi dài, ngẫu nhiên (đặt bằng biến môi trường `Business__AdminKey`). Để trống thì API admin tự tắt. Trang `/admin` chỉ nên chạy qua HTTPS.
    **Bí mật** (khoá API, mật khẩu database, `AdminKey`) đặt bằng biến môi trường hoặc `appsettings.Production.json`, **không commit lên GitHub**.
 4. **Hoàn cọc** khi khách cọc nhưng xe không còn trống: hệ thống ghi chú vào đơn (`AdminNote`, xem ở `/api/admin/summary`), việc chuyển tiền hoàn bạn làm thủ công.

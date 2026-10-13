@@ -85,6 +85,12 @@
                                     <button type="submit" class="btn-outline-dark btn-sm"><i class="fa-solid fa-paper-plane"></i> Gửi lại Zalo</button>
                                 </form>
                             }
+                            else if (st == BookingStatus.AwaitingDeposit)
+                            {
+                                <form method="post" asp-controller="Admin" asp-action="ConfirmPayment" asp-route-id="@b.Id" onsubmit="return confirm('Bạn đã thấy @ViewHelpers.Vnd(b.CommissionAmount) (nội dung @b.Code) trong tài khoản?');">
+                                    <button type="submit" class="btn-outline-dark btn-sm"><i class="fa-solid fa-hand-holding-dollar"></i> Đã nhận cọc</button>
+                                </form>
+                            }
                         </div>
                     </div>
                 }

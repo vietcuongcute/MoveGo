@@ -29,9 +29,18 @@ Lưu ý: nếu host MonsterASP chặn cổng ra 5432 thì Neon không kết nố
     "AdminKey": "<mật khẩu admin bạn tự đặt, dài và khó đoán>",
     "WebBaseUrl": "http://<ten-site>.runasp.net"
   },
+  "BankPayment": {
+    "Enabled": true,
+    "BankBin": "970422",
+    "BankName": "MB Bank",
+    "AccountNumber": "<số tài khoản của bạn>",
+    "AccountName": "<TEN CHU TAI KHOAN KHONG DAU>",
+    "WebhookSecret": "<chuỗi bí mật tự đặt, dán y hệt vào SePay>"
+  },
   "Seed": { "Enabled": true }
 }
 ```
+Phần `BankPayment` để khách cọc bằng QR vào tài khoản của bạn và đơn tự xác nhận — xem [THANH_TOAN_NGAN_HANG.md](THANH_TOAN_NGAN_HANG.md). Chưa muốn nhận tiền thật thì bỏ phần này đi và thêm `"AllowMockPayment": true` vào mục `Business` (xem bước 5).
 - `AdminKey` để trống thì trang admin bị khoá.
 - `Seed.Enabled = true` nạp 4 chủ xe + 10 xe mẫu ở lần chạy đầu (số điện thoại chủ xe là số giả).
 
@@ -48,13 +57,13 @@ Lưu ý: nếu host MonsterASP chặn cổng ra 5432 thì Neon không kết nố
 ## 5. Chạy kịch bản demo
 1. Khách: `/xe` → chọn xe + ngày + địa chỉ nhận xe → Gửi yêu cầu → ghi lại **mã đơn** (MG-XXXXXX).
 2. Chủ xe (Zalo chưa nối nên không có tin nhắn): vào **Admin → Chủ xe**, copy **link quản lý** của chủ xe sở hữu xe đó, mở ở tab khác → đơn đang chờ → **Trả lời → Chấp nhận**.
-3. Khách: `/tra-cuu` nhập mã đơn **hoặc số điện thoại** đã đặt → trang theo dõi → bấm **"Giả lập đã thanh toán"** (chế độ thử nghiệm, chưa có PayOS thật) → hiện số điện thoại chủ xe.
+3. Khách: `/tra-cuu` nhập mã đơn **hoặc số điện thoại** đã đặt → trang theo dõi → quét QR cọc (tự xác nhận khi tiền về) → hiện số điện thoại chủ xe. Chế độ thử nghiệm (không bật `BankPayment`): cần `Business.AllowMockPayment = true` thì nút **"Giả lập đã thanh toán"** mới chạy trên host; mặc định nút này chỉ chạy ở môi trường Development.
 4. Admin → *Tổng quan & đơn* thấy hoa hồng 10%.
 5. Ảnh xe: Admin → **Xe** → Sửa → tải ảnh lên (ảnh được lưu trong `wwwroot/uploads/vehicles` trên host, nên không mất khi restart).
 
 ## Lưu ý
 - Mở site trước giờ demo 1–2 phút để khởi động và nối DB (lần đầu chậm hơn).
-- Thanh toán PayOS và tin Zalo vẫn là bản giả lập (không có tiền/tin thật).
+- Tin Zalo vẫn là bản giả lập (không có tin thật). Thanh toán thật cần cấu hình `BankPayment` như trên.
 - Đổi `AdminKey` khác mặc định dev (`movego-admin-dev`) trước khi để site công khai.
 
 ## Build lại gói trên máy bạn

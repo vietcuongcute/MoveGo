@@ -26,7 +26,11 @@ public record BookingTrackDto(
     string CustomerName, DateTime CreatedAt,
     int? HoldSecondsLeft,
     string? CheckoutUrl, string? QrCode, bool IsMockPayment,
-    OwnerContactDto? Owner, string? RejectReason);
+    OwnerContactDto? Owner, string? RejectReason,
+    BankTransferInfoDto? Bank = null);
+
+/// <summary>Thông tin chuyển khoản để khách làm tay nếu không quét QR (chỉ khi bật BankPayment).</summary>
+public record BankTransferInfoDto(string BankName, string AccountNumber, string AccountName, long Amount, string Content);
 
 /// <summary>Thông tin đơn dành cho CHỦ XE (qua link Zalo). Không có SĐT khách cho tới khi khách cọc.</summary>
 public record OwnerRequestDto(

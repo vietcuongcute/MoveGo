@@ -33,7 +33,10 @@ public record BookingTrackDto(
     string CustomerName, DateTime CreatedAt,
     int? HoldSecondsLeft,
     string? CheckoutUrl, string? QrCode, bool IsMockPayment,
-    OwnerContactDto? Owner, string? RejectReason);
+    OwnerContactDto? Owner, string? RejectReason,
+    BankTransferInfoDto? Bank = null);
+
+public record BankTransferInfoDto(string BankName, string AccountNumber, string AccountName, long Amount, string Content);
 
 public record BookingSummaryDto(
     string Code, BookingStatus Status, string StatusText, string VehicleName, string? VehicleImageUrl,

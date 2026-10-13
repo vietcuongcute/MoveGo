@@ -77,7 +77,7 @@ Vào tab **Cài đặt** → nhập `http://192.168.1.23:5100` (IP Mac của b�
 
 ## Giới hạn của bản demo
 - Chạy trong **Expo Go**, chưa phải app cài độc lập trên App Store/TestFlight (cái đó cần tài khoản Apple Developer 99$/năm + `eas build`).
-- Thanh toán và tin Zalo là **giả lập** (giống website). Khi API chuyển sang PayOS thật, nút thanh toán tự mở trang thanh toán của PayOS.
+- Tin Zalo là **giả lập**. Thanh toán: nếu API bật `BankPayment` (xem `docs/THANH_TOAN_NGAN_HANG.md`) app hiện **mã QR + số tài khoản** thật và tự xác nhận trong ~3 giây sau khi tiền về; nếu chưa bật thì dùng nút "giả lập" (chỉ ở môi trường Development).
 - Chủ xe/admin dùng website, app này chỉ dành cho khách thuê.
 
 ## Cấu trúc

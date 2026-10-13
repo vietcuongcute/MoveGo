@@ -33,6 +33,8 @@ export type Quote = {
 export type BookingStatus =
   | 'PendingOwner' | 'AwaitingDeposit' | 'Confirmed' | 'Completed' | 'Rejected' | 'Expired' | 'Cancelled';
 
+export type BankTransfer = { bankName: string; accountNumber: string; accountName: string; amount: number; content: string };
+
 export type OwnerContact = { name: string; phone: string; zaloLink: string };
 
 export type Booking = {
@@ -58,6 +60,7 @@ export type Booking = {
   isMockPayment: boolean;
   owner: OwnerContact | null;
   rejectReason: string | null;
+  bank?: BankTransfer | null;
 };
 
 export type BookingSummary = {

@@ -35,9 +35,15 @@ public static class ApiHosting
         else services.AddSingleton<IZaloService, MockZaloService>();
         services.AddHttpClient();
 
-        // PayOS: chưa bật → thanh toán giả lập. Bật trong appsettings: PayOs:Enabled = true
+        // Thanh toán cọc (ưu tiên từ trên xuống):
+        //   BankPayment:Enabled → chuyển khoản ngân hàng thật + tự nhận diện qua webhook SePay/Casso
+        //   PayOs:Enabled       → PayOS
+        //   còn lại             → giả lập (nút "đã thanh toán" để thử)
+        services.Configure<BankPaymentOptions>(config.GetSection("BankPayment"));
         services.Configure<PayOsOptions>(config.GetSection("PayOs"));
-        if (config.GetValue<bool>("PayOs:Enabled"))
+        if (config.GetValue<bool>("BankPayment:Enabled"))
+            services.AddSingleton<IPaymentService, BankTransferPaymentService>();
+        else if (config.GetValue<bool>("PayOs:Enabled"))
             services.AddHttpClient<IPaymentService, PayOsService>();
         else services.AddSingleton<IPaymentService, MockPaymentService>();
 

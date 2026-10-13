@@ -17,6 +17,8 @@ public interface IPaymentService
     Task<PaymentLink> CreatePaymentLinkAsync(Booking booking, CancellationToken ct = default);
     Task<bool> IsPaidAsync(long orderCode, CancellationToken ct = default);
     bool VerifyWebhook(JsonElement payload);
+    /// <summary>Thông tin chuyển khoản tay (số TK, nội dung) — chỉ có khi nhận cọc bằng chuyển khoản ngân hàng.</summary>
+    MoveGo.API.Dtos.BankTransferInfoDto? DescribeTransfer(Booking booking) => null;
 }
 
 /// <summary>Giả lập: không có tiền thật. Trang theo dõi đơn sẽ có nút "Giả lập đã thanh toán" (chỉ ở môi trường Development).</summary>

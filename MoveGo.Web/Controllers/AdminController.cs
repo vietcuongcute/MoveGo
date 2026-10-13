@@ -125,6 +125,15 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpPost("don/{id:int}/xac-nhan-coc"), ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmPayment(int id, CancellationToken ct)
+    {
+        var r = await api.ConfirmPaymentAsync(AdminKey, id, ct);
+        if (KickIfUnauthorized(r.Status) is { } kick) return kick;
+        TempData[r.Ok ? "Flash" : "FlashError"] = r.Ok ? "Đã xác nhận nhận cọc — hai bên đã được mở số điện thoại." : r.Error;
+        return RedirectToAction(nameof(Index));
+    }
+
     // ---------- Xe ----------
     [HttpGet("xe")]
     public async Task<IActionResult> Vehicles(CancellationToken ct)
