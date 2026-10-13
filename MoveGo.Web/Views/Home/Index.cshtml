@@ -21,46 +21,46 @@
 }
 
 @* ======================= HERO ======================= *@
-<section id="top" class="relative isolate overflow-hidden text-white">
+<section id="top" class="relative isolate overflow-hidden text-ink-900">
     <partial name="_HeroScene" />
 
     <div class="container-x relative pb-6 pt-28 sm:pt-32 lg:pb-40">
-        <div class="max-w-2xl lg:max-w-[48%] xl:max-w-[50%] [text-shadow:0_2px_18px_rgb(3_60_110_/_.4)]">
-            <span class="eyebrow eyebrow-light anim-rise"><i class="fa-solid fa-leaf"></i> Thuê xe điện · Ô tô &amp; xe máy</span>
+        <div class="max-w-2xl lg:max-w-[48%] xl:max-w-[50%]">
+            <span class="eyebrow anim-rise"><i class="fa-solid fa-leaf"></i> Thuê xe điện · Ô tô &amp; xe máy</span>
 
-            <h1 class="mt-6 text-[2.9rem] font-extrabold leading-[.95] tracking-tight !text-white sm:text-7xl xl:text-[5.4rem]">
+            <h1 class="mt-6 text-[2.9rem] font-extrabold leading-[.95] tracking-tight !text-ink-900 sm:text-7xl xl:text-[5.4rem]">
                 <span class="block anim-rise" style="--d:.1s">MOVE GREEN</span>
                 <span class="relative mt-1 block anim-rise" style="--d:.25s">
-                    <span class="bg-gradient-to-r from-yellow-200 via-amber-100 to-white bg-clip-text text-transparent [text-shadow:none] [filter:drop-shadow(0_3px_14px_rgb(3_60_110_/_.4))]">GO AMAZING</span>
-                    <svg class="absolute -bottom-2 left-0 h-3 w-[78%] text-amber-300" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
+                    <span class="bg-gradient-to-r from-emerald-700 via-emerald-500 to-cyan-400 bg-clip-text text-transparent">GO AMAZING</span>
+                    <svg class="absolute -bottom-2 left-0 h-3 w-[78%] text-orange-400" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
                         <path d="M2 8 C 60 1, 130 1, 200 6 S 280 9, 298 3" stroke="currentColor" stroke-width="4" stroke-linecap="round" style="stroke-dasharray:320;stroke-dashoffset:320;animation:draw 1.4s .9s ease forwards" />
                     </svg>
                 </span>
             </h1>
 
-            <p class="mt-8 max-w-xl text-lg leading-relaxed text-white anim-rise" style="--d:.4s">
+            <p class="mt-8 max-w-xl text-lg leading-relaxed text-slate-600 anim-rise" style="--d:.4s">
                 Thuê ô tô điện &amp; xe máy điện trực tiếp từ chủ xe. Gửi yêu cầu trong 60 giây, chủ xe xác nhận qua Zalo,
-                cọc chỉ <b class="text-white">@depositPct%</b> — bàn giao xe ngay.
+                cọc chỉ <b class="text-ink-900">@depositPct%</b> — bàn giao xe ngay.
             </p>
 
             <div class="mt-9 flex flex-wrap items-center gap-4 anim-rise" style="--d:.55s">
                 <a href="#search" class="btn-primary btn-lg"><i class="fa-solid fa-magnifying-glass-location"></i> Tìm xe trống</a>
-                <a href="@Url.Action("Process", "Home")" class="btn-outline btn-lg"><i class="fa-solid fa-circle-play"></i> Cách hoạt động</a>
+                <a href="@Url.Action("Process", "Home")" class="btn-outline-dark btn-lg bg-white/60"><i class="fa-solid fa-circle-play"></i> Cách hoạt động</a>
             </div>
 
-            <ul class="mt-10 flex flex-wrap gap-2 text-sm font-semibold text-white anim-rise" style="--d:.7s">
-                <li class="flex items-center gap-2 rounded-full bg-ink-900/35 px-3 py-1.5 text-[13px] backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-300"></i> Không cần tạo tài khoản</li>
-                <li class="flex items-center gap-2 rounded-full bg-ink-900/35 px-3 py-1.5 text-[13px] backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-300"></i> Chủ xe phản hồi qua Zalo</li>
-                <li class="flex items-center gap-2 rounded-full bg-ink-900/35 px-3 py-1.5 text-[13px] backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-300"></i> Giá minh bạch</li>
+            <ul class="mt-10 flex flex-wrap gap-2 text-sm font-semibold text-ink-800 anim-rise" style="--d:.7s">
+                <li class="flex items-center gap-2 rounded-full bg-white/75 px-3 py-1.5 text-[13px] shadow-sm ring-1 ring-emerald-900/5 backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-500"></i> Không cần tạo tài khoản</li>
+                <li class="flex items-center gap-2 rounded-full bg-white/75 px-3 py-1.5 text-[13px] shadow-sm ring-1 ring-emerald-900/5 backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-500"></i> Chủ xe phản hồi qua Zalo</li>
+                <li class="flex items-center gap-2 rounded-full bg-white/75 px-3 py-1.5 text-[13px] shadow-sm ring-1 ring-emerald-900/5 backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-500"></i> Giá minh bạch</li>
             </ul>
         </div>
     </div>
 
     @* Xe điện chạy vào cảnh, đỗ trên con đường ở chân hero *@
-    <div class="relative z-[1] mx-auto mb-[6.8rem] mt-4 w-[88%] max-w-md lg:absolute lg:bottom-[6.2rem] lg:right-[4%] lg:mb-0 lg:mt-0 lg:w-[46%] lg:max-w-[44rem] xl:right-[7%]">
+    <div class="relative z-[1] mx-auto mb-[6.8rem] mt-16 w-[88%] max-w-md lg:absolute lg:bottom-[6.2rem] lg:right-[4%] lg:mb-0 lg:mt-0 lg:w-[46%] lg:max-w-[44rem] xl:right-[7%]">
         <div id="hero-car" class="hero-car relative">
             <div class="car-beam"></div>
-            <div style="color:#10b981"><svg class="art" viewBox="0 0 360 170" role="img" aria-label="Ô tô điện MoveGo"><use href="#art-car" /></svg></div>
+            <div style="color:#ff6a3d"><svg class="art" viewBox="0 0 360 170" role="img" aria-label="Ô tô điện VF 3 trên MoveGo"><use href="#art-car" /></svg></div>
         </div>
         <div class="absolute -bottom-1 left-[8%] right-[3%] h-5 rounded-full bg-black/40 blur-md"></div>
 

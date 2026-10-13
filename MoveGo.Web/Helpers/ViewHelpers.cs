@@ -38,8 +38,8 @@ public static class ViewHelpers
         _ => "art-car"
     };
 
-    private static readonly string[] CarTones = ["#10b981", "#06b6d4", "#14b8a6", "#0ea5e9", "#22c55e"];
-    private static readonly string[] BikeTones = ["#f97316", "#f59e0b", "#ec4899", "#8b5cf6"];
+    private static readonly string[] CarTones = ["#ff6a3d", "#f9b928", "#34c38f", "#3b9ae1", "#8b7cf6"];
+    private static readonly string[] BikeTones = ["#ff6a3d", "#f9b928", "#ec4899", "#8b5cf6"];
 
     /// <summary>Mỗi xe một màu riêng (ổn định theo Id) để lưới xe sinh động.</summary>
     public static string Tone(VehicleDto v) =>
@@ -96,7 +96,7 @@ public static class ViewHelpers
     {
         vehicles = vehicles.Select(v => new
         {
-            v.Id, v.Name, Category = v.Category.ToString(), v.CategoryLabel, v.Seats, v.PricePerDay,
+            v.Id, v.Name, v.Brand, Category = v.Category.ToString(), v.CategoryLabel, v.Seats, v.PricePerDay,
             v.ImageUrl, v.RangeKm, tone = Tone(v), art = ArtId(v.Category)
         }),
         commissionRate = m.Meta.CommissionRate,

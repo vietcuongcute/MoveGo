@@ -1,5 +1,5 @@
-@* Bộ hình minh hoạ xe dạng SVG sprite (vẽ riêng cho MoveGo). Thân xe lấy màu từ thuộc tính CSS `color`.
-   Dùng:  <svg class="art" style="color:#10b981"><use href="#art-car"/></svg>
+@* Bộ hình minh hoạ xe dạng SVG sprite (vẽ riêng cho MoveGo). Xe 4 chỗ (art-car) là mini SUV điện dáng VF 3 vẽ riêng. Thân xe lấy màu từ thuộc tính CSS `color`.
+   Dùng:  <svg class="art" style="color:#ff6a3d"><use href="#art-car"/></svg>
    Khi có ảnh thật của xe (Vehicle.ImageUrl) thì giao diện tự dùng ảnh thật thay cho hình này. *@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
@@ -8,26 +8,52 @@
       <stop offset=".5" stop-color="#fff" stop-opacity="0" />
       <stop offset="1" stop-color="#000" stop-opacity=".30" />
     </linearGradient>
+    <linearGradient id="vf-glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b9dbe8" />
+      <stop offset="1" stop-color="#3f6a80" />
+    </linearGradient>
     <linearGradient id="mg-glass" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#e0f7fa" />
       <stop offset="1" stop-color="#5eb8c9" />
     </linearGradient>
 
-    <!-- Ô tô 4 chỗ -->
+    <!-- Ô tô điện mini SUV (dáng VinFast VF 3, tự vẽ) -->
     <symbol id="art-car" viewBox="0 0 360 170">
-      <path d="M44 126 L42 98 C42 90 48 86 58 84 L82 80 C90 56 108 40 136 38 L232 38 C254 40 268 52 280 74 L308 82 C324 86 334 98 334 112 L334 126 Z" fill="currentColor" />
-      <path d="M44 126 L42 98 C42 90 48 86 58 84 L82 80 C90 56 108 40 136 38 L232 38 C254 40 268 52 280 74 L308 82 C324 86 334 98 334 112 L334 126 Z" fill="url(#mg-shade)" />
-      <path d="M92 78 C100 62 114 48 138 46 L178 46 L178 78 Z M186 46 L230 46 C246 48 256 60 266 78 L186 78 Z" fill="url(#mg-glass)" />
-      <path d="M182 46 L182 118" stroke="#000" stroke-opacity=".18" stroke-width="2" />
-      <rect x="150" y="90" width="16" height="4" rx="2" fill="#fff" fill-opacity=".7" />
-      <rect x="204" y="90" width="16" height="4" rx="2" fill="#fff" fill-opacity=".7" />
-      <rect x="44" y="117" width="290" height="9" fill="#000" fill-opacity=".2" />
-      <path d="M318 96 L333 100 L331 107 L316 104 Z" fill="#fef9c3" />
-      <rect x="42" y="94" width="5" height="12" rx="2" fill="#fb7185" />
-      <circle cx="92" cy="128" r="29" fill="#06241f" />
-      <circle cx="268" cy="128" r="29" fill="#06241f" />
-      <g transform="translate(92 128)"><g class="wheel"><circle r="22" fill="#0b1d1a" /><circle r="14" fill="#e2e8f0" /><path d="M0-13V13M-13 0H13M-9-9L9 9M-9 9L9-9" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
-      <g transform="translate(268 128)"><g class="wheel"><circle r="22" fill="#0b1d1a" /><circle r="14" fill="#e2e8f0" /><path d="M0-13V13M-13 0H13M-9-9L9 9M-9 9L9-9" stroke="#64748b" stroke-width="2" /><circle r="4" fill="#334155" /></g></g>
+      <!-- hốc bánh -->
+      <circle cx="99" cy="128" r="30" fill="#0c1613" />
+      <circle cx="262" cy="128" r="30" fill="#0c1613" />
+      <!-- thân xe: hộp vuông, mui phẳng, đầu ngắn, đuôi đứng -->
+      <path id="vf3-body" d="M58 135 L54 112 L55 46 Q55 29 72 27 L214 26 Q226 26 232 36 L266 75 Q270 79 277 80 L298 85 Q309 88 309 100 L309 126 Q309 135 299 136 L289.6 137 A29 29 0 1 0 234.4 137 L126.6 137 A29 29 0 1 0 71.4 137 Z" fill="currentColor" />
+      <path d="M58 135 L54 112 L55 46 Q55 29 72 27 L214 26 Q226 26 232 36 L266 75 Q270 79 277 80 L298 85 Q309 88 309 100 L309 126 Q309 135 299 136 L289.6 137 A29 29 0 1 0 234.4 137 L126.6 137 A29 29 0 1 0 71.4 137 Z" fill="url(#mg-shade)" />
+      <!-- ốp đen quanh hốc bánh + bệ cửa -->
+      <path d="M71.4 137 A29 29 0 1 1 126.6 137" fill="none" stroke="#1b2622" stroke-width="5" stroke-linecap="round" />
+      <path d="M234.4 137 A29 29 0 1 1 289.6 137" fill="none" stroke="#1b2622" stroke-width="5" stroke-linecap="round" />
+      <rect x="127" y="132" width="107" height="5" rx="2.5" fill="#1b2622" fill-opacity=".85" />
+      <!-- kính: ô cửa sau + cửa trước -->
+      <path d="M68 38 Q68 33 74 33 L141 33 L141 80 L68 80 Z" fill="url(#vf-glass)" stroke="#1b2622" stroke-width="3" stroke-linejoin="round" />
+      <path d="M149 33 L212 33 Q220 33 225 40 L255 80 L149 80 Z" fill="url(#vf-glass)" stroke="#1b2622" stroke-width="3" stroke-linejoin="round" />
+      <path d="M78 80 L100 33 L112 33 L90 80 Z M158 80 L180 33 L190 33 L168 80 Z" fill="#fff" fill-opacity=".22" />
+      <!-- đường ron cửa, tay nắm, gương -->
+      <path d="M145 30 L145 133 M240 84 L238 133" stroke="#000" stroke-opacity=".2" stroke-width="2" stroke-linecap="round" fill="none" />
+      <rect x="152" y="88" width="17" height="4.5" rx="2.2" fill="#1b2622" fill-opacity=".75" />
+      <path d="M232 70 L246 70 Q250 70 250 74 L250 78 L233 78 Z" fill="currentColor" />
+      <path d="M232 70 L246 70 Q250 70 250 74 L250 78 L233 78 Z" fill="#000" fill-opacity=".22" />
+      <!-- đường gân thân xe -->
+      <path d="M60 86 L296 90" stroke="#fff" stroke-opacity=".38" stroke-width="2" stroke-linecap="round" />
+      <path d="M60 90 L296 94" stroke="#000" stroke-opacity=".1" stroke-width="2" stroke-linecap="round" />
+      <!-- đèn pha vuông + dải LED ban ngày, cản trước -->
+      <rect x="287" y="92" width="21" height="13" rx="4" fill="#1b2622" />
+      <rect x="289" y="94" width="17" height="6" rx="3" fill="#fff6cf" />
+      <rect x="292" y="95.5" width="11" height="3" rx="1.5" fill="#fff" />
+      <rect x="289" y="101.5" width="17" height="1.8" rx=".9" fill="#7fe0ff" fill-opacity=".9" />
+      <rect x="293" y="119" width="16" height="9" rx="3" fill="#1b2622" fill-opacity=".85" />
+      <!-- đèn hậu + cản sau -->
+      <rect x="53" y="92" width="6" height="19" rx="2.5" fill="#ff4d4d" />
+      <rect x="54" y="95" width="3" height="13" rx="1.5" fill="#ffc2c2" fill-opacity=".8" />
+      <rect x="55" y="121" width="16" height="9" rx="3" fill="#1b2622" fill-opacity=".85" />
+      <!-- bánh xe -->
+      <g transform="translate(99 128)"><g class="wheel"><circle r="23" fill="#151d1b" /><circle r="15.5" fill="#eef2f0" /><path d="M0-14V14M-14 0H14M-10-10L10 10M-10 10L10-10" stroke="#9aa6a1" stroke-width="2.2" /><circle r="14" fill="none" stroke="#b9c3be" stroke-width="1.2" /><circle r="4.2" fill="#4a5753" /></g></g>
+      <g transform="translate(262 128)"><g class="wheel"><circle r="23" fill="#151d1b" /><circle r="15.5" fill="#eef2f0" /><path d="M0-14V14M-14 0H14M-10-10L10 10M-10 10L10-10" stroke="#9aa6a1" stroke-width="2.2" /><circle r="14" fill="none" stroke="#b9c3be" stroke-width="1.2" /><circle r="4.2" fill="#4a5753" /></g></g>
     </symbol>
 
     <!-- Ô tô 7 chỗ -->
