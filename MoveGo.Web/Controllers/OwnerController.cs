@@ -21,8 +21,8 @@ public class OwnerController(IMoveGoApi api) : Controller
         var result = await api.OwnerRespondAsync(token, accept, reason, ct);
 
         TempData[result.Ok ? "Flash" : "FlashError"] = result.Ok
-            ? (accept ? "Cảm ơn bạn! Khách có thời gian để đặt cọc. Sau khi khách cọc, Move-Go sẽ gửi số điện thoại khách qua Zalo."
-                      : "Đã từ chối yêu cầu. Move-Go sẽ báo lại cho khách.")
+            ? (accept ? "Cảm ơn bạn! Khách có thời gian để đặt cọc. Sau khi khách cọc, MoveGo sẽ gửi số điện thoại khách qua Zalo."
+                      : "Đã từ chối yêu cầu. MoveGo sẽ báo lại cho khách.")
             : result.Error;
 
         return RedirectToAction(nameof(Confirm), new { token });

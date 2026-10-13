@@ -15,8 +15,8 @@ public record ApiResult<T>(T? Value, int Status, string? Error)
 public interface IMoveGoApi
 {
     Task<MetaDto> GetMetaAsync(CancellationToken ct = default);
-    Task<List<VehicleDto>> GetVehiclesAsync(VehicleCategory? category, string? location, CancellationToken ct = default);
-    Task<List<VehicleDto>> GetAvailableVehiclesAsync(DateTime start, DateTime end, VehicleCategory? category, string? location, CancellationToken ct = default);
+    Task<List<VehicleDto>> GetVehiclesAsync(VehicleCategory? category, CancellationToken ct = default);
+    Task<List<VehicleDto>> GetAvailableVehiclesAsync(DateTime start, DateTime end, VehicleCategory? category, CancellationToken ct = default);
 
     Task<ApiResult<BookingTrackDto>> GetBookingAsync(string code, CancellationToken ct = default);
 
@@ -48,16 +48,16 @@ public class MoveGoApi(IHttpClientFactory factory) : IMoveGoApi
     public async Task<MetaDto> GetMetaAsync(CancellationToken ct = default) =>
         await Http.GetFromJsonAsync<MetaDto>("api/meta", Json, ct) ?? MetaDto.Empty;
 
-    public async Task<List<VehicleDto>> GetVehiclesAsync(VehicleCategory? category, string? location, CancellationToken ct = default)
+    public async Task<List<VehicleDto>> GetVehiclesAsync(VehicleCategory? category, CancellationToken ct = default)
     {
-        var qs = BuildQuery(("category", category?.ToString()), ("location", location));
+        var qs = BuildQuery(("category", category?.ToString()));
         return await Http.GetFromJsonAsync<List<VehicleDto>>($"api/vehicles{qs}", Json, ct) ?? [];
     }
 
     public async Task<List<VehicleDto>> GetAvailableVehiclesAsync(
-        DateTime start, DateTime end, VehicleCategory? category, string? location, CancellationToken ct = default)
+        DateTime start, DateTime end, VehicleCategory? category, CancellationToken ct = default)
     {
-        var qs = BuildQuery(("start", Iso(start)), ("end", Iso(end)), ("category", category?.ToString()), ("location", location));
+        var qs = BuildQuery(("start", Iso(start)), ("end", Iso(end)), ("category", category?.ToString()));
         return await Http.GetFromJsonAsync<List<VehicleDto>>($"api/booking/available-vehicles{qs}", Json, ct) ?? [];
     }
 

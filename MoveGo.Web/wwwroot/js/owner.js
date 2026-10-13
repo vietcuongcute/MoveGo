@@ -1,4 +1,4 @@
-/* Move-Go · trang chủ xe: form từ chối đơn, chọn khoảng ngày để khoá lịch */
+/* MoveGo · trang chủ xe: form từ chối đơn, chọn khoảng ngày để khoá lịch */
 (function () {
   'use strict';
   var $ = function (s, r) { return (r || document).querySelector(s); };

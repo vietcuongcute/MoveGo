@@ -1,4 +1,4 @@
-/* Move-Go · Máy tính giá + Popup đặt xe (AJAX tới MoveGo.API) */
+/* MoveGo · Máy tính giá + Popup đặt xe (AJAX tới MoveGo.API) */
 (function () {
   'use strict';
   var M = window.MOVEGO || {};
@@ -72,7 +72,7 @@
     var v = byId[calc.id]; if (!v) return;
     var q = quote(v, calc.days);
     $('#calc-name').textContent = v.name;
-    $('#calc-loc').textContent = v.pickupLocation + ' · ' + v.seats + ' chỗ';
+    $('#calc-loc').textContent = v.brand + ' · ' + v.seats + ' chỗ';
     setArt($('#calc-art'), $('#calc-art-use'), v);
     renderLines($('#calc-lines'), q, false);
     tween($('#calc-total'), q.total); tween($('#calc-deposit'), q.commission); tween($('#calc-remaining'), q.owner);
@@ -96,7 +96,7 @@
   if (!modal) return;
   var f = {
     form: $('#bm-form'), success: $('#bm-success'), err: $('#bm-error'), submit: $('#bm-submit'),
-    name: $('#bm-name'), phone: $('#bm-phone'), note: $('#bm-note'),
+    name: $('#bm-name'), phone: $('#bm-phone'), address: $('#bm-address'), note: $('#bm-note'),
     fromTime: $('#bm-from-time'), toTime: $('#bm-to-time'),
     rangeText: $('#bm-range-text'), busyNote: $('#bm-busy-note')
   };
@@ -196,13 +196,14 @@
     f.submit.disabled = false; f.submit.querySelector('[data-label]').innerHTML = '<i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu cho chủ xe';
 
     $('#bm-title').textContent = v.name;
-    $('#bm-meta').textContent = v.categoryLabel + ' · ' + v.pickupLocation + ' · ' + vnd(v.pricePerDay) + '/ngày';
+    $('#bm-meta').textContent = v.categoryLabel + ' · ' + vnd(v.pricePerDay) + '/ngày';
     setArt($('#bm-art'), $('#bm-art-use'), v);
     $$('[data-hold-minutes]', modal).forEach(function (n) { n.textContent = holdMinutes; });
 
     // thông tin đã nhập lần trước (chỉ tiện lợi, không bắt buộc)
     f.name.value = f.name.value || safeGet('mg_name') || '';
     f.phone.value = f.phone.value || safeGet('mg_phone') || '';
+    f.address.value = f.address.value || safeGet('mg_address') || '';
 
     var s = D.search || {};
     f.fromTime.value = s.fromTime || '08:00'; f.toTime.value = s.toTime || '08:00';
@@ -263,9 +264,12 @@
     if (name.length < 2) { showError('Vui lòng nhập họ và tên.'); f.name.focus(); return; }
     if (!/^(\+?84|0)[35789]\d{8}$/.test(phone)) { showError('Số điện thoại chưa đúng (ví dụ: 0912345678).'); f.phone.focus(); return; }
 
+    var address = f.address.value.trim();
+    if (address.length < 5) { showError('Vui lòng nhập địa chỉ bạn muốn nhận xe (ví dụ: 12 Trần Hưng Đạo, Đà Lạt).'); f.address.focus(); return; }
+
     setLoading(true);
     var body = {
-      vehicleId: st.vehicle.id, customerName: name, customerPhone: phone, customerNote: f.note.value.trim() || null,
+      vehicleId: st.vehicle.id, customerName: name, customerPhone: phone, pickupAddress: address, customerNote: f.note.value.trim() || null,
       startDate: iso(st.start), endDate: iso(st.end)
     };
     fetch(API + '/api/booking/create', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) })
@@ -276,7 +280,7 @@
           if (res.status === 409) { delete busyCache[st.vehicle.id]; }
           showError(msg); setLoading(false); return;
         }
-        safeSet('mg_name', name); safeSet('mg_phone', phone);
+        safeSet('mg_name', name); safeSet('mg_phone', phone); safeSet('mg_address', address);
         $('#bm-code').textContent = res.json.code;
         $('#bm-track').setAttribute('href', '/booking/' + encodeURIComponent(res.json.code));
         f.form.classList.add('hidden'); f.success.classList.remove('hidden');

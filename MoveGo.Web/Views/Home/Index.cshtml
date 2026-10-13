@@ -25,20 +25,20 @@
     <partial name="_HeroScene" />
 
     <div class="container-x relative pb-6 pt-28 sm:pt-32 lg:pb-40">
-        <div class="max-w-2xl lg:max-w-[48%] xl:max-w-[50%]">
+        <div class="max-w-2xl lg:max-w-[48%] xl:max-w-[50%] [text-shadow:0_2px_18px_rgb(3_60_110_/_.4)]">
             <span class="eyebrow eyebrow-light anim-rise"><i class="fa-solid fa-leaf"></i> Thuê xe điện · Ô tô &amp; xe máy</span>
 
             <h1 class="mt-6 text-[2.9rem] font-extrabold leading-[.95] tracking-tight !text-white sm:text-7xl xl:text-[5.4rem]">
                 <span class="block anim-rise" style="--d:.1s">MOVE GREEN</span>
                 <span class="relative mt-1 block anim-rise" style="--d:.25s">
-                    <span class="bg-gradient-to-r from-white via-emerald-100 to-cyan-200 bg-clip-text text-transparent">GO AMAZING</span>
-                    <svg class="absolute -bottom-2 left-0 h-3 w-[78%] text-emerald-300" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
+                    <span class="bg-gradient-to-r from-yellow-200 via-amber-100 to-white bg-clip-text text-transparent [text-shadow:none] [filter:drop-shadow(0_3px_14px_rgb(3_60_110_/_.4))]">GO AMAZING</span>
+                    <svg class="absolute -bottom-2 left-0 h-3 w-[78%] text-amber-300" viewBox="0 0 300 12" fill="none" preserveAspectRatio="none">
                         <path d="M2 8 C 60 1, 130 1, 200 6 S 280 9, 298 3" stroke="currentColor" stroke-width="4" stroke-linecap="round" style="stroke-dasharray:320;stroke-dashoffset:320;animation:draw 1.4s .9s ease forwards" />
                     </svg>
                 </span>
             </h1>
 
-            <p class="mt-8 max-w-xl text-lg leading-relaxed text-emerald-50/95 anim-rise" style="--d:.4s">
+            <p class="mt-8 max-w-xl text-lg leading-relaxed text-white anim-rise" style="--d:.4s">
                 Thuê ô tô điện &amp; xe máy điện trực tiếp từ chủ xe. Gửi yêu cầu trong 60 giây, chủ xe xác nhận qua Zalo,
                 cọc chỉ <b class="text-white">@depositPct%</b> — bàn giao xe ngay.
             </p>
@@ -48,10 +48,10 @@
                 <a href="@Url.Action("Process", "Home")" class="btn-outline btn-lg"><i class="fa-solid fa-circle-play"></i> Cách hoạt động</a>
             </div>
 
-            <ul class="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-sm font-semibold text-white anim-rise [text-shadow:0_1px_12px_rgb(2_44_34_/_.6)]" style="--d:.7s">
-                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-300"></i> Không cần tạo tài khoản</li>
-                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-300"></i> Chủ xe phản hồi qua Zalo</li>
-                <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-300"></i> Giá minh bạch</li>
+            <ul class="mt-10 flex flex-wrap gap-2 text-sm font-semibold text-white anim-rise" style="--d:.7s">
+                <li class="flex items-center gap-2 rounded-full bg-ink-900/35 px-3 py-1.5 text-[13px] backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-300"></i> Không cần tạo tài khoản</li>
+                <li class="flex items-center gap-2 rounded-full bg-ink-900/35 px-3 py-1.5 text-[13px] backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-300"></i> Chủ xe phản hồi qua Zalo</li>
+                <li class="flex items-center gap-2 rounded-full bg-ink-900/35 px-3 py-1.5 text-[13px] backdrop-blur-md"><i class="fa-solid fa-circle-check text-emerald-300"></i> Giá minh bạch</li>
             </ul>
         </div>
     </div>
@@ -60,17 +60,17 @@
     <div class="relative z-[1] mx-auto mb-[6.8rem] mt-4 w-[88%] max-w-md lg:absolute lg:bottom-[6.2rem] lg:right-[4%] lg:mb-0 lg:mt-0 lg:w-[46%] lg:max-w-[44rem] xl:right-[7%]">
         <div id="hero-car" class="hero-car relative">
             <div class="car-beam"></div>
-            <div style="color:#10b981"><svg class="art" viewBox="0 0 360 170" role="img" aria-label="Ô tô điện Move-Go"><use href="#art-car" /></svg></div>
+            <div style="color:#10b981"><svg class="art" viewBox="0 0 360 170" role="img" aria-label="Ô tô điện MoveGo"><use href="#art-car" /></svg></div>
         </div>
         <div class="absolute -bottom-1 left-[8%] right-[3%] h-5 rounded-full bg-black/40 blur-md"></div>
 
-        <div class="hero-chip glass-dark absolute -top-14 left-0 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-white sm:left-[10%]" style="animation-delay:-1s">
-            <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400 text-white"><i class="fa-solid fa-bolt"></i></span>
-            <span><b class="block leading-tight">100% điện</b><span class="text-xs text-emerald-100/80">Êm · sạch · tiết kiệm</span></span>
+        <div class="hero-chip chip-card absolute -top-14 left-0 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm sm:left-[6%]" style="animation-delay:-1s">
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 text-white shadow-glow"><i class="fa-solid fa-percent"></i></span>
+            <span><b class="block leading-tight text-ink-900">Cọc chỉ @depositPct%</b><span class="text-xs text-slate-500">Còn lại trả chủ xe khi nhận</span></span>
         </div>
-        <div class="hero-chip glass-dark absolute -top-16 right-0 hidden items-center gap-3 rounded-2xl px-4 py-3 text-sm text-white sm:flex" style="animation-delay:-3s">
-            <span class="grid h-9 w-9 place-items-center rounded-xl bg-[#0068ff] text-[11px] font-extrabold text-white">Zalo</span>
-            <span><b class="block leading-tight">Xác nhận nhanh</b><span class="text-xs text-emerald-100/80">Chủ xe nhận tin ngay</span></span>
+        <div class="hero-chip chip-card absolute -top-16 right-0 hidden items-center gap-3 rounded-2xl px-4 py-3 text-sm sm:flex" style="animation-delay:-3s">
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-emerald-400 text-white"><i class="fa-solid fa-location-dot"></i></span>
+            <span><b class="block leading-tight text-ink-900">Nhận xe tận nơi</b><span class="text-xs text-slate-500">Ngay tại Đà Lạt</span></span>
         </div>
     </div>
 </section>
@@ -90,7 +90,7 @@
                 var stats = new[]
                 {
                     (Value: meta.Stats.Vehicles, Suffix: "", Label: "Xe sẵn sàng cho thuê", Icon: "fa-car-on"),
-                    (Value: meta.Stats.Locations, Suffix: "", Label: "Địa điểm nhận xe", Icon: "fa-map-location-dot"),
+                    (Value: -1, Suffix: "", Label: "Khởi đầu từ thành phố ngàn hoa", Icon: "fa-mountain-sun"),
                     (Value: depositPct, Suffix: "%", Label: "Cọc online, phần còn lại trả chủ xe", Icon: "fa-percent"),
                     (Value: meta.DepositHoldMinutes, Suffix: "′", Label: "Giữ chỗ chờ bạn đặt cọc", Icon: "fa-hourglass-half")
                 };
@@ -100,7 +100,10 @@
                 var s = stats[i];
                 <div class="reveal text-center @(i > 0 ? "lg:border-l lg:border-emerald-900/10" : "")" style="--d:@(i * 0.1)s">
                     <i class="fa-solid @s.Icon mb-3 text-xl text-emerald-500"></i>
-                    <dd class="text-4xl font-extrabold tracking-tight text-ink-900 sm:text-5xl"><span class="text-gradient" data-count="@s.Value">0</span><span class="text-gradient">@s.Suffix</span></dd>
+                    <dd class="text-4xl font-extrabold tracking-tight text-ink-900 sm:text-5xl">
+                        @if (s.Value < 0) { <span class="text-gradient">Đà Lạt</span> }
+                        else { <span class="text-gradient" data-count="@s.Value">0</span><span class="text-gradient">@s.Suffix</span> }
+                    </dd>
                     <dt class="mx-auto mt-2 max-w-[11rem] text-sm font-medium text-slate-500">@s.Label</dt>
                 </div>
             }
@@ -108,11 +111,11 @@
     </div>
 </section>
 
-@* ======================= LÝ DO CHỌN MOVE-GO ======================= *@
+@* ======================= LÝ DO CHỌN MOVEGO ======================= *@
 <section class="section bg-gradient-to-b from-emerald-50/70 to-white">
     <div class="container-x">
         <div class="mx-auto max-w-2xl text-center">
-            <span class="eyebrow reveal"><i class="fa-solid fa-sparkles"></i> Vì sao chọn Move-Go</span>
+            <span class="eyebrow reveal"><i class="fa-solid fa-sparkles"></i> Vì sao chọn MoveGo</span>
             <h2 class="section-title reveal" style="--d:.1s">Thuê xe điện chưa bao giờ <span class="text-gradient">dễ đến vậy</span></h2>
             <p class="section-sub mx-auto reveal" style="--d:.2s">Kết nối trực tiếp với chủ xe, minh bạch từng bước — từ lúc chọn xe đến lúc cầm chìa khoá.</p>
         </div>

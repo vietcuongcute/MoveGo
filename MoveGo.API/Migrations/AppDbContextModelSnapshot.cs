@@ -91,6 +91,11 @@ namespace MoveGo.API.Migrations
                     b.Property<long?>("PayOsOrderCode")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("PickupAddress")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<decimal>("PricePerDayAtBooking")
                         .HasPrecision(18)
                         .HasColumnType("numeric(18,0)");

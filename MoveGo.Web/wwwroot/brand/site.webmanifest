@@ -1,6 +1,6 @@
 {
-  "name": "Move-Go",
-  "short_name": "Move-Go",
+  "name": "MoveGo",
+  "short_name": "MoveGo",
   "description": "Thuê ô tô điện & xe máy điện trực tiếp từ chủ xe",
   "start_url": "/",
   "display": "standalone",

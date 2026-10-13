@@ -9,17 +9,17 @@ public enum BookingStatus { PendingOwner, AwaitingDeposit, Confirmed, Rejected, 
 
 public record VehicleDto(
     int Id, string Name, string Brand, VehicleCategory Category, string CategoryLabel, int Seats,
-    decimal PricePerDay, string PickupLocation, string? ImageUrl, int? RangeKm,
+    decimal PricePerDay, string? ImageUrl, int? RangeKm,
     string Description, string[] Highlights, bool IsAvailable);
 
-public record StatsDto(int Vehicles, int Locations, int Trips, int DepositPercent);
+public record StatsDto(int Vehicles, int Trips, int DepositPercent);
 public record CategoryDto(VehicleCategory Key, string Label);
 
 public record MetaDto(
-    List<string> Locations, List<CategoryDto> Categories,
+    List<CategoryDto> Categories,
     decimal CommissionRate, int DepositHoldMinutes, int MaxRentalDays, StatsDto Stats)
 {
-    public static MetaDto Empty => new([], [], 0.10m, 30, 30, new StatsDto(0, 0, 0, 10));
+    public static MetaDto Empty => new([], 0.10m, 30, 30, new StatsDto(0, 0, 10));
 }
 
 public record OwnerContactDto(string Name, string Phone, string ZaloLink);
@@ -27,7 +27,7 @@ public record OwnerContactDto(string Name, string Phone, string ZaloLink);
 public record BookingTrackDto(
     string Code, BookingStatus Status, string StatusText,
     string VehicleName, VehicleCategory Category, string CategoryLabel, string? VehicleImageUrl,
-    string PickupLocation, string? PickupAddress,
+    string PickupAddress,
     DateTime StartDate, DateTime EndDate, int RentalDays,
     decimal TotalAmount, decimal DepositAmount, decimal OwnerAmount,
     string CustomerName, DateTime CreatedAt,
@@ -41,16 +41,16 @@ public record OwnerRequestDto(
     string CustomerName, string? CustomerNote, string? CustomerPhone,
     DateTime StartDate, DateTime EndDate, int RentalDays,
     decimal TotalAmount, decimal OwnerAmount, decimal CommissionAmount,
-    string PickupLocation, int DepositHoldMinutes);
+    string PickupAddress, int DepositHoldMinutes);
 
 public record OwnerBlockDto(int Id, DateTime StartDate, DateTime EndDate, string Reason);
 
 public record OwnerBookingDto(
     string Code, BookingStatus Status, string StatusText, string CustomerName, string? CustomerPhone,
-    DateTime StartDate, DateTime EndDate, decimal OwnerAmount, string? ConfirmToken);
+    DateTime StartDate, DateTime EndDate, decimal OwnerAmount, string PickupAddress, string? ConfirmToken);
 
 public record OwnerVehicleDto(
-    int Id, string Name, string PickupLocation, decimal PricePerDay, bool IsActive,
+    int Id, string Name, decimal PricePerDay, bool IsActive,
     List<OwnerBlockDto> Blocks, List<OwnerBookingDto> Bookings);
 
 public record OwnerDashboardDto(string OwnerName, List<OwnerVehicleDto> Vehicles);

@@ -92,5 +92,5 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseRateLimiter();
 app.MapControllers();
-app.MapGet("/", () => "Move-Go API is running");
+app.MapGet("/", () => "MoveGo API is running");
 app.Run();

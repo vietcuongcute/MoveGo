@@ -112,7 +112,7 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
         {
             b.Id, b.Code, Status = b.Status.ToString(),
             Vehicle = b.Vehicle.Name, Owner = b.Vehicle.Owner.Name, OwnerPhone = b.Vehicle.Owner.PhoneNumber,
-            b.CustomerName, b.CustomerPhone, b.StartDate, b.EndDate, b.RentalDays,
+            b.CustomerName, b.CustomerPhone, b.PickupAddress, b.StartDate, b.EndDate, b.RentalDays,
             b.TotalAmount, b.CommissionAmount, b.OwnerAmount,
             b.CreatedAt, b.OwnerNotifiedAt, b.OwnerRespondedAt, b.PaidAt, b.AdminNote
         }));

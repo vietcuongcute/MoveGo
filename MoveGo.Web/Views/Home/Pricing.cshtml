@@ -31,7 +31,7 @@
                     <select id="calc-vehicle" class="field !border-white/15 !bg-white/10 !text-white" disabled="@(vehicles.Count == 0)">
                         @foreach (var v in vehicles)
                         {
-                            <option class="text-ink-900" value="@v.Id">@v.Name — @ViewHelpers.Vnd(v.PricePerDay)/ngày (@v.PickupLocation)</option>
+                            <option class="text-ink-900" value="@v.Id">@v.Name — @ViewHelpers.Vnd(v.PricePerDay)/ngày</option>
                         }
                     </select>
                 </div>
@@ -52,8 +52,8 @@
                 <div class="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-6">
                     <div class="mb-4 text-xs font-bold uppercase tracking-wider text-emerald-200/70">3 · Thanh toán thế nào?</div>
                     <ul class="space-y-4 text-sm leading-relaxed text-emerald-50/80">
-                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-qrcode"></i></span><span><b class="text-white">Cọc online @depositPct%</b> bằng mã QR. Đây là phí dịch vụ của Move-Go, chỉ phải trả sau khi chủ xe đã đồng ý cho thuê.</span></li>
-                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-handshake"></i></span><span><b class="text-white">Phần còn lại trả trực tiếp cho chủ xe</b> khi nhận xe. Move-Go không giữ hay thu thêm khoản nào khác.</span></li>
+                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-qrcode"></i></span><span><b class="text-white">Cọc online @depositPct%</b> bằng mã QR. Đây là phí dịch vụ của MoveGo, chỉ phải trả sau khi chủ xe đã đồng ý cho thuê.</span></li>
+                        <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-handshake"></i></span><span><b class="text-white">Phần còn lại trả trực tiếp cho chủ xe</b> khi nhận xe. MoveGo không giữ hay thu thêm khoản nào khác.</span></li>
                         <li class="flex gap-3"><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300"><i class="fa-solid fa-comments"></i></span><span><b class="text-white">Giao xe tận nơi hay nhu cầu riêng?</b> Sau khi cọc, bạn nhận số điện thoại chủ xe và tự trao đổi trực tiếp.</span></li>
                     </ul>
                 </div>
@@ -91,7 +91,7 @@
                             <div class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-50 p-3.5 ring-1 ring-emerald-200">
                                 <div class="flex items-center gap-3">
                                     <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white"><i class="fa-solid fa-qrcode"></i></span>
-                                    <div><b class="block text-ink-900">Cọc online · @depositPct%</b><span class="text-xs text-slate-500">Phí dịch vụ Move-Go, thanh toán qua QR</span></div>
+                                    <div><b class="block text-ink-900">Cọc online · @depositPct%</b><span class="text-xs text-slate-500">Phí dịch vụ MoveGo, thanh toán qua QR</span></div>
                                 </div>
                                 <b id="calc-deposit" class="text-lg text-emerald-600 tabular-nums">0đ</b>
                             </div>

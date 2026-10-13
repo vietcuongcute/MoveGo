@@ -13,6 +13,8 @@ namespace MoveGo.API.Services;
 /// </summary>
 public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<BusinessOptions> biz)
 {
+    private const string DefaultCity = "Đà Lạt";
+
     private static readonly BookingStatus[] LiveStatuses =
         { BookingStatus.PendingOwner, BookingStatus.AwaitingDeposit, BookingStatus.Confirmed };
 
@@ -24,7 +26,7 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
     private static AdminVehicleDto ToDto(Vehicle v, int activeBookings) => new(
         v.Id, v.OwnerId, v.Owner?.Name ?? "", v.Name, v.Brand,
         v.Category, VehicleMapper.CategoryLabel(v.Category), v.Seats, v.PricePerDay,
-        v.PickupLocation, v.PickupAddress, v.Description, v.ImageUrl, v.RangeKm,
+        v.PickupAddress, v.Description, v.ImageUrl, v.RangeKm,
         v.Highlights.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
         v.IsActive, activeBookings);
 
@@ -177,11 +179,8 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
             return "Giá thuê một ngày phải từ 50.000đ đến 50.000.000đ.";
         if (price % 1000m != 0) return "Giá thuê nên tròn đến nghìn đồng (ví dụ 650000).";
 
-        var location = i.PickupLocation?.Trim() ?? "";
-        if (location.Length is 0 or > 60) return "Khu vực nhận xe là bắt buộc, tối đa 60 ký tự (ví dụ: Đà Nẵng).";
-
         var address = i.PickupAddress?.Trim() ?? "";
-        if (address.Length is 0 or > 200) return "Địa chỉ nhận xe là bắt buộc, tối đa 200 ký tự.";
+        if (address.Length > 200) return "Nơi để xe tối đa 200 ký tự.";
 
         var description = i.Description?.Trim() ?? "";
         if (description.Length > 1000) return "Mô tả tối đa 1000 ký tự.";
@@ -216,7 +215,8 @@ public class AdminCatalogService(AppDbContext db, IClock clock, IOptions<Busines
         }
 
         v.Name = name; v.Brand = brand; v.Category = category; v.Seats = seats; v.PricePerDay = price;
-        v.PickupLocation = location; v.PickupAddress = address; v.Description = description;
+        // Hiện chỉ cho thuê ở Đà Lạt; khách tự nhập địa chỉ nhận xe khi đặt.
+        v.PickupLocation = DefaultCity; v.PickupAddress = address; v.Description = description;
         v.ImageUrl = image; v.RangeKm = range; v.Highlights = joined;
         if (i.IsActive is { } active) v.IsActive = active;
         return null;

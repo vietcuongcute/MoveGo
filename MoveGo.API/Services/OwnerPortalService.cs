@@ -29,12 +29,12 @@ public class OwnerPortalService(AppDbContext db, IClock clock)
             .OrderBy(b => b.StartDate).ToListAsync(ct);
 
         var result = vehicles.Select(v => new OwnerVehicleDto(
-            v.Id, v.Name, v.PickupLocation, v.PricePerDay, v.IsActive,
+            v.Id, v.Name, v.PricePerDay, v.IsActive,
             blocks.Where(b => b.VehicleId == v.Id).Select(b => new OwnerBlockDto(b.Id, b.StartDate, b.EndDate, b.Reason)).ToList(),
             bookings.Where(b => b.VehicleId == v.Id).Select(b => new OwnerBookingDto(
                 b.Code, b.Status, BookingService.StatusText(b.Status), b.CustomerName,
                 b.Status == BookingStatus.Confirmed ? b.CustomerPhone : null,
-                b.StartDate, b.EndDate, b.OwnerAmount,
+                b.StartDate, b.EndDate, b.OwnerAmount, b.PickupAddress,
                 b.Status == BookingStatus.PendingOwner ? b.OwnerToken : null)).ToList()
         )).ToList();
 

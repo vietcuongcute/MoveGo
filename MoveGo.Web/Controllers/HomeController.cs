@@ -56,12 +56,12 @@ public class HomeController(IMoveGoApi api, ILogger<HomeController> logger) : Co
                     vm.HasSearch = true;
                     vm.SearchStart = start;
                     vm.SearchEnd = end;
-                    vehiclesTask = api.GetAvailableVehiclesAsync(start, end, null, search.Location, ct);
+                    vehiclesTask = api.GetAvailableVehiclesAsync(start, end, null, ct);
                 }
                 else
                 {
                     vm.SearchError = error;
-                    vehiclesTask = api.GetVehiclesAsync(null, applySearch ? search.Location : null, ct);
+                    vehiclesTask = api.GetVehiclesAsync(null, ct);
                 }
             }
 

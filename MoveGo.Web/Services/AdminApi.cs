@@ -70,7 +70,7 @@ public class AdminApi(IHttpClientFactory factory) : IAdminApi
         var body = new
         {
             ownerId = f.OwnerId, name = f.Name, brand = f.Brand, category = f.Category, seats = f.Seats,
-            pricePerDay = f.PricePerDay, pickupLocation = f.PickupLocation, pickupAddress = f.PickupAddress,
+            pricePerDay = f.PricePerDay, pickupAddress = f.PickupAddress,
             description = f.Description, imageUrl = f.ImageUrl, rangeKm = f.RangeKm, highlights, isActive = f.IsActive
         };
         return f.Id == 0

@@ -20,17 +20,7 @@
     </div>
 
     <div class="mt-5 grid gap-3 md:grid-cols-12">
-        <div class="md:col-span-3">
-            <label class="field-label" for="s-location"><i class="fa-solid fa-location-dot mr-1 text-emerald-500"></i> Điểm nhận xe</label>
-            <select id="s-location" name="location" class="field">
-                <option value="">Tất cả địa điểm</option>
-                @foreach (var loc in meta.Locations)
-                {
-                    <option value="@loc" selected="@(string.Equals(Model.Search.Location, loc, StringComparison.OrdinalIgnoreCase))">@loc</option>
-                }
-            </select>
-        </div>
-        <div class="md:col-span-3">
+        <div class="md:col-span-6">
             <label class="field-label" for="s-range"><i class="fa-solid fa-calendar-days mr-1 text-emerald-500"></i> Ngày nhận → trả</label>
             <input id="s-range" type="text" class="field cursor-pointer" placeholder="Chọn khoảng ngày" readonly value="" />
             <input type="hidden" name="from" id="s-from" value="@Model.Search.From" />

@@ -16,6 +16,9 @@ public class Booking
     [MaxLength(20)] public string CustomerPhone { get; set; } = "";
     [MaxLength(500)] public string? CustomerNote { get; set; }
 
+    /// <summary>Địa chỉ khách muốn nhận xe (khách tự nhập khi đặt). Khách và chủ xe tự thoả thuận giờ giao.</summary>
+    [MaxLength(200)] public string PickupAddress { get; set; } = "";
+
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
 
@@ -28,7 +31,7 @@ public class Booking
     /// <summary>Tổng tiền thuê (đã gồm dịch vụ cộng thêm).</summary>
     public decimal TotalAmount { get; set; }
 
-    /// <summary>Hoa hồng Move-Go = 10% tổng, cũng chính là tiền cọc khách trả online.</summary>
+    /// <summary>Hoa hồng MoveGo = 10% tổng, cũng chính là tiền cọc khách trả online.</summary>
     public decimal CommissionAmount { get; set; }
 
     /// <summary>Phần còn lại (90%) khách trả trực tiếp cho chủ xe khi nhận xe.</summary>

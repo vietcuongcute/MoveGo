@@ -18,7 +18,7 @@ public class VehicleInput
     public VehicleCategory? Category { get; set; }
     public int? Seats { get; set; }
     public decimal? PricePerDay { get; set; }
-    public string? PickupLocation { get; set; }
+    /// <summary>Nơi chủ xe thường để xe (không bắt buộc, chỉ để admin ghi nhớ).</summary>
     public string? PickupAddress { get; set; }
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
@@ -40,5 +40,5 @@ public record AdminOwnerDto(
 public record AdminVehicleDto(
     int Id, int OwnerId, string OwnerName, string Name, string Brand,
     VehicleCategory Category, string CategoryLabel, int Seats, decimal PricePerDay,
-    string PickupLocation, string PickupAddress, string Description, string? ImageUrl,
+    string PickupAddress, string Description, string? ImageUrl,
     int? RangeKm, string[] Highlights, bool IsActive, int ActiveBookings);

@@ -68,16 +68,10 @@
                     <label class="field-label" for="RangeKm">Quãng đường mỗi lần sạc (km)</label>
                     <input id="RangeKm" name="RangeKm" type="number" min="1" max="1000" value="@Model.RangeKm" class="field" placeholder="110" />
                 </div>
-                <div>
-                    <label class="field-label" for="PickupLocation">Khu vực nhận xe</label>
-                    <input id="PickupLocation" name="PickupLocation" value="@Model.PickupLocation" maxlength="60" list="locations" class="field" placeholder="Đà Nẵng" required />
-                    <datalist id="locations">@foreach (var l in Model.KnownLocations) { <option value="@l"></option> }</datalist>
-                    <p class="mt-1.5 text-xs text-slate-400">Dùng để lọc xe theo thành phố. Viết giống nhau cho cùng một nơi.</p>
-                </div>
-                <div>
-                    <label class="field-label" for="PickupAddress">Địa chỉ nhận xe cụ thể</label>
-                    <input id="PickupAddress" name="PickupAddress" value="@Model.PickupAddress" maxlength="200" class="field" placeholder="12 Nguyễn Văn Linh, Hải Châu" required />
-                    <p class="mt-1.5 text-xs text-slate-400">Chỉ hiện cho khách sau khi họ đã cọc.</p>
+                <div class="md:col-span-2">
+                    <label class="field-label" for="PickupAddress">Nơi để xe (không bắt buộc)</label>
+                    <input id="PickupAddress" name="PickupAddress" value="@Model.PickupAddress" maxlength="200" class="field" placeholder="12 Trần Hưng Đạo, Phường 10, Đà Lạt" />
+                    <p class="mt-1.5 text-xs text-slate-400">Chỉ để bạn ghi nhớ. Khách tự nhập địa chỉ muốn nhận xe khi đặt.</p>
                 </div>
             </div>
 

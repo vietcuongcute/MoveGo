@@ -96,7 +96,7 @@ public static class ViewHelpers
     {
         vehicles = vehicles.Select(v => new
         {
-            v.Id, v.Name, Category = v.Category.ToString(), v.CategoryLabel, v.Seats, v.PricePerDay, v.PickupLocation,
+            v.Id, v.Name, Category = v.Category.ToString(), v.CategoryLabel, v.Seats, v.PricePerDay,
             v.ImageUrl, v.RangeKm, tone = Tone(v), art = ArtId(v.Category)
         }),
         commissionRate = m.Meta.CommissionRate,

@@ -18,12 +18,12 @@ public class BookingController(
 {
     /// <summary>
     /// Danh sách xe CÒN TRỐNG trong khoảng ngày khách chọn.
-    /// Ví dụ: GET /api/booking/available-vehicles?start=2026-10-20T08:00:00&amp;end=2026-10-22T08:00:00&amp;category=Car4Seats&amp;location=Hà Nội
+    /// Ví dụ: GET /api/booking/available-vehicles?start=2026-10-20T08:00:00&amp;end=2026-10-22T08:00:00&amp;category=Car4Seats
     /// </summary>
     [HttpGet("available-vehicles")]
     public async Task<ActionResult<List<VehicleDto>>> GetAvailableVehicles(
         [FromQuery] DateTime? start, [FromQuery] DateTime? end,
-        [FromQuery] VehicleCategory? category, [FromQuery] string? location, CancellationToken ct)
+        [FromQuery] VehicleCategory? category, CancellationToken ct)
     {
         if (start is null || end is null)
             return Problem(title: "Thiếu ngày nhận hoặc ngày trả xe.", statusCode: 400);
@@ -32,11 +32,11 @@ public class BookingController(
         if (PricingService.CountDays(start.Value, end.Value) > business.Value.MaxRentalDays)
             return Problem(title: $"Tối đa {business.Value.MaxRentalDays} ngày cho mỗi đơn.", statusCode: 400);
 
-        var vehicles = await availability.GetAvailableVehiclesAsync(start.Value, end.Value, category, location, ct);
+        var vehicles = await availability.GetAvailableVehiclesAsync(start.Value, end.Value, category, ct);
         return vehicles.Select(v => VehicleMapper.ToDto(v, isAvailable: true)).ToList();
     }
 
-    /// <summary>Báo giá (không tạo đơn): tổng tiền, tiền cọc 10% cho Move-Go, phần trả thẳng chủ xe.</summary>
+    /// <summary>Báo giá (không tạo đơn): tổng tiền, tiền cọc 10% cho MoveGo, phần trả thẳng chủ xe.</summary>
     [HttpPost("quote")]
     public async Task<IActionResult> Quote([FromBody] QuoteRequest req, CancellationToken ct)
     {

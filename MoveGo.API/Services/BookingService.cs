@@ -33,6 +33,10 @@ public class BookingService(
         if (phone is null)
             return Fail<BookingTrackDto>(400, "Số điện thoại không hợp lệ (ví dụ: 0912345678).");
 
+        var pickupAddress = req.PickupAddress?.Trim() ?? "";
+        if (pickupAddress.Length < 5 || pickupAddress.Length > 200)
+            return Fail<BookingTrackDto>(400, "Vui lòng nhập địa chỉ nhận xe (5–200 ký tự), ví dụ: 12 Trần Hưng Đạo, Đà Lạt.");
+
         if (req.StartDate is null || req.EndDate is null)
             return Fail<BookingTrackDto>(400, "Vui lòng chọn ngày nhận và ngày trả xe.");
         var start = req.StartDate.Value;
@@ -69,6 +73,7 @@ public class BookingService(
             Vehicle = vehicle,
             CustomerName = name,
             CustomerPhone = phone,
+            PickupAddress = pickupAddress,
             CustomerNote = string.IsNullOrEmpty(note) ? null : (note.Length > 500 ? note[..500] : note),
             StartDate = start,
             EndDate = end,
@@ -93,6 +98,7 @@ public class BookingService(
             ["end_date"] = Fmt.DateTimeVn(booking.EndDate),
             ["total_amount"] = Fmt.Money(booking.TotalAmount),
             ["owner_amount"] = Fmt.Money(booking.OwnerAmount),
+            ["pickup_address"] = booking.PickupAddress,
             ["order_code"] = booking.Code,
             ["confirm_link"] = OwnerConfirmLink(booking)
         }, ct);
@@ -250,7 +256,7 @@ public class BookingService(
         if (!canConfirm)
         {
             logger.LogWarning("Đơn {Code} đã nhận cọc nhưng không thể xác nhận — cần hoàn cọc.", booking.Code);
-            return Fail<BookingTrackDto>(409, "Đã nhận cọc nhưng xe không còn trống. Move-Go sẽ liên hệ hoàn tiền cho bạn.");
+            return Fail<BookingTrackDto>(409, "Đã nhận cọc nhưng xe không còn trống. MoveGo sẽ liên hệ hoàn tiền cho bạn.");
         }
 
         await SafeSendAsync(booking.Vehicle.Owner.ZaloPhone, ZaloTemplates.OwnerConfirmed, booking.Code, new()
@@ -259,6 +265,7 @@ public class BookingService(
             ["customer_name"] = booking.CustomerName,
             ["customer_phone"] = booking.CustomerPhone,
             ["vehicle_name"] = booking.Vehicle.Name,
+            ["pickup_address"] = booking.PickupAddress,
             ["start_date"] = Fmt.DateTimeVn(booking.StartDate),
             ["end_date"] = Fmt.DateTimeVn(booking.EndDate),
             ["owner_amount"] = Fmt.Money(booking.OwnerAmount)
@@ -271,7 +278,7 @@ public class BookingService(
             ["owner_name"] = booking.Vehicle.Owner.Name,
             ["owner_phone"] = booking.Vehicle.Owner.PhoneNumber,
             ["vehicle_name"] = booking.Vehicle.Name,
-            ["pickup_address"] = booking.Vehicle.PickupAddress,
+            ["pickup_address"] = booking.PickupAddress,
             ["owner_amount"] = Fmt.Money(booking.OwnerAmount)
         }, ct);
 
@@ -355,6 +362,7 @@ public class BookingService(
             ["end_date"] = Fmt.DateTimeVn(booking.EndDate),
             ["total_amount"] = Fmt.Money(booking.TotalAmount),
             ["owner_amount"] = Fmt.Money(booking.OwnerAmount),
+            ["pickup_address"] = booking.PickupAddress,
             ["order_code"] = booking.Code,
             ["confirm_link"] = OwnerConfirmLink(booking)
         }, ct);
@@ -461,7 +469,7 @@ public class BookingService(
         return new BookingTrackDto(
             b.Code, b.Status, StatusText(b.Status),
             b.Vehicle.Name, b.Vehicle.Category, VehicleMapper.CategoryLabel(b.Vehicle.Category), b.Vehicle.ImageUrl,
-            b.Vehicle.PickupLocation, revealed ? b.Vehicle.PickupAddress : null,
+            b.PickupAddress,
             b.StartDate, b.EndDate, b.RentalDays,
             b.TotalAmount, b.CommissionAmount, b.OwnerAmount,
             b.CustomerName, b.CreatedAt,
@@ -483,6 +491,6 @@ public class BookingService(
             b.CustomerName, b.CustomerNote, revealed ? b.CustomerPhone : null,
             b.StartDate, b.EndDate, b.RentalDays,
             b.TotalAmount, b.OwnerAmount, b.CommissionAmount,
-            b.Vehicle.PickupLocation, Biz.DepositHoldMinutes);
+            b.PickupAddress, Biz.DepositHoldMinutes);
     }
 }

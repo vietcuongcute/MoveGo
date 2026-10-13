@@ -5,10 +5,10 @@
     ViewData["Description"] = "Chọn ô tô điện, xe máy điện còn trống theo ngày bạn cần. Gửi yêu cầu cho chủ xe, cọc chỉ 10%.";
     ViewData["Nav"] = "fleet";
     ViewData["BannerIcon"] = "fa-car-side";
-    ViewData["BannerEyebrow"] = "Đội xe Move-Go";
+    ViewData["BannerEyebrow"] = "Đội xe MoveGo";
     ViewData["BannerTitle"] = Model.HasSearch ? "Xe còn trống" : "Chọn xe hợp với";
     ViewData["BannerAccent"] = Model.HasSearch ? "cho chuyến đi của bạn" : "chuyến đi của bạn";
-    ViewData["BannerSub"] = "Lọc theo loại xe, điểm nhận và ngày giờ. Xe đã có người đặt hoặc chủ xe khoá lịch sẽ tự ẩn đi.";
+    ViewData["BannerSub"] = "Lọc theo loại xe và ngày giờ. Xe đã có người đặt hoặc chủ xe khoá lịch sẽ tự ẩn đi.";
     ViewData["DepositPercent"] = Model.Meta.Stats.DepositPercent;
     var site = SiteOpt.Value;
     var meta = Model.Meta;
@@ -60,7 +60,6 @@
                 <span class="grid h-9 w-9 place-items-center rounded-full bg-emerald-500 text-white"><i class="fa-solid fa-calendar-check"></i></span>
                 <span>
                     <b>@vehicles.Count xe</b> còn trống từ <b>@ViewHelpers.ShortDateTimeVn(ss)</b> đến <b>@ViewHelpers.ShortDateTimeVn(se)</b>
-                    @if (!string.IsNullOrEmpty(Model.Search.Location)) { <span> · tại <b>@Model.Search.Location</b></span> }
                 </span>
                 <a href="@Url.Action("Fleet", "Home")" class="ml-auto font-bold text-emerald-700 underline-offset-4 hover:underline"><i class="fa-solid fa-rotate-left"></i> Xoá bộ lọc</a>
             </div>
@@ -86,7 +85,7 @@
                 <div class="mx-auto w-48 opacity-80" style="color:#94a3b8"><svg class="art" viewBox="0 0 360 170"><use href="#art-car" /></svg></div>
                 <h3 class="mt-4 text-xl font-extrabold">Chưa có xe phù hợp</h3>
                 <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
-                    @(Model.HasSearch ? "Rất tiếc, không còn xe trống trong khoảng thời gian này. Hãy thử đổi ngày, địa điểm hoặc loại xe khác." : "Hiện chưa có xe nào thuộc nhóm này.")
+                    @(Model.HasSearch ? "Rất tiếc, không còn xe trống trong khoảng thời gian này. Hãy thử đổi ngày hoặc loại xe khác." : "Hiện chưa có xe nào thuộc nhóm này.")
                 </p>
                 <a href="#search" class="btn-primary mt-6"><i class="fa-solid fa-rotate-left"></i> Tìm lại</a>
             </div>

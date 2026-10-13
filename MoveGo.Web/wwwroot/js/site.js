@@ -1,4 +1,4 @@
-/* Move-Go · hiệu ứng & tương tác chung (Vanilla JS, không phụ thuộc thư viện ngoài trừ Flatpickr) */
+/* MoveGo · hiệu ứng & tương tác chung (Vanilla JS, không phụ thuộc thư viện ngoài trừ Flatpickr) */
 (function () {
   'use strict';
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -1,6 +1,6 @@
-# Move-Go: nền tảng kết nối thuê ô tô và xe máy điện
+# MoveGo: nền tảng kết nối thuê ô tô và xe máy điện
 
-Move-Go chỉ là **trung gian**. Khách chọn xe, chủ xe đồng ý, khách cọc **10%** (đây là hoa hồng của Move-Go).
+MoveGo hiện cho thuê tại **Đà Lạt** và chỉ là **trung gian**. Khách chọn xe, chủ xe đồng ý, khách cọc **10%** (đây là hoa hồng của MoveGo).
 Phần còn lại, cùng mọi thoả thuận khác như giao xe tận nơi hay phụ phí, **khách và chủ xe tự làm việc với nhau**.
 Hệ thống không thu thêm khoản nào khác.
 
@@ -22,11 +22,15 @@ Quy tắc tính tiền (`Services/PricingService.cs`, server luôn tự tính, k
 
 - Số ngày = làm tròn lên theo block 24 giờ, tối thiểu 1 ngày (25 giờ tính 2 ngày).
 - Tổng tiền = giá/ngày × số ngày.
-- Cọc online (hoa hồng Move-Go) = 10% tổng, làm tròn đến 1.000đ. Phần còn lại trả thẳng cho chủ xe.
+- Cọc online (hoa hồng MoveGo) = 10% tổng, làm tròn đến 1.000đ. Phần còn lại trả thẳng cho chủ xe.
 
 Xe nào còn trống: một xe **bận** khi có đơn đã cọc, hoặc đơn đang giữ chỗ chưa hết hạn, hoặc chủ xe tự khoá ngày.
 Hai khoảng trùng nhau khi `aStart < bEnd && aEnd > bStart` (trả xe 08:00 và nhận xe 08:00 cùng ngày không tính là trùng).
 Đơn mới gửi (chưa được chủ xe đồng ý) **không** khoá lịch để không ai gửi yêu cầu ảo chiếm hết xe.
+
+## Địa chỉ nhận xe
+
+Không còn "điểm nhận xe" cố định. Khi đặt, khách tự nhập **địa chỉ muốn nhận xe** (khách sạn, nhà…); chủ xe thấy địa chỉ này trên trang xác nhận và trong tin Zalo (khoá `pickup_address` trong dữ liệu mẫu tin nhắn, nhớ thêm biến này vào template ZNS), rồi hai bên tự thống nhất giờ giao.
 
 ## Chạy trên máy (macOS)
 
@@ -34,14 +38,15 @@ Cần: .NET SDK 8, Docker, và `dotnet tool install --global dotnet-ef --version
 
 ```bash
 docker compose up -d                 # PostgreSQL, cổng 5433 trên máy bạn
-cd MoveGo.API && dotnet run          # tự tạo bảng, nạp 10 xe mẫu; terminal này in tin Zalo giả lập
+# muốn nạp lại 10 xe mẫu ở Đà Lạt: docker compose down -v rồi docker compose up -d
+cd MoveGo.API && dotnet run          # tự tạo/cập nhật bảng, nạp 10 xe mẫu ở Đà Lạt; terminal này in tin Zalo giả lập
 # mở terminal khác:
 cd MoveGo.Web && dotnet run          # http://localhost:5200
 ```
 
 Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 
-1. Vào http://localhost:5200, bấm **Xe cho thuê** (hoặc **Đặt xe**), chọn ngày rồi bấm **Thuê xe** ở xe bạn thích, nhập tên và SĐT, gửi yêu cầu, rồi bấm **Theo dõi đơn của tôi** để mở trang theo dõi đơn.
+1. Vào http://localhost:5200, bấm **Xe cho thuê** (hoặc **Đặt xe**), chọn ngày rồi bấm **Thuê xe** ở xe bạn thích, nhập **địa chỉ nhận xe ở Đà Lạt**, nhập tên và SĐT, gửi yêu cầu, rồi bấm **Theo dõi đơn của tôi** để mở trang theo dõi đơn.
 2. Terminal của API in ra tin Zalo giả lập, trong đó có dòng `confirm_link`. Mở link đó (đóng vai chủ xe) và bấm **Đồng ý cho thuê**.
 3. Quay lại trang theo dõi đơn: xuất hiện mã QR và đồng hồ đếm ngược 30 phút. Bấm **Giả lập đã thanh toán** (nút hiện khi PayOS đang tắt, và chỉ hoạt động khi API chạy ở môi trường `Development`).
 4. Đơn chuyển sang **Đã xác nhận**, hiện SĐT chủ xe và địa chỉ nhận xe. Terminal in thêm hai tin Zalo giả lập.
@@ -65,7 +70,7 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặc định là `movego-admin-dev` (đặt trong `MoveGo.API/appsettings.Development.json`).
 
 - **Chủ xe**: thêm người, sao chép link quản lý lịch gửi cho họ qua Zalo, cấp link mới nếu họ lỡ lộ link.
-- **Xe**: thêm xe (chọn chủ xe, giá, khu vực, địa chỉ nhận xe, ảnh), sửa, ẩn hoặc hiện trên web. Đổi giá chỉ áp dụng cho đơn mới.
+- **Xe**: thêm xe (chọn chủ xe, giá, ảnh, điểm nổi bật), sửa, ẩn hoặc hiện trên web. Đổi giá chỉ áp dụng cho đơn mới.
 - **Ảnh xe**: tải lên JPG/PNG/WebP tối đa 5 MB. File lưu ở `MoveGo.Web/wwwroot/uploads/vehicles/` (đã gitignore), hoặc dán link ảnh có sẵn.
 - **Đơn**: lọc theo trạng thái, xem SĐT hai bên, gửi lại tin Zalo cho chủ xe khi lần đầu bị lỗi.
 
@@ -74,7 +79,7 @@ Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặ
 | Endpoint | Việc |
 |---|---|
 | `GET /api/vehicles`, `GET /api/vehicles/{id}/busy` | Danh sách xe, các khoảng xe đang bận |
-| `GET /api/booking/available-vehicles?start=&end=&category=&location=` | Xe còn trống |
+| `GET /api/booking/available-vehicles?start=&end=&category=` | Xe còn trống |
 | `POST /api/booking/quote` | Báo giá |
 | `POST /api/booking/create` | Khách gửi yêu cầu (giới hạn 10 lần/phút/IP) |
 | `GET /api/booking/{code}` | Khách xem trạng thái đơn |

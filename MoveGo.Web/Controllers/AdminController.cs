@@ -8,7 +8,7 @@ using MoveGo.Web.Services;
 namespace MoveGo.Web.Controllers;
 
 /// <summary>
-/// Trang quản trị cho bạn (người vận hành Move-Go). Đăng nhập bằng khoá admin (Business:AdminKey bên API).
+/// Trang quản trị cho bạn (người vận hành MoveGo). Đăng nhập bằng khoá admin (Business:AdminKey bên API).
 /// Khoá được mã hoá bằng Data Protection rồi để trong cookie HttpOnly hết hạn sau 8 giờ;
 /// mọi thao tác thật sự đều do API kiểm tra lại khoá, nên web không tự quyết quyền gì.
 /// </summary>
@@ -176,10 +176,8 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
     {
         var owners = await api.GetOwnersAsync(AdminKey, ct);
         if (KickIfUnauthorized(owners.Status) is { } kick) return kick;
-        var vehicles = await api.GetVehiclesAsync(AdminKey, ct);
 
         form.Owners = owners.Value ?? [];
-        form.KnownLocations = (vehicles.Value ?? []).Select(v => v.PickupLocation).Distinct().Order().ToList();
         form.Error ??= owners.Error;
         return View("VehicleForm", form);
     }

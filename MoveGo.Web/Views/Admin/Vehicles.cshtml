@@ -40,7 +40,7 @@
                                 <span class="status-pill !py-1 @(v.IsActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500")">@(v.IsActive ? "Đang hiện" : "Đang ẩn")</span>
                                 @if (v.ActiveBookings > 0) { <span class="status-pill !py-1 bg-amber-50 text-amber-700">@v.ActiveBookings đơn đang chạy</span> }
                             </div>
-                            <div class="mt-1 text-slate-500">@v.CategoryLabel · @v.Seats chỗ · @v.PickupLocation · <b class="text-ink-900 tabular">@ViewHelpers.Vnd(v.PricePerDay)</b>/ngày</div>
+                            <div class="mt-1 text-slate-500">@v.CategoryLabel · @v.Seats chỗ · <b class="text-ink-900 tabular">@ViewHelpers.Vnd(v.PricePerDay)</b>/ngày</div>
                             <div class="text-xs text-slate-400">Chủ xe: @v.OwnerName</div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">

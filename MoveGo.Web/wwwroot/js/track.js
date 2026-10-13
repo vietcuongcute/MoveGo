@@ -1,4 +1,4 @@
-/* Move-Go · trang theo dõi đơn: tự cập nhật trạng thái, đếm ngược giữ xe, vẽ mã QR cọc */
+/* MoveGo · trang theo dõi đơn: tự cập nhật trạng thái, đếm ngược giữ xe, vẽ mã QR cọc */
 (function () {
   'use strict';
   var root = document.getElementById('track');

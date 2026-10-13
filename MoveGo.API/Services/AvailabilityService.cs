@@ -8,7 +8,7 @@ namespace MoveGo.API.Services;
 public interface IAvailabilityService
 {
     /// <summary>Các xe còn trống trong khoảng [start, end).</summary>
-    Task<List<Vehicle>> GetAvailableVehiclesAsync(DateTime start, DateTime end, VehicleCategory? category, string? location, CancellationToken ct = default);
+    Task<List<Vehicle>> GetAvailableVehiclesAsync(DateTime start, DateTime end, VehicleCategory? category, CancellationToken ct = default);
 
     /// <summary>1 xe cụ thể có trống trong khoảng [start, end) không? excludeBookingId: bỏ qua chính đơn đang xét.</summary>
     Task<bool> IsAvailableAsync(int vehicleId, DateTime start, DateTime end, int? excludeBookingId = null, CancellationToken ct = default);
@@ -33,14 +33,13 @@ public interface IAvailabilityService
 public class AvailabilityService(AppDbContext db, IClock clock) : IAvailabilityService
 {
     public async Task<List<Vehicle>> GetAvailableVehiclesAsync(
-        DateTime start, DateTime end, VehicleCategory? category, string? location, CancellationToken ct = default)
+        DateTime start, DateTime end, VehicleCategory? category, CancellationToken ct = default)
     {
         var now = clock.Now;
 
         var query = db.Vehicles.AsNoTracking().Where(v => v.IsActive);
 
         if (category.HasValue) query = query.Where(v => v.Category == category.Value);
-        if (!string.IsNullOrWhiteSpace(location)) query = query.Where(v => v.PickupLocation == location);
 
         // Giữ lại xe KHÔNG có booking trùng và KHÔNG có lịch khoá trùng
         query = query.Where(v =>

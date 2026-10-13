@@ -47,7 +47,7 @@ else
     };
     var steps = new (string Title, string Text, string Icon)[]
     {
-        ("Gửi yêu cầu", "Bạn đã chọn xe, ngày và điểm nhận.", "fa-paper-plane"),
+        ("Gửi yêu cầu", "Bạn đã chọn xe, ngày và địa chỉ nhận xe.", "fa-paper-plane"),
         ("Chủ xe xác nhận", "Chủ xe nhận tin Zalo và bấm đồng ý.", "fa-user-check"),
         ("Đặt cọc 10%", "Quét mã QR để giữ xe cho bạn.", "fa-qrcode"),
         ("Nhận xe", "Hai bên liên hệ trực tiếp, trả 90% còn lại.", "fa-key")
@@ -64,7 +64,7 @@ else
         _ => ("bg-slate-400/20 text-slate-100 ring-1 ring-slate-300/40", "Đã huỷ", "fa-ban")
     };
     var depositPct = b.TotalAmount > 0 ? (int)Math.Round(b.DepositAmount / b.TotalAmount * 100m) : 10;
-    var tone = ViewHelpers.Tone(new VehicleDto(0, b.VehicleName, "", b.Category, b.CategoryLabel, 0, 0, "", null, null, "", [], true));
+    var tone = ViewHelpers.Tone(new VehicleDto(0, b.VehicleName, "", b.Category, b.CategoryLabel, 0, 0, null, null, "", [], true));
     var progressPct = failed ? 0 : Math.Min(100, (int)(current / 3.0 * 100));
 
     <div id="track" data-code="@b.Code" data-status="@st" data-hold="@(b.HoldSecondsLeft ?? 0)" data-mock="@(b.IsMockPayment ? "1" : "0")">
@@ -127,7 +127,7 @@ else
                                     <div class="radar grid shrink-0 place-items-center"><i></i><i></i><i></i><span class="relative grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 text-2xl text-white shadow-glow"><span class="fa-solid fa-comment-dots"></span></span></div>
                                     <div>
                                         <h2 class="text-xl font-extrabold">Đang chờ chủ xe xác nhận</h2>
-                                        <p class="mt-2 text-slate-500">Move-Go đã gửi tin nhắn Zalo cho chủ xe. Thường họ phản hồi trong <b class="text-ink-900">15–30 phút</b>. Khi chủ xe đồng ý, trang này sẽ tự hiện mã QR để bạn đặt cọc — <b class="text-ink-900">bạn chưa phải trả đồng nào</b>.</p>
+                                        <p class="mt-2 text-slate-500">MoveGo đã gửi tin nhắn Zalo cho chủ xe. Thường họ phản hồi trong <b class="text-ink-900">15–30 phút</b>. Khi chủ xe đồng ý, trang này sẽ tự hiện mã QR để bạn đặt cọc — <b class="text-ink-900">bạn chưa phải trả đồng nào</b>.</p>
                                     </div>
                                 </div>
                                 <div class="mt-6 grid gap-3 sm:grid-cols-2">
@@ -266,9 +266,8 @@ else
                         <dl class="mt-5 space-y-3.5 text-sm">
                             <div class="flex gap-3"><dt class="w-6 text-emerald-500"><i class="fa-solid fa-calendar-check"></i></dt><dd><div class="tile-label">Nhận xe</div><div class="font-semibold">@ViewHelpers.DateTimeVn(b.StartDate)</div></dd></div>
                             <div class="flex gap-3"><dt class="w-6 text-cyan-500"><i class="fa-solid fa-calendar-xmark"></i></dt><dd><div class="tile-label">Trả xe</div><div class="font-semibold">@ViewHelpers.DateTimeVn(b.EndDate) <span class="text-slate-400">· @b.RentalDays ngày</span></div></dd></div>
-                            <div class="flex gap-3"><dt class="w-6 text-emerald-500"><i class="fa-solid fa-location-dot"></i></dt><dd><div class="tile-label">Điểm nhận xe</div><div class="font-semibold">@b.PickupLocation</div>
-                                @if (!string.IsNullOrWhiteSpace(b.PickupAddress)) { <div class="text-slate-500">@b.PickupAddress</div> }
-                                else if (st is BookingStatus.PendingOwner or BookingStatus.AwaitingDeposit) { <div class="text-xs text-slate-400">Địa chỉ cụ thể hiện sau khi bạn đặt cọc.</div> }</dd></div>
+                            <div class="flex gap-3"><dt class="w-6 text-emerald-500"><i class="fa-solid fa-location-dot"></i></dt><dd><div class="tile-label">Địa chỉ nhận xe</div><div class="font-semibold">@b.PickupAddress</div>
+                                <div class="text-xs text-slate-400">Chủ xe nhận được địa chỉ này; hai bạn thống nhất giờ giao xe qua điện thoại.</div></dd></div>
                         </dl>
 
                         <div class="mt-6 rounded-2xl bg-slate-50 p-4">
@@ -279,7 +278,7 @@ else
                                 <div class="flex items-center justify-between"><span class="flex items-center gap-2 text-slate-600"><i class="h-2.5 w-2.5 rounded-full bg-slate-300"></i> Trả chủ xe (@(100 - depositPct)%)</span><b class="tabular">@ViewHelpers.Vnd(b.OwnerAmount)</b></div>
                             </div>
                         </div>
-                        <p class="mt-4 text-xs leading-relaxed text-slate-400">Move-Go là đơn vị trung gian kết nối. Tiền cọc là phí dịch vụ của Move-Go; phần còn lại bạn thanh toán trực tiếp cho chủ xe khi nhận xe.</p>
+                        <p class="mt-4 text-xs leading-relaxed text-slate-400">MoveGo là đơn vị trung gian kết nối. Tiền cọc là phí dịch vụ của MoveGo; phần còn lại bạn thanh toán trực tiếp cho chủ xe khi nhận xe.</p>
                     </div>
                 </aside>
             </div>

@@ -2,7 +2,7 @@
 @inject IOptions<SiteOptions> SiteOpt
 @{
     ViewData["Title"] = "Quy trình thuê xe";
-    ViewData["Description"] = "Thuê xe trên Move-Go trong 3 bước: gửi yêu cầu, chủ xe xác nhận qua Zalo, cọc 10% rồi nhận xe.";
+    ViewData["Description"] = "Thuê xe trên MoveGo trong 3 bước: gửi yêu cầu, chủ xe xác nhận qua Zalo, cọc 10% rồi nhận xe.";
     ViewData["Nav"] = "process";
     ViewData["BannerIcon"] = "fa-route";
     ViewData["BannerEyebrow"] = "Quy trình";
@@ -29,8 +29,8 @@
                 @{
                     var steps = new[]
                     {
-                        (Icon: "fa-magnifying-glass-location", Title: "Chọn xe & gửi yêu cầu", Text: "Chọn loại xe, điểm nhận, ngày giờ nhận – trả rồi gửi yêu cầu chỉ trong 60 giây. Không cần đăng ký tài khoản."),
-                        (Icon: "fa-comment-dots", Title: "Chủ xe xác nhận qua Zalo", Text: "Move-Go nhắn Zalo cho chủ xe. Chủ xe bấm Chấp nhận là xe được giữ chỗ riêng cho bạn."),
+                        (Icon: "fa-magnifying-glass-location", Title: "Chọn xe & gửi yêu cầu", Text: "Chọn xe, ngày giờ nhận – trả và nhập địa chỉ bạn muốn nhận xe, rồi gửi yêu cầu chỉ trong 60 giây. Không cần đăng ký tài khoản."),
+                        (Icon: "fa-comment-dots", Title: "Chủ xe xác nhận qua Zalo", Text: "MoveGo nhắn Zalo cho chủ xe. Chủ xe bấm Chấp nhận là xe được giữ chỗ riêng cho bạn."),
                         (Icon: "fa-qrcode", Title: $"Cọc {depositPct}% & nhận xe", Text: $"Quét QR cọc {depositPct}% trong {meta.DepositHoldMinutes} phút. Ngay sau đó hai bên nhận số điện thoại của nhau để bàn giao; bạn trả {100 - depositPct}% còn lại cho chủ xe.")
                     };
                 }

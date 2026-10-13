@@ -1,4 +1,4 @@
-/* Move-Go · trang quản trị: sao chép link, xác nhận thao tác, form thêm/sửa xe */
+/* MoveGo · trang quản trị: sao chép link, xác nhận thao tác, form thêm/sửa xe */
 (function () {
   'use strict';
   var $ = function (s, r) { return (r || document).querySelector(s); };

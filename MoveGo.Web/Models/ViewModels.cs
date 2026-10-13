@@ -6,7 +6,6 @@ namespace MoveGo.Web.Models;
 public class SearchQuery
 {
     public VehicleCategory? Category { get; set; }
-    public string? Location { get; set; }
     public string? From { get; set; }          // yyyy-MM-dd
     public string? To { get; set; }            // yyyy-MM-dd
     public string FromTime { get; set; } = "08:00";
@@ -53,11 +52,11 @@ public class HomeViewModel
 
 public class SiteOptions
 {
-    public string BrandName { get; set; } = "Move-Go";
-    public string Hotline { get; set; } = "0900 000 000";
-    public string ZaloPhone { get; set; } = "0900000000";
+    public string BrandName { get; set; } = "MoveGo";
+    public string Hotline { get; set; } = "0979 058 531";
+    public string ZaloPhone { get; set; } = "0979058531";
     public string Email { get; set; } = "hello@movego.vn";
-    public string Address { get; set; } = "TP. Hồ Chí Minh, Việt Nam";
+    public string Address { get; set; } = "Đà Lạt, Việt Nam";
 }
 
 public class ApiOptions

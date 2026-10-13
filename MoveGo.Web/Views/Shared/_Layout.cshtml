@@ -4,7 +4,7 @@
     var site = SiteOpt.Value;
     var title = ViewData["Title"] is string t && t.Length > 0 ? $"{t} · {site.BrandName}" : $"{site.BrandName} – Thuê xe điện, ô tô & xe máy";
     var description = ViewData["Description"] as string
-        ?? "Move-Go kết nối bạn với chủ xe: thuê ô tô điện & xe máy điện trực tiếp, chủ xe xác nhận qua Zalo, cọc chỉ 10%.";
+        ?? "MoveGo kết nối bạn với chủ xe: thuê ô tô điện & xe máy điện trực tiếp, chủ xe xác nhận qua Zalo, cọc chỉ 10%.";
     var noIndex = ViewData["NoIndex"] as bool? ?? false;
 }
 <!DOCTYPE html>

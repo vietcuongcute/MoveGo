@@ -17,11 +17,10 @@ public class VehiclesController(
     /// <summary>Danh sách toàn bộ xe đang cho thuê (chưa xét lịch).</summary>
     [HttpGet]
     public async Task<ActionResult<List<VehicleDto>>> GetAll(
-        [FromQuery] VehicleCategory? category, [FromQuery] string? location, CancellationToken ct)
+        [FromQuery] VehicleCategory? category, CancellationToken ct)
     {
         var query = db.Vehicles.AsNoTracking().Where(v => v.IsActive);
         if (category.HasValue) query = query.Where(v => v.Category == category.Value);
-        if (!string.IsNullOrWhiteSpace(location)) query = query.Where(v => v.PickupLocation == location);
 
         var vehicles = await query.OrderBy(v => v.Category).ThenBy(v => v.PricePerDay).ToListAsync(ct);
         return vehicles.Select(v => VehicleMapper.ToDto(v)).ToList();
@@ -52,13 +51,11 @@ public class VehiclesController(
         return await availability.GetBusyRangesAsync(id, start, end, ct);
     }
 
-    /// <summary>Dữ liệu chung cho giao diện: địa điểm, loại xe, tỉ lệ cọc, số liệu thống kê thật.</summary>
+    /// <summary>Dữ liệu chung cho giao diện: loại xe, tỉ lệ cọc, số liệu thống kê thật.</summary>
     [HttpGet("/api/meta")]   // dấu / đầu = đường dẫn tuyệt đối, bỏ qua tiền tố "api/vehicles" của controller
     public async Task<ActionResult<MetaDto>> GetMeta(CancellationToken ct)
     {
         var b = business.Value;
-        var locations = await db.Vehicles.AsNoTracking().Where(v => v.IsActive)
-            .Select(v => v.PickupLocation).Distinct().OrderBy(x => x).ToListAsync(ct);
         var vehicleCount = await db.Vehicles.CountAsync(v => v.IsActive, ct);
         var trips = await db.Bookings.CountAsync(x =>
             x.Status == BookingStatus.Confirmed || x.Status == BookingStatus.Completed, ct);
@@ -67,8 +64,8 @@ public class VehiclesController(
             .Select(c => new CategoryDto(c, VehicleMapper.CategoryLabel(c))).ToList();
 
         return new MetaDto(
-            locations, categories,
+            categories,
             b.CommissionRate, b.DepositHoldMinutes, b.MaxRentalDays,
-            new StatsDto(vehicleCount, locations.Count, trips, (int)Math.Round(b.CommissionRate * 100)));
+            new StatsDto(vehicleCount, trips, (int)Math.Round(b.CommissionRate * 100)));
     }
 }
