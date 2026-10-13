@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { api, ApiError, Booking, BookingStatus, rememberOrder } from '../api';
 import { dmyHm, mmss, vnd } from '../format';
 import { Nav } from '../nav';
@@ -30,6 +30,7 @@ export default function OrderScreen({ code, nav }: { code: string; nav: Nav }) {
   const [payBusy, setPayBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [left, setLeft] = useState<number | null>(null);
+  const [imgFailed, setImgFailed] = useState(false);
   const alive = useRef(true);
 
   const load = useCallback(async (silent: boolean) => {
@@ -165,7 +166,16 @@ export default function OrderScreen({ code, nav }: { code: string; nav: Nav }) {
               <>
                 {b.qrCode && holdActive ? (
                   <View style={s.qrBox}>
-                    <QRCode value={b.qrCode} size={200} />
+                    {b.bank && b.checkoutUrl && !imgFailed ? (
+                      <Image
+                        source={{ uri: b.checkoutUrl }}
+                        onError={() => setImgFailed(true)}
+                        style={{ width: 260, height: 330 }}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <QRCode value={b.qrCode} size={200} />
+                    )}
                     <Text style={s.qrHint}>Quét mã bằng app ngân hàng (máy khác) — số tiền và nội dung đã điền sẵn</Text>
                   </View>
                 ) : null}
