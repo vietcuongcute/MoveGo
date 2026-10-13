@@ -20,6 +20,8 @@ public interface IMoveGoApi
 
     Task<ApiResult<BookingTrackDto>> GetBookingAsync(string code, CancellationToken ct = default);
 
+    Task<ApiResult<List<BookingSummaryDto>>> FindBookingsByPhoneAsync(string phone, CancellationToken ct = default);
+
     Task<ApiResult<OwnerRequestDto>> GetOwnerRequestAsync(string token, CancellationToken ct = default);
     Task<ApiResult<OwnerRequestDto>> OwnerRespondAsync(string token, bool accept, string? reason, CancellationToken ct = default);
 
@@ -64,6 +66,9 @@ public class MoveGoApi(IHttpClientFactory factory) : IMoveGoApi
     // ---------- Các thao tác trả ApiResult ----------
     public Task<ApiResult<BookingTrackDto>> GetBookingAsync(string code, CancellationToken ct = default) =>
         SendAsync<BookingTrackDto>(HttpMethod.Get, $"api/booking/{Uri.EscapeDataString(code)}", null, ct);
+
+    public Task<ApiResult<List<BookingSummaryDto>>> FindBookingsByPhoneAsync(string phone, CancellationToken ct = default) =>
+        SendAsync<List<BookingSummaryDto>>(HttpMethod.Post, "api/booking/lookup", new { phone }, ct);
 
     public Task<ApiResult<OwnerRequestDto>> GetOwnerRequestAsync(string token, CancellationToken ct = default) =>
         SendAsync<OwnerRequestDto>(HttpMethod.Get, $"api/owner/request/{Uri.EscapeDataString(token)}", null, ct);

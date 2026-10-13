@@ -5,7 +5,7 @@
   if (input) {
     input.addEventListener('input', function () {
       var pos = input.selectionStart;
-      input.value = input.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      input.value = input.value.toUpperCase().replace(/[^A-Z0-9+ .-]/g, '');
       try { input.setSelectionRange(pos, pos); } catch (e) { /* bỏ qua */ }
     });
   }

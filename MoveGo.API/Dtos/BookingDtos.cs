@@ -62,3 +62,15 @@ public class CreateBlockRequest
     public DateTime? EndDate { get; set; }
     public string? Reason { get; set; }
 }
+
+
+/// <summary>Khách tra cứu bằng số điện thoại đã dùng khi đặt.</summary>
+public class PhoneLookupRequest
+{
+    public string? Phone { get; set; }
+}
+
+/// <summary>Dòng tóm tắt một đơn trong kết quả tra cứu theo SĐT (cố ý KHÔNG có thông tin liên hệ chủ xe).</summary>
+public record BookingSummaryDto(
+    string Code, BookingStatus Status, string StatusText, string VehicleName, string? VehicleImageUrl,
+    DateTime StartDate, DateTime EndDate, decimal TotalAmount, DateTime CreatedAt);

@@ -124,6 +124,28 @@ public class BookingService(
         return ServiceResult<BookingTrackDto>.Success(ToTrackDto(booking));
     }
 
+    /// <summary>
+    /// Tra cứu theo SĐT: trả tối đa 10 đơn gần nhất trong 180 ngày của số điện thoại đó.
+    /// Chỉ trả mã đơn + thông tin tóm tắt; số điện thoại chủ xe vẫn chỉ hiện ở trang theo dõi sau khi đã cọc.
+    /// </summary>
+    public async Task<ServiceResult<List<BookingSummaryDto>>> FindByPhoneAsync(string? rawPhone, CancellationToken ct = default)
+    {
+        var phone = PhoneNumbers.Normalize(rawPhone);
+        if (phone is null) return Fail<List<BookingSummaryDto>>(400, "Số điện thoại chưa đúng. Hãy nhập số di động 10 số, ví dụ 0912 345 678.");
+
+        var since = clock.Now.AddDays(-180);
+        var rows = await db.Bookings.AsNoTracking()
+            .Where(b => b.CustomerPhone == phone && b.CreatedAt >= since)
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(10)
+            .Select(b => new { b.Code, b.Status, VehicleName = b.Vehicle.Name, b.Vehicle.ImageUrl, b.StartDate, b.EndDate, b.TotalAmount, b.CreatedAt })
+            .ToListAsync(ct);
+
+        return ServiceResult<List<BookingSummaryDto>>.Success(rows.Select(r => new BookingSummaryDto(
+            r.Code, r.Status, StatusText(r.Status), r.VehicleName, r.ImageUrl,
+            r.StartDate, r.EndDate, r.TotalAmount, r.CreatedAt)).ToList());
+    }
+
     // =====================================================================
     // 3. CHỦ XE XEM / CHẤP NHẬN / TỪ CHỐI (link trong tin Zalo)
     // =====================================================================

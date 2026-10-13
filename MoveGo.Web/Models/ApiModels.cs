@@ -35,6 +35,10 @@ public record BookingTrackDto(
     string? CheckoutUrl, string? QrCode, bool IsMockPayment,
     OwnerContactDto? Owner, string? RejectReason);
 
+public record BookingSummaryDto(
+    string Code, BookingStatus Status, string StatusText, string VehicleName, string? VehicleImageUrl,
+    DateTime StartDate, DateTime EndDate, decimal TotalAmount, DateTime CreatedAt);
+
 public record OwnerRequestDto(
     string Code, BookingStatus Status, string StatusText, bool CanRespond, bool StillAvailable,
     string VehicleName, VehicleCategory Category, string? VehicleImageUrl,

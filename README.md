@@ -61,7 +61,7 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 | `/tinh-gia` | Tính giá: nhập ngày để xem tổng tiền, tiền cọc 10% và phần trả chủ xe |
 | `/quy-trinh` | Quy trình thuê xe từng bước |
 | `/hoi-dap` | Hỏi đáp |
-| `/tra-cuu` | Khách nhập mã đơn (MG-XXXXXX) để tra cứu; nhớ 5 đơn gần nhất trên thiết bị |
+| `/tra-cuu` | Khách tra cứu bằng mã đơn (MG-XXXXXX) hoặc số điện thoại đã đặt; nhớ 5 đơn gần nhất trên thiết bị |
 | `/booking/<mã>` | Khách theo dõi đơn |
 | `/owner/...` | Trang chủ xe xác nhận đơn và quản lý lịch |
 | `/admin` | Quản trị (đăng nhập bằng khoá admin): tổng quan, đơn, thêm/sửa xe, thêm chủ xe |
@@ -84,6 +84,7 @@ Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặ
 | `GET /api/booking/available-vehicles?start=&end=&category=` | Xe còn trống |
 | `POST /api/booking/quote` | Báo giá |
 | `POST /api/booking/create` | Khách gửi yêu cầu (giới hạn 10 lần/phút/IP) |
+| `POST /api/booking/lookup` | Tra đơn theo SĐT đã đặt (tối đa 10 đơn/180 ngày, giới hạn 8 lần/phút/IP) |
 | `GET /api/booking/{code}` | Khách xem trạng thái đơn |
 | `GET/POST /api/owner/request/{token}` | Chủ xe xem và đồng ý/từ chối (link trong Zalo) |
 | `GET /api/owner/manage/{manageToken}` và các `blocks` | Chủ xe quản lý lịch |

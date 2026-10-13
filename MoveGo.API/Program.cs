@@ -41,6 +41,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("booking", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    // Tra cứu theo SĐT: chặt hơn để khó dò số của người khác
+    o.AddPolicy("lookup", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 8, Window = TimeSpan.FromMinutes(1) }));
 });
 
 builder.Services.AddSingleton<IClock, VietnamClock>();

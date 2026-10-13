@@ -17,18 +17,40 @@ public class BookingController(IMoveGoApi api) : Controller
         return body is not null && body.All(c => CodeAlphabet.Contains(c)) ? "MG-" + body : null;
     }
 
-    /// <summary>Trang tra cứu đơn: khách nhập mã đơn rồi chuyển sang trang theo dõi.</summary>
+    /// <summary>Chuỗi toàn chữ số (cho phép +, khoảng trắng, chấm, gạch) dài từ 9 số trở lên → coi là số điện thoại.</summary>
+    public static bool LooksLikePhone(string? input)
+    {
+        var s = (input ?? "").Trim();
+        if (s.Length == 0 || !s.All(c => char.IsAsciiDigit(c) || c is '+' or ' ' or '.' or '-' or '(' or ')')) return false;
+        return s.Count(char.IsAsciiDigit) >= 9;
+    }
+
+    /// <summary>
+    /// Trang tra cứu đơn: khách nhập MÃ ĐƠN (chuyển sang trang theo dõi) hoặc SỐ ĐIỆN THOẠI đã đặt (hiện danh sách đơn).
+    /// </summary>
     [HttpGet("tra-cuu")]
-    public IActionResult Lookup(string? ma)
+    public async Task<IActionResult> Lookup(string? ma, CancellationToken ct)
     {
         Response.Headers["X-Robots-Tag"] = "noindex";
         if (string.IsNullOrWhiteSpace(ma)) return View(new LookupViewModel());
+
+        if (LooksLikePhone(ma))
+        {
+            var res = await api.FindBookingsByPhoneAsync(ma.Trim(), ct);
+            return View(new LookupViewModel
+            {
+                Input = ma.Trim(),
+                Error = res.Ok ? null : res.Error,
+                PhoneResults = res.Ok ? res.Value ?? [] : null
+            });
+        }
+
         var code = NormalizeCode(ma);
         if (code is null)
             return View(new LookupViewModel
             {
                 Input = ma.Trim(),
-                Error = "Mã đơn chưa đúng. Mã có dạng MG-XXXXXX (6 ký tự gồm chữ và số, không có chữ O, I và số 0, 1)."
+                Error = "Chưa nhận ra mã đơn hoặc số điện thoại. Mã đơn có dạng MG-XXXXXX (không có chữ O, I và số 0, 1); số điện thoại gồm 10 số."
             });
         return RedirectToAction(nameof(Track), new { code });
     }

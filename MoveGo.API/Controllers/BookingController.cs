@@ -65,6 +65,15 @@ public class BookingController(
             : result.ToActionResult(this);
     }
 
+    /// <summary>
+    /// Khách quên mã đơn: tra cứu bằng SĐT đã đặt. Dùng POST để SĐT không nằm trong URL/log.
+    /// Giới hạn chặt hơn (8 lần/phút/IP) vì đây là chỗ dễ bị dò số.
+    /// </summary>
+    [HttpPost("lookup")]
+    [EnableRateLimiting("lookup")]
+    public async Task<IActionResult> LookupByPhone([FromBody] PhoneLookupRequest req, CancellationToken ct) =>
+        (await bookings.FindByPhoneAsync(req.Phone, ct)).ToActionResult(this);
+
     /// <summary>Khách xem trạng thái đơn bằng mã đơn (MG-XXXXXX).</summary>
     [HttpGet("{code}")]
     public async Task<IActionResult> GetByCode(string code, CancellationToken ct) =>

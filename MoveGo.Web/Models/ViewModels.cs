@@ -73,4 +73,7 @@ public class LookupViewModel
 {
     public string? Input { get; set; }
     public string? Error { get; set; }
+
+    /// <summary>Khi khách tra bằng SĐT: danh sách đơn tìm được (null = chưa tra bằng SĐT).</summary>
+    public List<BookingSummaryDto>? PhoneResults { get; set; }
 }
