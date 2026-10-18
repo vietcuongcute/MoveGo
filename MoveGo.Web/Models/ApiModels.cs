@@ -22,8 +22,6 @@ public record MetaDto(
     public static MetaDto Empty => new([], 0.10m, 30, 30, new StatsDto(0, 0, 10));
 }
 
-public record OwnerContactDto(string Name, string Phone, string ZaloLink);
-
 public record BookingTrackDto(
     string Code, BookingStatus Status, string StatusText,
     string VehicleName, VehicleCategory Category, string CategoryLabel, string? VehicleImageUrl,
@@ -33,7 +31,7 @@ public record BookingTrackDto(
     string CustomerName, DateTime CreatedAt,
     int? HoldSecondsLeft,
     string? CheckoutUrl, string? QrCode, bool IsMockPayment,
-    OwnerContactDto? Owner, string? RejectReason,
+    string? OwnerName, string? RejectReason,
     BankTransferInfoDto? Bank = null);
 
 public record BankTransferInfoDto(string BankName, string AccountNumber, string AccountName, long Amount, string Content);
@@ -49,13 +47,14 @@ public record OwnerRequestDto(
     DateTime StartDate, DateTime EndDate, int RentalDays,
     decimal TotalAmount, decimal OwnerAmount, decimal CommissionAmount,
     string PickupAddress, int DepositHoldMinutes,
-    string? ManageToken = null);
+    string? ManageToken = null,
+    string? CustomerZaloLink = null);
 
 public record OwnerBlockDto(int Id, DateTime StartDate, DateTime EndDate, string Reason);
 
 public record OwnerBookingDto(
     string Code, BookingStatus Status, string StatusText, string CustomerName, string? CustomerPhone,
-    DateTime StartDate, DateTime EndDate, decimal OwnerAmount, string PickupAddress, string? ConfirmToken);
+    DateTime StartDate, DateTime EndDate, decimal OwnerAmount, string PickupAddress, string? DetailToken);
 
 public record OwnerVehicleDto(
     int Id, string Name, decimal PricePerDay, bool IsActive,

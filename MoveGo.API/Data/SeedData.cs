@@ -99,6 +99,7 @@ public static class SeedData
             OwnerToken = Tokens.UrlToken(),
             CreatedAt = clock.Now,
             PaidAt = clock.Now,
+            PaidNotifiedAt = clock.Now,
             OwnerRespondedAt = clock.Now
         });
         await db.SaveChangesAsync();

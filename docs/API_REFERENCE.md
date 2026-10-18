@@ -83,7 +83,7 @@ Vượt giới hạn → `429 Too Many Requests`.
 |---|---|---|
 | `PendingOwner` | 0 | Chờ chủ xe xác nhận |
 | `AwaitingDeposit` | 1 | Chủ xe đã nhận, chờ khách cọc 10% (đang giữ xe) |
-| `Confirmed` | 2 | Đã cọc — khách thấy SĐT chủ xe |
+| `Confirmed` | 2 | Đã cọc — MoveGo báo chủ xe qua Zalo, chủ xe chủ động nhắn khách (khách không thấy SĐT chủ xe) |
 | `Rejected` | 3 | Chủ xe từ chối |
 | `Cancelled` | 4 | Đã huỷ |
 | `Expired` | 5 | Hết hạn (chủ xe không trả lời / khách không cọc kịp) |
@@ -118,7 +118,9 @@ Khách                         API                              Chủ xe
  │                              ◄── POST /owner/request/{token} {accept:true} ────────────┤
  │ GET /booking/{code}  ◄──────  AwaitingDeposit (kèm QR/bank, giữ xe N phút)             │
  │ chuyển khoản 10% ──► SePay/Casso ──► POST /payments/bank-webhook                       │
- │ GET /booking/{code}  ◄──────  Confirmed (kèm SĐT chủ xe)                               │
+ │ GET /booking/{code}  ◄──────  Confirmed (chỉ có tên chủ xe, KHÔNG có SĐT chủ xe)         │
+ │                              ── tin Zalo owner_confirmed (SĐT + link Zalo của khách) ─►│
+ │ ◄──────────── chủ xe CHỦ ĐỘNG nhắn/gọi khách để hẹn giờ giao xe ───────────────────────┤
  │ trả 90% trực tiếp cho chủ xe khi nhận xe                                               │
 ```
 
@@ -323,7 +325,7 @@ Trạng thái đơn theo mã (`MG-XXXXXX`, không phân biệt hoa/thường). C
   "checkoutUrl": "https://img.vietqr.io/image/970422-6650123456779-compact2.png?amount=180000&addInfo=MGEK9CFV&accountName=DINH%20LE%20VIET%20CUONG",
   "qrCode": "00020101021238…6304ABCD",
   "isMockPayment": false,
-  "owner": null,
+  "ownerName": null,
   "rejectReason": null,
   "bank": {
     "bankName": "MB Bank",
@@ -343,14 +345,10 @@ Quy tắc hiển thị trường:
 | `checkoutUrl`, `qrCode` | `AwaitingDeposit`. Bank mode: `checkoutUrl` = ảnh VietQR chính thức, `qrCode` = chuỗi VietQR EMV (client tự vẽ QR dự phòng). Mock mode: URL trang giả lập |
 | `bank` | `AwaitingDeposit` **và** `paymentMode = "bank"` |
 | `isMockPayment` | `true` khi đang ở chế độ giả lập |
-| `owner` (`{ name, phone, zaloLink }`) | **Chỉ** khi `Confirmed` hoặc `Completed` (đã cọc) |
+| `ownerName` | Tên chủ xe, **chỉ** khi `Confirmed` hoặc `Completed` (đã cọc). Khách **không** nhận SĐT chủ xe: sau khi cọc, MoveGo báo chủ xe qua Zalo kèm SĐT khách và chủ xe chủ động nhắn khách |
 | `rejectReason` | `Rejected` (nếu chủ xe có nhập lý do) |
 
-Ví dụ `owner` sau khi cọc:
-
-```json
-"owner": { "name": "Anh Minh", "phone": "0987654321", "zaloLink": "https://zalo.me/0987654321" }
-```
+Ví dụ sau khi cọc: `"status": "Confirmed"`, `"statusText": "Đã cọc — chủ xe sẽ nhắn Zalo cho bạn"`, `"ownerName": "Anh Minh"` (không có SĐT chủ xe).
 
 Lỗi: `404` — không tìm thấy đơn.
 
@@ -382,6 +380,7 @@ Chủ xe xem yêu cầu của khách. `200` — `OwnerRequestDto`:
   "customerName": "Nguyễn Văn A",
   "customerNote": "Cho mình nhận xe sớm nếu được",
   "customerPhone": null,
+  "customerZaloLink": null,
   "startDate": "2026-10-23T08:00:00",
   "endDate": "2026-10-25T08:00:00",
   "rentalDays": 2,
@@ -394,7 +393,7 @@ Chủ xe xem yêu cầu của khách. `200` — `OwnerRequestDto`:
 }
 ```
 
-- `customerPhone` **chỉ có sau khi khách đã cọc** (`Confirmed`/`Completed`).
+- `customerPhone` và `customerZaloLink` (link `https://zalo.me/<SĐT khách>`) **chỉ có sau khi khách đã cọc** (`Confirmed`/`Completed`). Khi đó chủ xe cũng nhận tin Zalo `owner_confirmed` và **chủ xe chủ động nhắn khách**.
 - `stillAvailable = false` nghĩa là xe đã bị đơn khác chiếm trong khoảng này (không thể nhận).
 - `manageToken` để trang xác nhận có nút quay về cổng quản lý.
 
@@ -441,7 +440,7 @@ Bảng điều khiển của chủ xe. `200` — `OwnerDashboardDto`:
           "endDate": "2026-10-25T08:00:00",
           "ownerAmount": 1620000,
           "pickupAddress": "12 Trần Hưng Đạo, Đà Lạt",
-          "confirmToken": "Qx9…"
+          "detailToken": "Qx9…"
         }
       ]
     }
@@ -449,7 +448,7 @@ Bảng điều khiển của chủ xe. `200` — `OwnerDashboardDto`:
 }
 ```
 
-`confirmToken` (nếu có) dùng để mở trang `/owner/request/{confirmToken}` xử lý đơn đang chờ. `customerPhone` chỉ có khi đã cọc.
+`detailToken` dùng để mở trang `/owner/confirm/{detailToken}`: đơn chờ duyệt thì trả lời, đơn đã cọc thì xem SĐT khách và nhắn Zalo. `customerPhone` chỉ có khi đã cọc.
 
 ### `POST /api/owner/manage/{manageToken}/vehicles/{vehicleId}/blocks`
 
@@ -709,7 +708,7 @@ Dùng cho trang Admin → Xe: xe đang cho thuê hay trống, ngày nào có kh�
 
 - `commissionEarned`: tổng hoa hồng của đơn `Confirmed` + `Completed`.
 - `needRefund`: số đơn có `adminNote` (ví dụ cọc thiếu / cọc muộn cần hoàn).
-- `ownerNotNotified`: số đơn `PendingOwner` mà tin Zalo chưa gửi được.
+- `ownerNotNotified`: số đơn chủ xe **chưa nhận được tin**: đơn `PendingOwner` chưa báo được, và đơn **đã cọc** mà tin "hãy nhắn khách" chưa gửi được (cần bấm gửi lại).
 
 **`GET /api/admin/bookings`** — `status` tuỳ chọn (xem bảng enum). Mỗi phần tử:
 
@@ -734,13 +733,14 @@ Dùng cho trang Admin → Xe: xe đang cho thuê hay trống, ngày nào có kh�
   "ownerNotifiedAt": "2026-10-13T09:15:44",
   "ownerRespondedAt": "2026-10-13T09:20:10",
   "paidAt": "2026-10-13T09:25:31",
+  "paidNotifiedAt": "2026-10-13T09:25:33",
   "adminNote": null
 }
 ```
 
 **`POST /api/admin/bookings/{id}/confirm-payment`** — dùng khi webhook chưa chạy nhưng bạn đã thấy tiền trong tài khoản. Chuyển đơn `AwaitingDeposit` → `Confirmed`. `200` — `BookingTrackDto`; `404` không thấy đơn; `409` đơn không ở bước chờ cọc / xe không còn trống.
 
-**`POST /api/admin/bookings/{id}/resend-owner`** — gửi lại tin Zalo (chỉ với đơn `PendingOwner`). `200` — `true` nếu gửi được, `false` nếu Zalo vẫn lỗi; `404`; `409` đơn không còn chờ chủ xe.
+**`POST /api/admin/bookings/{id}/resend-owner`** — gửi lại tin Zalo cho chủ xe: đơn `PendingOwner` → tin duyệt đơn; đơn `Confirmed`/`Completed` → tin "khách đã cọc, hãy nhắn khách" (kèm SĐT khách). `200` — `true` nếu gửi được, `false` nếu Zalo vẫn lỗi; `404`; `409` đơn không cần gửi tin (ví dụ đã hết hạn).
 
 ---
 
@@ -786,4 +786,4 @@ Dùng cho trang Admin → Xe: xe đang cho thuê hay trống, ngày nào có kh�
 
 Tổng cộng **35 endpoint** (+ Swagger `/swagger` khi chạy Development).
 
-> Lưu ý bảo mật: SĐT chủ xe chỉ xuất hiện trong `BookingTrackDto.owner` **sau khi khách đã cọc**; SĐT khách chỉ xuất hiện ở phía chủ xe sau khi đã cọc; mọi lỗi đều trả về ProblemDetails với thông điệp tiếng Việt.
+> Lưu ý bảo mật: **SĐT chủ xe không bao giờ trả về cho khách**; SĐT khách chỉ xuất hiện ở phía chủ xe sau khi đã cọc; mọi lỗi đều trả về ProblemDetails với thông điệp tiếng Việt.

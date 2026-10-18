@@ -44,6 +44,9 @@ public class Booking
 
     public DateTime CreatedAt { get; set; }
     public DateTime? OwnerNotifiedAt { get; set; }
+
+    /// <summary>Lúc gửi thành công tin Zalo "khách đã cọc, đây là SĐT khách" cho chủ xe (để chủ xe chủ động nhắn khách). Null = chưa báo được.</summary>
+    public DateTime? PaidNotifiedAt { get; set; }
     public DateTime? OwnerRespondedAt { get; set; }
     [MaxLength(300)] public string? RejectReason { get; set; }
 

@@ -35,8 +35,6 @@ export type BookingStatus =
 
 export type BankTransfer = { bankName: string; accountNumber: string; accountName: string; amount: number; content: string };
 
-export type OwnerContact = { name: string; phone: string; zaloLink: string };
-
 export type Booking = {
   code: string;
   status: BookingStatus;
@@ -58,7 +56,7 @@ export type Booking = {
   checkoutUrl: string | null;
   qrCode: string | null;
   isMockPayment: boolean;
-  owner: OwnerContact | null;
+  ownerName: string | null;
   rejectReason: string | null;
   bank?: BankTransfer | null;
 };

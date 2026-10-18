@@ -35,7 +35,7 @@ public class OwnerPortalService(AppDbContext db, IClock clock)
                 b.Code, b.Status, BookingService.StatusText(b.Status), b.CustomerName,
                 b.Status == BookingStatus.Confirmed ? b.CustomerPhone : null,
                 b.StartDate, b.EndDate, b.OwnerAmount, b.PickupAddress,
-                b.Status == BookingStatus.PendingOwner ? b.OwnerToken : null)).ToList()
+                b.OwnerToken)).ToList()
         )).ToList();
 
         return ServiceResult<OwnerDashboardDto>.Success(new OwnerDashboardDto(owner.Name, result));

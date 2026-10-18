@@ -119,11 +119,11 @@
                         @if (r.Status is BookingStatus.Confirmed or BookingStatus.Completed && !string.IsNullOrWhiteSpace(r.CustomerPhone))
                         {
                             var ph = new string(r.CustomerPhone!.Where(char.IsDigit).ToArray());
-                            <p class="mt-4 text-sm text-slate-500">Khách đã đặt cọc. Hãy liên hệ để hẹn giờ giao xe:</p>
+                            <p class="mt-4 text-sm text-slate-500">Khách đã đặt cọc và <b>chưa có số của bạn</b>. Hãy <b>chủ động nhắn hoặc gọi khách</b> để hẹn giờ giao xe:</p>
                             <a href="tel:@ph" class="mt-2 block text-2xl font-extrabold text-emerald-700 tabular hover:underline">@r.CustomerPhone</a>
                             <div class="mt-4 grid gap-2">
                                 <a href="tel:@ph" class="btn-primary"><i class="fa-solid fa-phone"></i> Gọi khách</a>
-                                <a href="https://zalo.me/@ph" target="_blank" rel="noopener" class="btn-white !text-[#0068ff] ring-1 ring-sky-100"><span class="font-extrabold">Zalo</span> Nhắn khách</a>
+                                <a href="@(r.CustomerZaloLink ?? "https://zalo.me/" + ph)" target="_blank" rel="noopener" class="btn-white !text-[#0068ff] ring-1 ring-sky-100"><span class="font-extrabold">Zalo</span> Nhắn khách</a>
                             </div>
                         }
                         else if (r.Status == BookingStatus.AwaitingDeposit)

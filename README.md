@@ -14,7 +14,8 @@ Hệ thống không thu thêm khoản nào khác.
 ```
 Khách chọn xe + ngày  ─►  Gửi yêu cầu (PendingOwner)  ─►  Zalo tới chủ xe kèm link xác nhận
         chủ xe bấm Đồng ý  ─►  AwaitingDeposit: xe được giữ 30 phút cho khách, khách quét QR cọc 10%
-        khách cọc xong     ─►  Confirmed: hai bên nhận SĐT của nhau, trả 90% trực tiếp cho chủ xe
+        khách cọc xong     ─►  Confirmed: MoveGo gửi Zalo cho chủ xe (kèm tên + SĐT khách), chủ xe CHỦ ĐỘNG nhắn khách
+                               (khách không thấy SĐT chủ xe); 90% còn lại trả trực tiếp cho chủ xe
         chủ xe Từ chối / quá hạn  ─►  Rejected / Expired: xe tự mở lại
 ```
 
@@ -32,7 +33,7 @@ Hai khoảng trùng nhau khi `aStart < bEnd && aEnd > bStart` (trả xe 08:00 v�
 
 Không còn "điểm nhận xe" cố định. Khi đặt, khách tự nhập **địa chỉ muốn nhận xe** (khách sạn, nhà…); chủ xe thấy địa chỉ này trên trang xác nhận và trong tin Zalo (khoá `pickup_address` trong dữ liệu mẫu tin nhắn, nhớ thêm biến này vào template ZNS), rồi hai bên tự thống nhất giờ giao.
 
-> Test API (Swagger + bảng kết quả 69 trường hợp): xem [docs/API_TEST.md](docs/API_TEST.md).
+> Test API (Swagger + bảng kết quả 72 trường hợp): xem [docs/API_TEST.md](docs/API_TEST.md).
 > Mô tả đầy đủ từng API (request/response/lỗi): xem [docs/API_REFERENCE.md](docs/API_REFERENCE.md).
 > Nhận cọc bằng QR ngân hàng của bạn + tự nhận diện tiền về (SePay/Casso): xem [docs/THANH_TOAN_NGAN_HANG.md](docs/THANH_TOAN_NGAN_HANG.md).
 > App iPhone demo (Expo Go) gọi API này: xem [MoveGo.Mobile/README.md](MoveGo.Mobile/README.md).
@@ -55,7 +56,7 @@ Chạy thử trọn luồng không cần Zalo hay PayOS thật:
 1. Vào http://localhost:5200, bấm **Xe cho thuê** (hoặc **Đặt xe**), chọn ngày rồi bấm **Thuê xe** ở xe bạn thích, nhập **địa chỉ nhận xe ở Đà Lạt**, nhập tên và SĐT, gửi yêu cầu, rồi bấm **Theo dõi đơn của tôi** để mở trang theo dõi đơn.
 2. Terminal của API in ra tin Zalo giả lập, trong đó có dòng `confirm_link`. Mở link đó (đóng vai chủ xe) và bấm **Đồng ý cho thuê**.
 3. Quay lại trang theo dõi đơn: xuất hiện mã QR và đồng hồ đếm ngược 30 phút. Bấm **Giả lập đã thanh toán** (nút hiện khi chưa bật `BankPayment`/PayOS, và chỉ hoạt động khi API chạy ở `Development` hoặc có `Business:AllowMockPayment=true`).
-4. Đơn chuyển sang **Đã xác nhận**, hiện SĐT chủ xe và địa chỉ nhận xe. Terminal in thêm hai tin Zalo giả lập.
+4. Đơn chuyển sang **Đã cọc**. Khách **không** thấy SĐT chủ xe, trang chỉ báo "chủ xe sẽ chủ động nhắn bạn". Terminal in hai tin Zalo giả lập: tin cho **chủ xe** (kèm tên, SĐT và link Zalo của khách để chủ xe nhắn khách) và tin cho khách (không kèm SĐT chủ xe).
 5. Chủ xe có link quản lý lịch riêng (in ra terminal API lúc khởi động, dạng `/owner/manage/<token>`) để khoá ngày xe bận.
 
 ## Các trang web
@@ -80,7 +81,7 @@ Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặ
 - **Xe**: thêm xe (chọn chủ xe, giá, ảnh, điểm nổi bật), sửa, ẩn/hiện trên web hoặc xoá. Đổi giá chỉ áp dụng cho đơn mới.
 - **Xoá xe**: xe chưa từng có đơn thì xoá hẳn (kèm file ảnh đã tải lên). Xe đã có lịch sử đơn chỉ bị đánh dấu đã xoá và ẩn để số liệu hoa hồng không sai. Xe đang có đơn chờ xử lý hoặc đã xác nhận thì chưa xoá được.
 - **Ảnh xe**: mỗi xe tối đa 8 ảnh (nên 5–6 ảnh từ ngoài vào trong), ảnh đầu tiên là ảnh bìa phủ kín khung thẻ xe; bấm ★ để đổi ảnh bìa. Tải JPG/PNG/WebP tối đa 5 MB mỗi ảnh, lưu ở `MoveGo.Web/wwwroot/uploads/vehicles/` (đã gitignore), hoặc dán link ảnh có sẵn. Khách bấm vào ảnh trên thẻ xe để xem cả bộ ảnh (mũi tên, vuốt, phím ← →).
-- **Đơn**: lọc theo trạng thái, xem SĐT hai bên, gửi lại tin Zalo cho chủ xe khi lần đầu bị lỗi.
+- **Đơn**: lọc theo trạng thái, xem SĐT khách và chủ xe, thấy đơn nào chủ xe **chưa nhận được tin báo cọc** và gửi lại tin Zalo cho chủ xe.
 
 ## Các API chính
 
@@ -92,7 +93,7 @@ Mở http://localhost:5200/admin. Khi chạy ở `Development`, khoá admin mặ
 | `POST /api/booking/create` | Khách gửi yêu cầu (giới hạn 10 lần/phút/IP) |
 | `POST /api/booking/lookup` | Tra đơn theo SĐT đã đặt (tối đa 10 đơn/180 ngày, giới hạn 8 lần/phút/IP) |
 | `GET /api/booking/{code}` | Khách xem trạng thái đơn |
-| `GET/POST /api/owner/request/{token}` | Chủ xe xem và đồng ý/từ chối (link trong Zalo) |
+| `GET/POST /api/owner/request/{token}` | Chủ xe xem và đồng ý/từ chối (link trong Zalo); sau khi khách cọc, trang này hiện SĐT + nút Zalo của khách |
 | `GET /api/owner/manage/{manageToken}` và các `blocks` | Chủ xe quản lý lịch |
 | `POST /api/payments/mock/{code}/complete` | Giả lập khách đã cọc (chỉ Development, PayOS tắt) |
 | `POST /api/payments/payos-webhook` | PayOS báo thanh toán (kiểm tra chữ ký) |
@@ -111,7 +112,7 @@ Cấu hình nghiệp vụ nằm ở mục `Business` trong `MoveGo.API/appsettin
 
 Zalo ZNS, PayOS và webhook ngân hàng (SePay/Casso) được viết theo tài liệu chính thức và thử với cổng giả lập, nhưng **chưa được thử với tài khoản thật**. Mọi thứ khác đã chạy được ở chế độ giả lập.
 
-1. **Zalo ZNS**: cần Zalo Official Account, đăng ký ứng dụng, và 5 template tin nhắn được Zalo duyệt (khoá: `owner_new_request`, `customer_accepted`, `customer_rejected`, `owner_confirmed`, `customer_confirmed`). Điền vào mục `Zalo` rồi đặt `Enabled: true`. Token tự gia hạn và lưu ở `App_Data/` (đã gitignore).
+1. **Zalo ZNS**: cần Zalo Official Account, đăng ký ứng dụng, và 5 template tin nhắn được Zalo duyệt (khoá: `owner_new_request`, `customer_accepted`, `customer_rejected`, `owner_confirmed`, `customer_confirmed`). Tin quan trọng nhất là **`owner_confirmed`** (gửi chủ xe khi khách cọc xong) với các biến: `order_code`, `customer_name`, `customer_phone`, `customer_zalo_link`, `vehicle_name`, `pickup_address`, `start_date`, `end_date`, `owner_amount`, `customer_note`, `order_link`. Tin `customer_confirmed` gửi khách **không** có SĐT chủ xe. Điền vào mục `Zalo` rồi đặt `Enabled: true`. Token tự gia hạn và lưu ở `App_Data/` (đã gitignore).
 2. **Nhận cọc bằng QR ngân hàng của bạn (khuyên dùng)**: xem [docs/THANH_TOAN_NGAN_HANG.md](docs/THANH_TOAN_NGAN_HANG.md).
    **PayOS** (phương án khác): tạo kênh thanh toán, điền `ClientId`, `ApiKey`, `ChecksumKey` vào mục `PayOs`, đặt `Enabled: true`, và đăng ký webhook trỏ về `https://<tên-miền>/api/payments/payos-webhook`.
 3. **Khoá admin**: đổi `Business:AdminKey` thành chuỗi dài, ngẫu nhiên (đặt bằng biến môi trường `Business__AdminKey`). Để trống thì API admin tự tắt. Trang `/admin` chỉ nên chạy qua HTTPS.

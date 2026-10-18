@@ -85,6 +85,23 @@
                                     <button type="submit" class="btn-outline-dark btn-sm"><i class="fa-solid fa-paper-plane"></i> Gửi lại Zalo</button>
                                 </form>
                             }
+                            else if (st is BookingStatus.Confirmed or BookingStatus.Completed)
+                            {
+                                if (b.PaidNotifiedAt is null)
+                                {
+                                    <div class="mb-1 text-xs font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation"></i> Chưa báo được chủ xe</div>
+                                    <form method="post" asp-controller="Admin" asp-action="ResendOwner" asp-route-id="@b.Id">
+                                        <button type="submit" class="btn-primary btn-sm"><i class="fa-solid fa-paper-plane"></i> Gửi tin cho chủ xe</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="text-xs text-slate-400"><i class="fa-solid fa-check text-emerald-500"></i> Đã báo chủ xe lúc @b.PaidNotifiedAt.Value.ToString("HH:mm dd/MM")</div>
+                                    <form method="post" asp-controller="Admin" asp-action="ResendOwner" asp-route-id="@b.Id" class="mt-1">
+                                        <button type="submit" class="text-xs font-bold text-slate-500 underline hover:text-emerald-700">Gửi lại</button>
+                                    </form>
+                                }
+                            }
                             else if (st is BookingStatus.AwaitingDeposit or BookingStatus.Expired)
                             {
                                 <form method="post" asp-controller="Admin" asp-action="ConfirmPayment" asp-route-id="@b.Id" onsubmit="return confirm('Bạn đã thấy @ViewHelpers.Vnd(b.CommissionAmount) (nội dung @b.Code) trong tài khoản?');">

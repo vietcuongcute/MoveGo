@@ -150,7 +150,7 @@ export default function OrderScreen({ code, nav }: { code: string; nav: Nav }) {
           <Card style={{ ...s.note, backgroundColor: C.cyanSoft }}>
             <Text style={{ color: C.cyan, fontWeight: '800', fontSize: 16 }}>💳 Chủ xe đã đồng ý!</Text>
             <Text style={s.noteText}>
-              Đặt cọc {vnd(b.depositAmount)} (10%) để giữ xe và nhận số điện thoại chủ xe.
+              Đặt cọc {vnd(b.depositAmount)} (10%) để giữ xe. Cọc xong, chủ xe sẽ nhắn cho bạn.
             </Text>
             {holdActive ? (
               <Text style={s.timer}>Giữ xe còn {mmss(left as number)}</Text>
@@ -204,17 +204,13 @@ export default function OrderScreen({ code, nav }: { code: string; nav: Nav }) {
           </Card>
         ) : null}
 
-        {(b.status === 'Confirmed' || b.status === 'Completed') && b.owner ? (
+        {b.status === 'Confirmed' || b.status === 'Completed' ? (
           <Card style={{ ...s.note, backgroundColor: C.greenSoft }}>
-            <Text style={{ color: C.greenDark, fontWeight: '800', fontSize: 16 }}>✅ Đã giữ xe — liên hệ chủ xe</Text>
-            <Text style={s.owner}>{b.owner.name}</Text>
-            <Text style={s.phone}>{b.owner.phone}</Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-              <Btn title="📞 Gọi" onPress={() => open(`tel:${b.owner!.phone.replace(/\s/g, '')}`)} style={{ flex: 1 }} />
-              {b.owner.zaloLink ? (
-                <Btn title="Nhắn Zalo" kind="outline" onPress={() => open(b.owner!.zaloLink)} style={{ flex: 1 }} />
-              ) : null}
-            </View>
+            <Text style={{ color: C.greenDark, fontWeight: '800', fontSize: 16 }}>✅ Đã cọc — chờ chủ xe nhắn bạn</Text>
+            <Text style={s.owner}>{b.ownerName ? `Chủ xe ${b.ownerName}` : 'Chủ xe'} sẽ chủ động liên hệ</Text>
+            <Text style={[s.noteText, { marginTop: 6 }]}>
+              MoveGo đã báo cho chủ xe qua Zalo kèm số điện thoại của bạn. Chủ xe sẽ nhắn tin hoặc gọi để hẹn giờ và địa điểm giao xe — bạn chỉ cần giữ điện thoại bên mình.
+            </Text>
             <Text style={[s.small, { marginTop: 10 }]}>
               Còn lại {vnd(b.ownerAmount)} (90%) trả trực tiếp cho chủ xe khi nhận xe.
             </Text>

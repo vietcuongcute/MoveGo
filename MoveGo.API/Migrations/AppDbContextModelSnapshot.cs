@@ -88,6 +88,9 @@ namespace MoveGo.API.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<DateTime?>("PaidNotifiedAt")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<long?>("PayOsOrderCode")
                         .HasColumnType("bigint");
 

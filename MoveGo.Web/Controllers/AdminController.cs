@@ -130,7 +130,7 @@ public class AdminController(IAdminApi api, IDataProtectionProvider dp, IWebHost
     {
         var r = await api.ConfirmPaymentAsync(AdminKey, id, ct);
         if (KickIfUnauthorized(r.Status) is { } kick) return kick;
-        TempData[r.Ok ? "Flash" : "FlashError"] = r.Ok ? "Đã xác nhận nhận cọc — hai bên đã được mở số điện thoại." : r.Error;
+        TempData[r.Ok ? "Flash" : "FlashError"] = r.Ok ? "Đã xác nhận nhận cọc — đã báo chủ xe qua Zalo để chủ xe nhắn khách." : r.Error;
         return RedirectToAction(nameof(Index));
     }
 

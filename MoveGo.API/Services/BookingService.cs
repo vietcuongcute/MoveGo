@@ -9,7 +9,8 @@ namespace MoveGo.API.Services;
 
 /// <summary>
 /// Toàn bộ nghiệp vụ vòng đời một đơn thuê:
-///   khách gửi yêu cầu → Zalo chủ xe → chủ xe chấp nhận (giữ chỗ) → khách cọc 10% → xác nhận → mở SĐT 2 bên.
+///   khách gửi yêu cầu → Zalo chủ xe → chủ xe chấp nhận (giữ chỗ) → khách cọc 10% → xác nhận →
+///   Zalo báo chủ xe (kèm SĐT khách) → CHỦ XE chủ động nhắn khách. Khách không thấy SĐT chủ xe.
 /// </summary>
 public class BookingService(
     AppDbContext db, IAvailabilityService availability, PricingService pricing,
@@ -281,24 +282,14 @@ public class BookingService(
             return Fail<BookingTrackDto>(409, "Đã nhận cọc nhưng xe không còn trống. MoveGo sẽ liên hệ hoàn tiền cho bạn.");
         }
 
-        await SafeSendAsync(booking.Vehicle.Owner.ZaloPhone, ZaloTemplates.OwnerConfirmed, booking.Code, new()
-        {
-            ["order_code"] = booking.Code,
-            ["customer_name"] = booking.CustomerName,
-            ["customer_phone"] = booking.CustomerPhone,
-            ["vehicle_name"] = booking.Vehicle.Name,
-            ["pickup_address"] = booking.PickupAddress,
-            ["start_date"] = Fmt.DateTimeVn(booking.StartDate),
-            ["end_date"] = Fmt.DateTimeVn(booking.EndDate),
-            ["owner_amount"] = Fmt.Money(booking.OwnerAmount)
-        }, ct);
+        // Khách đã cọc → báo chủ xe qua Zalo (kèm SĐT khách) để CHỦ XE chủ động nhắn khách.
+        await NotifyOwnerPaidAsync(booking, ct);
 
         await SafeSendAsync(booking.CustomerPhone, ZaloTemplates.CustomerConfirmed, booking.Code, new()
         {
             ["order_code"] = booking.Code,
             ["customer_name"] = booking.CustomerName,
             ["owner_name"] = booking.Vehicle.Owner.Name,
-            ["owner_phone"] = booking.Vehicle.Owner.PhoneNumber,
             ["vehicle_name"] = booking.Vehicle.Name,
             ["pickup_address"] = booking.PickupAddress,
             ["owner_amount"] = Fmt.Money(booking.OwnerAmount)
@@ -418,12 +409,19 @@ public class BookingService(
         return changed;
     }
 
-    /// <summary>Gửi lại tin Zalo cho chủ xe (admin dùng khi tin đầu bị lỗi).</summary>
+    /// <summary>
+    /// Gửi lại tin Zalo cho chủ xe (admin dùng khi tin bị lỗi). Đơn đang chờ chủ xe → gửi lại yêu cầu duyệt;
+    /// đơn khách đã cọc → gửi lại tin "khách đã cọc, đây là SĐT khách".
+    /// </summary>
     public async Task<ServiceResult<bool>> ResendOwnerNotificationAsync(int bookingId, CancellationToken ct = default)
     {
         var booking = await LoadBookingAsync(b => b.Id == bookingId, ct);
         if (booking is null) return Fail<bool>(404, "Không tìm thấy đơn.");
-        if (booking.Status != BookingStatus.PendingOwner) return Fail<bool>(409, "Đơn không còn ở trạng thái chờ chủ xe.");
+
+        if (booking.Status is BookingStatus.Confirmed or BookingStatus.Completed)
+            return ServiceResult<bool>.Success(await NotifyOwnerPaidAsync(booking, ct));
+
+        if (booking.Status != BookingStatus.PendingOwner) return Fail<bool>(409, "Đơn này không cần gửi tin cho chủ xe.");
 
         var sent = await SafeSendAsync(booking.Vehicle.Owner.ZaloPhone, ZaloTemplates.OwnerNewRequest, booking.Code, new()
         {
@@ -440,6 +438,32 @@ public class BookingService(
 
         if (sent) { booking.OwnerNotifiedAt = clock.Now; await db.SaveChangesAsync(ct); }
         return ServiceResult<bool>.Success(sent);
+    }
+
+    /// <summary>Báo chủ xe qua Zalo: khách đã cọc, kèm tên + SĐT + link Zalo của khách. Ghi lại PaidNotifiedAt khi gửi được.</summary>
+    private async Task<bool> NotifyOwnerPaidAsync(Booking booking, CancellationToken ct)
+    {
+        var sent = await SafeSendAsync(booking.Vehicle.Owner.ZaloPhone, ZaloTemplates.OwnerConfirmed, booking.Code, new()
+        {
+            ["order_code"] = booking.Code,
+            ["customer_name"] = booking.CustomerName,
+            ["customer_phone"] = booking.CustomerPhone,
+            ["customer_zalo_link"] = CustomerZaloLink(booking),
+            ["vehicle_name"] = booking.Vehicle.Name,
+            ["pickup_address"] = booking.PickupAddress,
+            ["start_date"] = Fmt.DateTimeVn(booking.StartDate),
+            ["end_date"] = Fmt.DateTimeVn(booking.EndDate),
+            ["owner_amount"] = Fmt.Money(booking.OwnerAmount),
+            ["customer_note"] = string.IsNullOrWhiteSpace(booking.CustomerNote) ? "Không có" : booking.CustomerNote,
+            ["order_link"] = OwnerConfirmLink(booking)
+        }, ct);
+
+        if (sent)
+        {
+            booking.PaidNotifiedAt = clock.Now;
+            await db.SaveChangesAsync(ct);
+        }
+        return sent;
     }
 
     // =====================================================================
@@ -504,6 +528,7 @@ public class BookingService(
         }, ct);
 
     private string OwnerConfirmLink(Booking b) => $"{Biz.WebBaseUrl.TrimEnd('/')}/owner/confirm/{b.OwnerToken}";
+    private static string CustomerZaloLink(Booking b) => $"https://zalo.me/{b.CustomerPhone}";
     private string TrackLink(Booking b) => $"{Biz.WebBaseUrl.TrimEnd('/')}/booking/{b.Code}";
 
     private static string? Trim(string? s, int max)
@@ -519,7 +544,7 @@ public class BookingService(
     {
         BookingStatus.PendingOwner => "Đang chờ chủ xe xác nhận",
         BookingStatus.AwaitingDeposit => "Chủ xe đã đồng ý — vui lòng đặt cọc",
-        BookingStatus.Confirmed => "Đã xác nhận",
+        BookingStatus.Confirmed => "Đã cọc — chủ xe sẽ nhắn Zalo cho bạn",
         BookingStatus.Rejected => "Chủ xe không thể nhận đơn",
         BookingStatus.Cancelled => "Đã huỷ",
         BookingStatus.Expired => "Đã hết hạn",
@@ -546,7 +571,7 @@ public class BookingService(
             b.CustomerName, b.CreatedAt,
             secondsLeft,
             awaiting ? b.CheckoutUrl : null, awaiting ? b.QrCode : null, payments.IsMock,
-            revealed ? new OwnerContactDto(owner.Name, owner.PhoneNumber, $"https://zalo.me/{owner.ZaloPhone}") : null,
+            revealed ? owner.Name : null,
             b.RejectReason,
             awaiting ? payments.DescribeTransfer(b) : null);
     }
@@ -564,6 +589,7 @@ public class BookingService(
             b.StartDate, b.EndDate, b.RentalDays,
             b.TotalAmount, b.OwnerAmount, b.CommissionAmount,
             b.PickupAddress, Biz.DepositHoldMinutes,
-            b.Vehicle.Owner.ManageToken);
+            b.Vehicle.Owner.ManageToken,
+            revealed ? CustomerZaloLink(b) : null);
     }
 }

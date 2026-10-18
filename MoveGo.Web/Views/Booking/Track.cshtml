@@ -50,7 +50,7 @@ else
         ("Gửi yêu cầu", "Bạn đã chọn xe, ngày và địa chỉ nhận xe.", "fa-paper-plane"),
         ("Chủ xe xác nhận", "Chủ xe nhận tin Zalo và bấm đồng ý.", "fa-user-check"),
         ("Đặt cọc 10%", "Quét mã QR để giữ xe cho bạn.", "fa-qrcode"),
-        ("Nhận xe", "Hai bên liên hệ trực tiếp, trả 90% còn lại.", "fa-key")
+        ("Nhận xe", "Chủ xe chủ động nhắn bạn, trả 90% còn lại.", "fa-key")
     };
 
     var (pillBg, pillText, pillIcon) = st switch
@@ -175,7 +175,7 @@ else
                                         <ul class="mt-4 space-y-2.5 text-sm text-slate-600">
                                             <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Số tiền và nội dung chuyển khoản đã nằm sẵn trong mã QR — nếu chuyển tay, hãy giữ nguyên nội dung.</li>
                                             <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Thanh toán xong, trang này tự cập nhật trong vài giây.</li>
-                                            <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Sau đó bạn nhận số điện thoại &amp; Zalo chủ xe.</li>
+                                            <li class="flex gap-2.5"><i class="fa-solid fa-circle-check mt-0.5 text-emerald-500"></i> Sau đó MoveGo báo chủ xe qua Zalo và chủ xe sẽ chủ động nhắn cho bạn.</li>
                                         </ul>
                                         @if (b.Bank is { } bank)
                                         {
@@ -215,28 +215,20 @@ else
                                     <svg class="success-check h-14 w-14 shrink-0" viewBox="0 0 54 54" fill="none" stroke="#25a074" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="27" cy="27" r="26" /><path d="M15 28l8 8 16-17" /></svg>
                                     <div>
                                         <h2 class="text-xl font-extrabold">@(st == BookingStatus.Completed ? "Chuyến đi đã hoàn tất — cảm ơn bạn!" : "Chốt đơn thành công!")</h2>
-                                        <p class="text-sm text-slate-500">Bạn đã cọc @ViewHelpers.Vnd(b.DepositAmount). Giờ hãy liên hệ trực tiếp với chủ xe để hẹn giờ nhận xe.</p>
+                                        <p class="text-sm text-slate-500">Bạn đã cọc @ViewHelpers.Vnd(b.DepositAmount). MoveGo đã báo cho chủ xe — chủ xe sẽ chủ động nhắn cho bạn.</p>
                                     </div>
                                 </div>
 
-                                @if (b.Owner is not null)
-                                {
-                                    var ph = new string(b.Owner.Phone.Where(char.IsDigit).ToArray());
-                                    <div class="relative mt-6 rounded-3xl bg-gradient-to-br from-emerald-50 to-cyan-50 p-5 ring-1 ring-emerald-100">
-                                        <div class="flex items-center gap-4">
-                                            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xl font-extrabold text-white shadow-glow">@b.Owner.Name.Trim().Substring(0, 1).ToUpperInvariant()</span>
-                                            <div class="min-w-0">
-                                                <div class="tile-label">Chủ xe của bạn</div>
-                                                <div class="truncate text-lg font-extrabold">@b.Owner.Name</div>
-                                                <a href="tel:@ph" class="text-lg font-bold text-emerald-700 hover:underline tabular">@b.Owner.Phone</a>
-                                            </div>
-                                        </div>
-                                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                                            <a href="tel:@ph" class="btn-primary"><i class="fa-solid fa-phone"></i> Gọi chủ xe</a>
-                                            <a href="@b.Owner.ZaloLink" target="_blank" rel="noopener" class="btn-white !text-[#0068ff] ring-1 ring-sky-100"><span class="font-extrabold">Zalo</span> Nhắn chủ xe</a>
+                                <div class="relative mt-6 rounded-3xl bg-gradient-to-br from-emerald-50 to-cyan-50 p-5 ring-1 ring-emerald-100">
+                                    <div class="flex items-start gap-4">
+                                        <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 text-xl text-white shadow-glow"><i class="fa-brands fa-rocketchat"></i></span>
+                                        <div class="min-w-0">
+                                            <div class="tile-label">Bước tiếp theo</div>
+                                            <div class="text-lg font-extrabold">@(string.IsNullOrWhiteSpace(b.OwnerName) ? "Chủ xe" : "Chủ xe " + b.OwnerName) sẽ chủ động liên hệ bạn</div>
+                                            <p class="mt-1 text-sm text-slate-600">MoveGo đã gửi thông tin đơn và số điện thoại của bạn cho chủ xe qua Zalo. Chủ xe sẽ nhắn tin hoặc gọi cho bạn để hẹn giờ và địa điểm giao xe. Bạn chỉ cần giữ điện thoại bên mình.</p>
                                         </div>
                                     </div>
-                                }
+                                </div>
 
                                 <div class="relative mt-6 grid gap-3 sm:grid-cols-2">
                                     <div class="tile"><i class="fa-solid fa-wallet mr-1 text-emerald-500"></i> <b>Trả chủ xe khi nhận xe</b><div class="mt-1 text-2xl font-extrabold tabular">@ViewHelpers.Vnd(b.OwnerAmount)</div></div>

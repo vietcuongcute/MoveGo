@@ -11,8 +11,8 @@ public static class ZaloTemplates
     public const string OwnerNewRequest = "owner_new_request";     // Chủ xe: có khách muốn thuê, bấm link để xác nhận
     public const string CustomerAccepted = "customer_accepted";    // Khách: chủ xe đã đồng ý, bấm link để cọc
     public const string CustomerRejected = "customer_rejected";    // Khách: chủ xe không nhận được đơn
-    public const string OwnerConfirmed = "owner_confirmed";        // Chủ xe: khách đã cọc, đây là SĐT khách
-    public const string CustomerConfirmed = "customer_confirmed";  // Khách: đã cọc, đây là SĐT chủ xe
+    public const string OwnerConfirmed = "owner_confirmed";        // Chủ xe: khách đã cọc, đây là tên + SĐT khách — hãy nhắn khách
+    public const string CustomerConfirmed = "customer_confirmed";  // Khách: đã cọc thành công, chủ xe sẽ nhắn Zalo cho bạn (KHÔNG kèm SĐT chủ xe)
 }
 
 public interface IZaloService

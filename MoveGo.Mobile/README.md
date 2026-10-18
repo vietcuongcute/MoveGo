@@ -4,7 +4,7 @@ App khách hàng của MoveGo viết bằng **Expo / React Native (TypeScript)**
 Chạy trên iPhone qua app **Expo Go** — không cần tài khoản Apple Developer, không cần Xcode.
 
 Có 3 tab: **Xe** (danh sách + lọc loại xe) → **Chi tiết xe** (lịch bận, chọn ngày, báo giá, form đặt) ·
-**Tra cứu** (mã đơn hoặc SĐT, đơn gần đây) → **Đơn** (tiến trình, đếm ngược giữ xe, đặt cọc, SĐT chủ xe) ·
+**Tra cứu** (mã đơn hoặc SĐT, đơn gần đây) → **Đơn** (tiến trình, đếm ngược giữ xe, đặt cọc, chờ chủ xe nhắn) ·
 **Cài đặt** (địa chỉ API).
 
 ---
@@ -61,7 +61,7 @@ Vào tab **Cài đặt** → nhập `http://192.168.1.23:5100` (IP Mac của b�
 1. Tab **Xe** → chọn *VinFast VF 3* → chọn số ngày → xem báo giá → nhập tên, SĐT, **địa chỉ nhận xe ở Đà Lạt** → **Gửi yêu cầu**.
 2. Màn hình đơn hiện "⏳ Chờ chủ xe". Lúc này đóng vai chủ xe: mở `http://localhost:5200/admin` (khoá `movego-admin-dev`) hoặc xem terminal đang chạy API (tin Zalo giả lập in ra **link của chủ xe**) → mở link → **Đồng ý**.
 3. Trên iPhone, đơn tự chuyển sang "💳 Chờ đặt cọc" (tự cập nhật ~8 giây, hoặc kéo xuống) với đồng hồ giữ xe 30 phút.
-4. Bấm **Thanh toán cọc (giả lập)** → trạng thái **Đã xác nhận**, hiện **tên + SĐT chủ xe**, nút **Gọi** / **Nhắn Zalo**; 90% còn lại trả trực tiếp cho chủ xe.
+4. Bấm **Thanh toán cọc (giả lập)** → trạng thái **Đã cọc**, hiện thông báo **chủ xe sẽ chủ động nhắn bạn** (app không hiện SĐT chủ xe); 90% còn lại trả trực tiếp cho chủ xe.
 5. Tab **Tra cứu** → nhập SĐT vừa đặt → ra danh sách đơn.
 
 ## Xử lý sự cố

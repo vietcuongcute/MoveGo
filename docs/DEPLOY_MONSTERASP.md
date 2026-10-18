@@ -57,7 +57,7 @@ Phần `BankPayment` để khách cọc bằng QR vào tài khoản của bạn 
 ## 5. Chạy kịch bản demo
 1. Khách: `/xe` → chọn xe + ngày + địa chỉ nhận xe → Gửi yêu cầu → ghi lại **mã đơn** (MG-XXXXXX).
 2. Chủ xe (Zalo chưa nối nên không có tin nhắn): vào **Admin → Chủ xe**, copy **link quản lý** của chủ xe sở hữu xe đó, mở ở tab khác → đơn đang chờ → **Trả lời → Chấp nhận**.
-3. Khách: `/tra-cuu` nhập mã đơn **hoặc số điện thoại** đã đặt → trang theo dõi → quét QR cọc (tự xác nhận khi tiền về) → hiện số điện thoại chủ xe. Chế độ thử nghiệm (không bật `BankPayment`): cần `Business.AllowMockPayment = true` thì nút **"Giả lập đã thanh toán"** mới chạy trên host; mặc định nút này chỉ chạy ở môi trường Development.
+3. Khách: `/tra-cuu` nhập mã đơn **hoặc số điện thoại** đã đặt → trang theo dõi → quét QR cọc (tự xác nhận khi tiền về) → đơn chuyển sang **Đã cọc**, MoveGo gửi Zalo cho chủ xe (kèm số điện thoại khách) và chủ xe chủ động nhắn khách; khách không thấy số điện thoại chủ xe. Chế độ thử nghiệm (không bật `BankPayment`): cần `Business.AllowMockPayment = true` thì nút **"Giả lập đã thanh toán"** mới chạy trên host; mặc định nút này chỉ chạy ở môi trường Development.
 4. Admin → *Tổng quan & đơn* thấy hoa hồng 10%.
 5. Ảnh xe: Admin → **Xe** → Sửa → tải ảnh lên (ảnh được lưu trong `wwwroot/uploads/vehicles` trên host, nên không mất khi restart).
 

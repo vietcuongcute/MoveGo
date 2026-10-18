@@ -14,9 +14,10 @@ public class CreateBookingRequest
     public DateTime? EndDate { get; set; }
 }
 
-public record OwnerContactDto(string Name, string Phone, string ZaloLink);
-
-/// <summary>Trạng thái đơn dành cho KHÁCH. SĐT chủ xe chỉ có khi đã cọc (Confirmed/Completed). PickupAddress là địa chỉ chính khách đã nhập.</summary>
+/// <summary>
+/// Trạng thái đơn dành cho KHÁCH. Khách KHÔNG thấy SĐT chủ xe: sau khi cọc, MoveGo báo cho chủ xe qua Zalo và chủ xe chủ động nhắn khách.
+/// OwnerName (tên chủ xe) chỉ có khi đã cọc (Confirmed/Completed). PickupAddress là địa chỉ chính khách đã nhập.
+/// </summary>
 public record BookingTrackDto(
     string Code, BookingStatus Status, string StatusText,
     string VehicleName, VehicleCategory Category, string CategoryLabel, string? VehicleImageUrl,
@@ -26,7 +27,7 @@ public record BookingTrackDto(
     string CustomerName, DateTime CreatedAt,
     int? HoldSecondsLeft,
     string? CheckoutUrl, string? QrCode, bool IsMockPayment,
-    OwnerContactDto? Owner, string? RejectReason,
+    string? OwnerName, string? RejectReason,
     BankTransferInfoDto? Bank = null);
 
 /// <summary>Thông tin chuyển khoản để khách làm tay nếu không quét QR (chỉ khi bật BankPayment).</summary>
@@ -40,7 +41,8 @@ public record OwnerRequestDto(
     DateTime StartDate, DateTime EndDate, int RentalDays,
     decimal TotalAmount, decimal OwnerAmount, decimal CommissionAmount,
     string PickupAddress, int DepositHoldMinutes,
-    string? ManageToken = null);   // để chủ xe quay về cổng quản lý lịch từ trang xác nhận
+    string? ManageToken = null,
+    string? CustomerZaloLink = null);   // link nhắn Zalo cho khách: chỉ có sau khi khách đã cọc   // để chủ xe quay về cổng quản lý lịch từ trang xác nhận
 
 public class OwnerRespondRequest
 {
@@ -53,7 +55,7 @@ public record OwnerBlockDto(int Id, DateTime StartDate, DateTime EndDate, string
 
 public record OwnerBookingDto(
     string Code, BookingStatus Status, string StatusText, string CustomerName, string? CustomerPhone,
-    DateTime StartDate, DateTime EndDate, decimal OwnerAmount, string PickupAddress, string? ConfirmToken);
+    DateTime StartDate, DateTime EndDate, decimal OwnerAmount, string PickupAddress, string? DetailToken);
 
 public record OwnerVehicleDto(
     int Id, string Name, decimal PricePerDay, bool IsActive,

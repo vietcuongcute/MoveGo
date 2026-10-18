@@ -186,9 +186,9 @@
                                     </div>
                                     <div class="flex items-center gap-3">
                                         <div class="text-right"><div class="tile-label">Bạn nhận</div><div class="font-extrabold tabular">@ViewHelpers.Vnd(bk.OwnerAmount)</div></div>
-                                        @if (!string.IsNullOrWhiteSpace(bk.ConfirmToken))
+                                        @if (!string.IsNullOrWhiteSpace(bk.DetailToken))
                                         {
-                                            <a class="btn-primary btn-sm" href="@Url.Action("Confirm", "Owner", new { token = bk.ConfirmToken })">Trả lời <i class="fa-solid fa-arrow-right"></i></a>
+                                            <a class="@(bk.Status == BookingStatus.PendingOwner ? "btn-primary" : "btn-outline-dark") btn-sm" href="@Url.Action("Confirm", "Owner", new { token = bk.DetailToken })">@(bk.Status == BookingStatus.PendingOwner ? "Trả lời" : "Chi tiết") <i class="fa-solid fa-arrow-right"></i></a>
                                         }
                                     </div>
                                 </div>

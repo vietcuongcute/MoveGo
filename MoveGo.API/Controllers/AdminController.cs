@@ -114,7 +114,10 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
         var commission = await db.Bookings.Where(b => b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed)
             .SumAsync(b => b.CommissionAmount, ct);
         var needRefund = await db.Bookings.CountAsync(b => b.AdminNote != null, ct);
-        var ownerNotNotified = await db.Bookings.CountAsync(b => b.Status == BookingStatus.PendingOwner && b.OwnerNotifiedAt == null, ct);
+        // Đơn chủ xe chưa nhận được tin: (a) đơn mới chưa báo duyệt, (b) khách ĐÃ CỌC nhưng tin "hãy nhắn khách" chưa gửi được.
+        var ownerNotNotified = await db.Bookings.CountAsync(b =>
+            (b.Status == BookingStatus.PendingOwner && b.OwnerNotifiedAt == null)
+            || ((b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed) && b.PaidNotifiedAt == null), ct);
 
         return Ok(new { byStatus, commissionEarned = commission, needRefund, ownerNotNotified });
     }
@@ -132,7 +135,7 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
             Vehicle = b.Vehicle.Name, Owner = b.Vehicle.Owner.Name, OwnerPhone = b.Vehicle.Owner.PhoneNumber,
             b.CustomerName, b.CustomerPhone, b.PickupAddress, b.StartDate, b.EndDate, b.RentalDays,
             b.TotalAmount, b.CommissionAmount, b.OwnerAmount,
-            b.CreatedAt, b.OwnerNotifiedAt, b.OwnerRespondedAt, b.PaidAt, b.AdminNote
+            b.CreatedAt, b.OwnerNotifiedAt, b.OwnerRespondedAt, b.PaidAt, b.PaidNotifiedAt, b.AdminNote
         }));
     }
 
@@ -141,7 +144,7 @@ public class AdminController(AppDbContext db, BookingService bookings, AdminCata
     public async Task<IActionResult> ConfirmPayment(int id, CancellationToken ct) =>
         (await bookings.ConfirmPaymentManuallyAsync(id, ct)).ToActionResult(this);
 
-    /// <summary>Gửi lại tin Zalo cho chủ xe nếu lần đầu bị lỗi.</summary>
+    /// <summary>Gửi lại tin Zalo cho chủ xe nếu lần đầu bị lỗi: đơn chờ duyệt → tin duyệt đơn; đơn đã cọc → tin "khách đã cọc, hãy nhắn khách".</summary>
     [HttpPost("bookings/{id:int}/resend-owner")]
     public async Task<IActionResult> ResendOwner(int id, CancellationToken ct) =>
         (await bookings.ResendOwnerNotificationAsync(id, ct)).ToActionResult(this);

@@ -43,7 +43,7 @@ public record AdminBookingDto(
     int Id, string Code, string Status, string Vehicle, string Owner, string OwnerPhone,
     string CustomerName, string CustomerPhone, string PickupAddress, DateTime StartDate, DateTime EndDate, int RentalDays,
     decimal TotalAmount, decimal CommissionAmount, decimal OwnerAmount,
-    DateTime CreatedAt, DateTime? OwnerNotifiedAt, DateTime? OwnerRespondedAt, DateTime? PaidAt, string? AdminNote);
+    DateTime CreatedAt, DateTime? OwnerNotifiedAt, DateTime? OwnerRespondedAt, DateTime? PaidAt, DateTime? PaidNotifiedAt, string? AdminNote);
 
 public class AdminOverviewViewModel
 {
