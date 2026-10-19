@@ -109,7 +109,9 @@ public static class ApiHosting
             return provider.Replace(" ", "").Equals("SqlServer", StringComparison.OrdinalIgnoreCase)
                 || provider.Equals("mssql", StringComparison.OrdinalIgnoreCase);
         var cs = config.GetConnectionString("Default") ?? "";
-        if (cs.StartsWith("postgres", StringComparison.OrdinalIgnoreCase) || cs.Contains("Host=", StringComparison.OrdinalIgnoreCase)) return false;
+        // Chuỗi của PostgreSQL: "Host=..." / "postgres://..." / "Server=...;Port=5432;..." (MonsterASP hiển thị dạng này)
+        if (cs.StartsWith("postgres", StringComparison.OrdinalIgnoreCase) || cs.Contains("Host=", StringComparison.OrdinalIgnoreCase)
+            || cs.Contains("Port=5432", StringComparison.OrdinalIgnoreCase)) return false;
         return cs.Contains("Server=", StringComparison.OrdinalIgnoreCase) || cs.Contains("Data Source=", StringComparison.OrdinalIgnoreCase);
     }
 
