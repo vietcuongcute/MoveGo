@@ -1,0 +1,28 @@
+@* Khung ảnh xe dùng chung cho Theo dõi đơn, Xác nhận của chủ xe, Tra cứu...: có ảnh thật thì hiện ảnh thật
+   (giống thẻ "Xe cho thuê"), chưa có ảnh thì dùng hình minh hoạ SVG.
+   ViewData: Url (string?), Name, Category (VehicleCategory), Tone, ArtClass (độ rộng hình minh hoạ). *@
+@{
+    var url = ViewData["Url"] as string;
+    var name = ViewData["Name"] as string ?? "";
+    var cat = ViewData["Category"] as VehicleCategory? ?? VehicleCategory.Car4Seats;
+    var tone = ViewData["Tone"] as string ?? "#3b9ae1";
+    var artClass = ViewData["ArtClass"] as string ?? "mx-auto w-[88%] max-w-[18rem] pt-6";
+    var hasPhoto = !string.IsNullOrWhiteSpace(url);
+}
+<div class="vcard-art @(hasPhoto ? "vcard-art-photo" : "") !rounded-3xl" style="--tone:@tone">
+    @if (hasPhoto)
+    {
+        <button type="button" class="vcard-photo" data-gallery="@System.Text.Json.JsonSerializer.Serialize(new[] { url })" data-gallery-title="@name" aria-label="Xem ảnh @name">
+            <img src="@url" alt="@name" />
+            <span class="vcard-photo-shade"></span>
+            <span class="photo-count"><i class="fa-regular fa-images"></i> Phóng to</span>
+        </button>
+    }
+    else
+    {
+        <div class="@artClass" style="color:@tone">
+            <svg class="art" viewBox="0 0 360 170" role="img" aria-label="@name"><use href="#@ViewHelpers.ArtId(cat)" /></svg>
+        </div>
+        <div class="vcard-shadow"></div>
+    }
+</div>

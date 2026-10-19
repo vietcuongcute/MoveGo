@@ -268,12 +268,7 @@ else
                 @* ---------- Tóm tắt đơn ---------- *@
                 <aside class="lg:col-span-2">
                     <div class="panel anim-rise lg:sticky lg:top-28" style="--d:.15s">
-                        <div class="vcard-art !rounded-3xl" style="--tone:@tone">
-                            <div class="mx-auto w-[88%] max-w-[18rem] pt-6" style="color:@tone">
-                                <svg class="art" viewBox="0 0 360 170" role="img" aria-label="@b.VehicleName"><use href="#@ViewHelpers.ArtId(b.Category)" /></svg>
-                            </div>
-                            <div class="vcard-shadow"></div>
-                        </div>
+                        <partial name="_VehiclePhoto" view-data="@(new ViewDataDictionary(ViewData) { ["Url"] = b.VehicleImageUrl, ["Name"] = b.VehicleName, ["Category"] = b.Category, ["Tone"] = tone })" />
                         <h2 class="mt-5 text-xl font-extrabold">@b.VehicleName</h2>
                         <span class="chip mt-1"><i class="fa-solid @ViewHelpers.CategoryIcon(b.Category) text-slate-400"></i> @b.CategoryLabel</span>
 

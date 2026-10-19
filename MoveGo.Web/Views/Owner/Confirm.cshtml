@@ -57,12 +57,7 @@
                     <span class="status-pill @badgeCls"><i class="fa-solid @badgeIcon"></i> @r.StatusText</span>
                 </div>
 
-                <div class="vcard-art mt-5 !rounded-3xl" style="--tone:@tone">
-                    <div class="mx-auto w-[80%] max-w-[16rem] pt-5" style="color:@tone">
-                        <svg class="art" viewBox="0 0 360 170" role="img" aria-label="@r.VehicleName"><use href="#@ViewHelpers.ArtId(r.Category)" /></svg>
-                    </div>
-                    <div class="vcard-shadow"></div>
-                </div>
+                <div class="mt-5"><partial name="_VehiclePhoto" view-data="@(new ViewDataDictionary(ViewData) { ["Url"] = r.VehicleImageUrl, ["Name"] = r.VehicleName, ["Category"] = r.Category, ["Tone"] = tone, ["ArtClass"] = "mx-auto w-[80%] max-w-[16rem] pt-5" })" /></div>
                 <h3 class="mt-4 text-lg font-extrabold">@r.VehicleName</h3>
 
                 <div class="mt-4 grid gap-3 sm:grid-cols-2">

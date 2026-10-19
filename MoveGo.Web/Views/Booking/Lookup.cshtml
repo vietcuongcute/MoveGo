@@ -53,6 +53,10 @@
                                 var (cls, icon) = ViewHelpers.StatusBadge(o.Status);
                                 <li>
                                     <a href="@Url.Action("Track", "Booking", new { code = o.Code })" class="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 transition hover:border-emerald-400 hover:shadow-soft">
+                                        @if (!string.IsNullOrWhiteSpace(o.VehicleImageUrl))
+                                        {
+                                            <img src="@o.VehicleImageUrl" alt="@o.VehicleName" loading="lazy" class="h-16 w-20 shrink-0 rounded-xl object-cover" />
+                                        }
                                         <div class="min-w-0 flex-1">
                                             <div class="flex flex-wrap items-center gap-2">
                                                 <span class="font-extrabold tracking-wider text-ink-900">@o.Code</span>

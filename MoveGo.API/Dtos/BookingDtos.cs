@@ -59,7 +59,7 @@ public record OwnerBookingDto(
 
 public record OwnerVehicleDto(
     int Id, string Name, decimal PricePerDay, bool IsActive,
-    List<OwnerBlockDto> Blocks, List<OwnerBookingDto> Bookings);
+    List<OwnerBlockDto> Blocks, List<OwnerBookingDto> Bookings, string? ImageUrl = null);
 
 public record OwnerDashboardDto(string OwnerName, List<OwnerVehicleDto> Vehicles);
 
