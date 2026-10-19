@@ -65,8 +65,15 @@ public static class ApiHosting
 
         services.AddSingleton<IClock, VietnamClock>();
         services.AddScoped<IAvailabilityService, AvailabilityService>();
+        // Hai loại CSDL: PostgreSQL (mặc định khi chạy ở máy) hoặc SQL Server (MonsterASP gói Free chỉ có MSSQL/MySQL).
+        // Tự nhận theo chuỗi kết nối ("Server=..."/"Data Source=..." → SQL Server) hoặc ép bằng Database:Provider.
+        var useSqlServer = UsesSqlServer(config);
         services.AddDbContext<AppDbContext>(o =>
-            o.UseNpgsql(NormalizeConnectionString(config.GetConnectionString("Default"))));
+        {
+            var cs = config.GetConnectionString("Default");
+            if (useSqlServer) o.UseSqlServer(cs);
+            else o.UseNpgsql(NormalizeConnectionString(cs));
+        });
 
         services.AddProblemDetails();
         return services;
@@ -77,7 +84,9 @@ public static class ApiHosting
     {
         using var scope = root.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await db.Database.MigrateAsync();
+        // PostgreSQL: dùng migration. SQL Server: các migration hiện có viết cho PostgreSQL nên tạo bảng thẳng từ model.
+        if (DbLock.IsSqlServer(db)) await db.Database.EnsureCreatedAsync();
+        else await db.Database.MigrateAsync();
 
         if (config.GetValue<bool>("Seed:Enabled"))
             await SeedData.EnsureSeededAsync(db, scope.ServiceProvider.GetRequiredService<IClock>());
@@ -90,6 +99,18 @@ public static class ApiHosting
             foreach (var o in await db.Owners.AsNoTracking().OrderBy(x => x.Id).ToListAsync())
                 log.LogInformation("Chủ xe {Name}: {Web}/owner/manage/{Token}", o.Name, web, o.ManageToken);
         }
+    }
+
+    /// <summary>Database:Provider = "SqlServer" | "Postgres"; để trống thì đoán theo chuỗi kết nối.</summary>
+    public static bool UsesSqlServer(IConfiguration config)
+    {
+        var provider = config["Database:Provider"];
+        if (!string.IsNullOrWhiteSpace(provider))
+            return provider.Replace(" ", "").Equals("SqlServer", StringComparison.OrdinalIgnoreCase)
+                || provider.Equals("mssql", StringComparison.OrdinalIgnoreCase);
+        var cs = config.GetConnectionString("Default") ?? "";
+        if (cs.StartsWith("postgres", StringComparison.OrdinalIgnoreCase) || cs.Contains("Host=", StringComparison.OrdinalIgnoreCase)) return false;
+        return cs.Contains("Server=", StringComparison.OrdinalIgnoreCase) || cs.Contains("Data Source=", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

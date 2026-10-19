@@ -58,7 +58,7 @@ public class OwnerPortalService(AppDbContext db, IClock clock)
 
         // Khoá theo xe (cùng cơ chế với lúc chủ xe chấp nhận đơn) để "khoá ngày" và "chấp nhận đơn" không thể chạy đua nhau rồi đè lịch.
         await using var tx = await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({(long)vehicleId})", ct);
+        await Data.DbLock.AcquireVehicleAsync(db, vehicleId, ct);
 
         // Không cho khoá đè lên chuyến khách đã cọc / đang giữ chỗ
         var clash = await db.Bookings.AsNoTracking().FirstOrDefaultAsync(b =>

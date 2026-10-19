@@ -13,7 +13,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // Toàn bộ giờ trong hệ thống là giờ Việt Nam (1 múi giờ) nên dùng timestamp KHÔNG múi giờ cho đơn giản.
-        configurationBuilder.Properties<DateTime>().HaveColumnType("timestamp without time zone");
+        // (SQL Server: datetime2)
+        configurationBuilder.Properties<DateTime>().HaveColumnType(DbLock.IsSqlServer(this) ? "datetime2" : "timestamp without time zone");
         configurationBuilder.Properties<decimal>().HavePrecision(18, 0); // VNĐ không có số lẻ
     }
 

@@ -472,9 +472,9 @@ public class BookingService(
     private Task<Booking?> LoadBookingAsync(System.Linq.Expressions.Expression<Func<Booking, bool>> predicate, CancellationToken ct) =>
         db.Bookings.Include(b => b.Vehicle).ThenInclude(v => v.Owner).FirstOrDefaultAsync(predicate, ct);
 
-    /// <summary>pg_advisory_xact_lock: khoá nhẹ của PostgreSQL, tự nhả khi transaction kết thúc.</summary>
+    /// <summary>Khoá nhẹ theo xe (PostgreSQL: pg_advisory_xact_lock; SQL Server: sp_getapplock), tự nhả khi transaction kết thúc.</summary>
     private Task LockVehicleAsync(int vehicleId, CancellationToken ct) =>
-        db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({(long)vehicleId})", ct);
+        Data.DbLock.AcquireVehicleAsync(db, vehicleId, ct);
 
     /// <summary>Cập nhật trạng thái "theo thời gian": hết hạn, hoặc kiểm tra PayOS xem khách đã trả tiền chưa.</summary>
     private async Task RefreshStateAsync(Booking b, CancellationToken ct)
