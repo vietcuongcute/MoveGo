@@ -22,6 +22,10 @@
       dotnet publish MoveGo.Web -c Release -p:EmbedApi=true -o publish
     Khi không có EmbedApi, hai dự án vẫn chạy riêng như bình thường.
   -->
+  <!-- "dotnet publish" mặc định gộp API (để Git deploy của MonsterASP chạy được 1 website). Build/chạy khi lập trình vẫn tách 2 dự án. Tắt bằng -p:EmbedApi=false -->
+  <PropertyGroup Condition="'$(EmbedApi)' == '' And '$(_IsPublishing)' == 'true'">
+    <EmbedApi>true</EmbedApi>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(EmbedApi)' == 'true'">
     <DefineConstants>$(DefineConstants);EMBED_API</DefineConstants>
   </PropertyGroup>
